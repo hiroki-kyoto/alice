@@ -1,4 +1,4 @@
-// CG_BITMAP.H
+// BITMAP.H
 #ifndef BITMAP_H
 #define BITMAP_H
 
