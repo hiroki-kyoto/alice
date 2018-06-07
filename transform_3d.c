@@ -3,21 +3,22 @@
 #include <math.h>
 #include "bitmap.h"
 
-#define SCREEN_X 800
-#define SCREEN_Y 600
+#define SCREEN_X 1920
+#define SCREEN_Y 1080
 #define PI 3.1415926
+#define SUBPIXEL 1
 
 // have to be both on range of [-1,1]
 float cosine(float x){
-    return cos(8.0*PI*x)/4;
+    return x*cos(32.0*PI*x)/2;
 }
 
 // the equation to draw
 int equation_satisified(
     float (*f)(float), 
-    int x, 
-    int y, 
-    int pen_width
+    float x, 
+    float y, 
+    float pen_width
 ){
     float ry;
     ry = (*f)(2.0*x/SCREEN_X - 1); // in range of [-1, 1]
@@ -32,14 +33,14 @@ int equation_satisified(
 void test_draw_curve()
 {
 	pixel data[SCREEN_X*SCREEN_Y];
-	for ( int i=0; i<SCREEN_Y; i++)
+	for ( int i=0; i<SUBPIXEL*SCREEN_Y; i++)
 	{
-		for ( int j=0; j<SCREEN_X; j++)
+		for ( int j=0; j<SUBPIXEL*SCREEN_X; j++)
 		{
-			if (equation_satisified(cosine, j, i, 2))
-				data[i*SCREEN_X+j] = 0x00ff00;
+			if (equation_satisified(cosine, 1.0*j/SUBPIXEL, 1.0*i/SUBPIXEL, 8.0))
+				data[i/SUBPIXEL*SCREEN_X+j/SUBPIXEL] = 0x00ff00;
 			else
-				data[i*SCREEN_X+j] = 0x000000;
+				data[i/SUBPIXEL*SCREEN_X+j/SUBPIXEL] = 0x000000;
 		}
 	}
 	// save pixel array into file
