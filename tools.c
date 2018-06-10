@@ -7,7 +7,7 @@
 // r : radius of ball
 // c : center of ball position from the origin
 // f : focus distance
-int set_world_depth(
+void set_world_depth(
     float * world_depth, 
     int h, 
     int w, 
@@ -41,7 +41,7 @@ int set_world_depth(
 }
 
 
-int set_pixel_map(
+void set_pixel_map(
     __uint8_t * color_ptr,
     float * depth_ptr,
     int h,
@@ -78,6 +78,18 @@ int set_pixel_map(
             }
         }
     }
+}
+
+void transform(
+    float * depth, 
+    __uint8_t * color, 
+    int h, 
+    int w, 
+    float dx,
+    float dy,
+    float dz
+){
+    // 
 }
 
 
