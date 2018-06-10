@@ -82,14 +82,43 @@ void set_pixel_map(
 
 void transform(
     float * depth, 
+    float * depth_new,
     __uint8_t * color, 
+    __uint8_t * color_new,
     int h, 
     int w, 
+    float f,
     float dx,
     float dy,
     float dz
 ){
-    // 
+    int i, j;
+    int x, y;
+    float z;
+    
+    for(i=0; i<h*w; ++i){
+        depth_new[i] = -1;
+        color_new[3*i] = 0;
+        color_new[3*i+1] = 0;
+        color_new[3*i+2] = 0;
+    }
+    
+    for(i=0; i<h; ++i){
+        for(j=0; j<w; ++j){
+            z = depth[i*w+j];
+            x = (int)(((j-w/2)*z-dx*f)/(z-dz) + w/2);
+            y = (int)(((i-h/2)*z-dy*f)/(z-dz) + h/2);
+            z -= dz;
+            if(x>=0 && x<w && y>=0 && y<h){
+                if(depth_new[y*w+x]<=0 || z<depth_new[y*w+x]){
+                    depth_new[y*w+x] = z;
+                    color_new[y*w*3+x*3] = color[i*w*3+j*3];
+                    color_new[y*w*3+x*3+1] = color[i*w*3+j*3+1];
+                    color_new[y*w*3+x*3+2] = color[i*w*3+j*3+2];
+                }
+            }
+        }
+    }
 }
 
 
