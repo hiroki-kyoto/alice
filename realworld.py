@@ -54,9 +54,9 @@ def main():
         c_int(h),
         c_int(w),
         c_float(f),
+        c_float(30),
         c_float(0),
-        c_float(0),
-        c_float(1))
+        c_float(-30))
     
     #world_color = world_color_new
     #world_depth = world_depth_new

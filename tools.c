@@ -106,6 +106,7 @@ void transform(
     for(i=0; i<h; ++i){
         for(j=0; j<w; ++j){
             z = depth[i*w+j];
+            if(z-dz<=0 || z<=0) continue;
             x = (int)(((j-w/2)*z-dx*f)/(z-dz) + w/2);
             y = (int)(((i-h/2)*z-dy*f)/(z-dz) + h/2);
             z -= dz;
