@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 
 // A camera and a half of ball which is not solid 
 // world_depth : the depth matrix
@@ -122,6 +123,18 @@ void transform(
     }
 }
 
+
+void copy(
+    float * depth, 
+    float * depth_new, 
+    __uint8_t * color,
+    __uint8_t * color_new,
+    int h, 
+    int w
+){
+    memcpy(depth, depth_new, sizeof(float)*h*w);
+    memcpy(color, color_new, sizeof(__uint8_t)*h*w*3);
+}
 
 int change_hair_color(__uint8_t * data, int h, int w, int c){
     int i, j, strides[2]; 

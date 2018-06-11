@@ -4,6 +4,7 @@
 import cv2 as cv
 import numpy as np
 from ctypes import *
+import time
 
 def main():
     w, h = 800, 600
@@ -54,18 +55,38 @@ def main():
         c_int(h),
         c_int(w),
         c_float(f),
-        c_float(30),
         c_float(0),
-        c_float(-30))
-    
-    #world_color = world_color_new
-    #world_depth = world_depth_new
-    
+        c_float(-100),
+        c_float(0))
+    tools.copy(
+        depth_ptr, 
+        depth_ptr_new,
+        color_ptr,
+        color_ptr_new,
+        c_int(h),
+        c_int(w))
+    i=0
+    t_beg = time.clock()
     while True:
+        # transform the 3d world
+        tools.transform(
+            depth_ptr,
+            depth_ptr_new,
+            color_ptr,
+            color_ptr_new,
+            c_int(h),
+            c_int(w),
+            c_float(f),
+            c_float(0),
+            c_float(0),
+            c_float(i))
+        i += 1
+           
         cv.imshow('3D World', world_color_new)
         if cv.waitKey(1) & 0xFF==ord('q'):
             break
-    
+    t_end = time.clock()
+    print 1.0*i/(t_end-t_beg), ' FPS'
     cv.destroyAllWindows()
 
 main()
