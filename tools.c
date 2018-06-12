@@ -35,7 +35,7 @@ void set_world_depth(
             if(delta<0){
                 world_depth[i*w+j] = -1.0; // a negative value means infinity
             } else {
-                world_depth[i*w+j] = 1.0/(t+1)*(c+sqrt(delta));
+                world_depth[i*w+j] = 1.0/(t+1)*(c-sqrt(delta));
             }
         }
     }

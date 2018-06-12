@@ -46,28 +46,17 @@ def main():
         c_int(50),
         c_int(50))
     
-    # transform the 3d world
-    tools.transform(
-        depth_ptr,
-        depth_ptr_new,
-        color_ptr,
-        color_ptr_new,
-        c_int(h),
-        c_int(w),
-        c_float(f),
-        c_float(0),
-        c_float(-100),
-        c_float(0))
-    tools.copy(
-        depth_ptr, 
-        depth_ptr_new,
-        color_ptr,
-        color_ptr_new,
-        c_int(h),
-        c_int(w))
     i=0
+    paused = 0
     t_beg = time.clock()
     while True:
+        key = cv.waitKey(1) & 0xFF
+        if key==ord('q'):
+            break
+        if key==ord('p'):
+            paused = 1 - paused
+        if paused:
+            continue
         # transform the 3d world
         tools.transform(
             depth_ptr,
@@ -77,14 +66,13 @@ def main():
             c_int(h),
             c_int(w),
             c_float(f),
-            c_float(0),
-            c_float(0),
-            c_float(i))
-        i += 1
-           
+            c_float(i),
+            c_float(i),
+            c_float(-0.1*i))
+        
+        i += 1   
         cv.imshow('3D World', world_color_new)
-        if cv.waitKey(1) & 0xFF==ord('q'):
-            break
+        
     t_end = time.clock()
     print 1.0*i/(t_end-t_beg), ' FPS'
     cv.destroyAllWindows()
