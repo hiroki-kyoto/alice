@@ -1,5 +1,11 @@
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void seed(__uint32_t t){
+    srand(t);
+}
 
 // A camera and a half of ball which is not solid 
 // world_depth : the depth matrix
@@ -41,6 +47,37 @@ void set_world_depth(
     }
 }
 
+// randomize the depth matrix for the world
+void rand_world_depth(
+    float * world_depth,
+    int h,
+    int w, 
+    float r,
+    float c, 
+    float f
+){
+    int i, j, k;
+    int up, down, left, right;
+    
+    for(i=0; i<h; ++i){
+        for(j=0; j<w; ++j){
+            world_depth[i*w+j] = rand()%1000;
+        }
+    }
+    
+    // make the world smoother
+    for(k=0; k<50; ++k){
+        for(i=0; i<h; ++i){
+            for(j=0; j<w; ++j){
+                up = fmin(i+1, h);
+                down = fmax(i-1, 0);
+                right = fmin(j+1, w);
+                left = fmax(j-1, 0);
+                world_depth[i*w+j] = (world_depth[up*w+left] + world_depth[up*w+j] + world_depth[up*w+right] + world_depth[i*w+left] + world_depth[i*w+right] + world_depth[down*w+left] + world_depth[down*w+j] + world_depth[down*w+right])/8.0;
+            }
+        }
+    }
+}
 
 void set_pixel_map(
     __uint8_t * color_ptr,
@@ -76,6 +113,40 @@ void set_pixel_map(
                 color_ptr[i*w*3+j*3] = 0;
                 color_ptr[i*w*3+j*3+1] = 0;
                 color_ptr[i*w*3+j*3+2] = 0;
+            }
+        }
+    }
+}
+
+// color_ptr : RGB matrix pointer in 1-D array
+// depth_ptr : depth matrix pointer in 1-D array
+void rand_pixel_map(
+    __uint8_t * color_ptr,
+    float * depth_ptr,
+    int h,
+    int w
+){
+    int i, j, k;
+    int up, down, left, right;
+    
+    for(i=0; i<h; ++i){
+        for(j=0; j<w; ++j){
+            color_ptr[i*w*3+j*3] = rand()%256;
+            color_ptr[i*w*3+j*3+1] = rand()%256;
+            color_ptr[i*w*3+j*3+2] = rand()%256;
+        }
+    }
+    
+    for(k=0; k<5; ++k){
+        for(i=0; i<h; ++i){
+            for(j=0; j<w; ++j){
+                up = fmin(i+1, h);
+                down = fmax(i-1, 0);
+                right = fmin(j+1, w);
+                left = fmax(j-1, 0);
+                color_ptr[i*w*3+j*3] = (color_ptr[up*w*3+left*3] + color_ptr[up*w*3+j*3] + color_ptr[up*w*3+right*3] + color_ptr[i*w*3+left*3] + color_ptr[i*w*3+right*3] + color_ptr[down*w*3+left*3] + color_ptr[down*w*3+j*3] + color_ptr[down*w*3+right*3])/8.0;
+                color_ptr[i*w*3+j*3+1] = (color_ptr[up*w*3+left*3+1] + color_ptr[up*w*3+j*3+1] + color_ptr[up*w*3+right*3+1] + color_ptr[i*w*3+left*3+1] + color_ptr[i*w*3+right*3+1] + color_ptr[down*w*3+left*3+1] + color_ptr[down*w*3+j*3+1] + color_ptr[down*w*3+right*3+1])/8.0;
+                color_ptr[i*w*3+j*3+2] = (color_ptr[up*w*3+left*3+2] + color_ptr[up*w*3+j*3+2] + color_ptr[up*w*3+right*3+2] + color_ptr[i*w*3+left*3+2] + color_ptr[i*w*3+right*3+2] + color_ptr[down*w*3+left*3+2] + color_ptr[down*w*3+j*3+2] + color_ptr[down*w*3+right*3+2])/8.0;
             }
         }
     }

@@ -67,14 +67,14 @@ def main():
             c_int(w),
             c_float(f),
             c_float(i),
-            c_float(i),
-            c_float(-0.1*i))
+            c_float(0),
+            c_float(-i))
         
         i += 1   
         cv.imshow('3D World', world_color_new)
         
     t_end = time.clock()
-    print 1.0*i/(t_end-t_beg), ' FPS'
+    print int(1.0*i/(t_end-t_beg)), 'FPS'
     cv.destroyAllWindows()
 
 main()
