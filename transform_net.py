@@ -23,23 +23,27 @@ def create():
         world_depth = np.ascontiguous(world_depth, world_depth.dtype)
     return world_color, world_depth
 
-def generate(world_color, world_depth):
-    color_ptr = cast(world_color.ctypes.data, POINTER(c_float))
+def generate(
+    world_color_new, 
+    world_depth_new, 
+    world_color, 
+    world_depth):
+    color_ptr = cast(world_color.ctypes.data, POINTER(c_uint8))
     depth_ptr = cast(world_depth.ctypes.data, POINTER(c_float))
+    color_ptr_new = cast(world_color_new.ctypes.data, POINTER(c_uint8))
+    depth_ptr_new = cast(world_depth_new.ctypes.data, POINTER(c_float))
     # initialize the real world
-    tools.rand_world_depth(
+    tools.rand_world(
+        depth_ptr_new,
+        color_ptr_new,
         depth_ptr, 
+        color_ptr,
         c_int(h), 
         c_int(w), 
         c_float(450), 
         c_float(500),
-        c_float(f))
-    # initialize the pixel map
-    tools.rand_pixel_map(
-        color_ptr,
-        depth_ptr,
-        c_int(h),
-        c_int(w))
+        c_float(f),
+        c_int(10))
 
 def transform(
     world_color_new, 
@@ -67,14 +71,21 @@ def transform(
         c_float(dz))
    
 def test():
-    tools.seed(3748)
+    tools.seed(123)
     world_color, world_depth = create()
     world_color_new, world_depth_new = create()
-    generate(world_color, world_depth)
+    generate(
+        world_color_new, 
+        world_depth_new,
+        world_color, 
+        world_depth)
     i=0
     paused = 0
+    v = 10
     t_beg = time.clock()
+    cntr = 0
     while True:
+        cntr += 1
         key = cv.waitKey(1) & 0xFF
         if key==ord('q'):
             break
@@ -88,13 +99,19 @@ def test():
             world_color, 
             world_depth,
             i,
-            0,
-            300)
-        i += 3
+            i,
+            500)
+        i += v
+        if i==2000:
+            v = -v
+        elif i==-2000:
+            v = -v
+        else:
+            pass
         cv.imshow('3D World', world_color_new)
         
     t_end = time.clock()
-    print int(1.0*i/(t_end-t_beg)), 'FPS'
+    print int(1.0*cntr/(t_end-t_beg)), 'FPS'
     cv.destroyAllWindows()
 
 def build_net():
