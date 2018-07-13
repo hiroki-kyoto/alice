@@ -10,9 +10,17 @@ w, h = 800, 600
 f = 100
 '''---------------------------------'''
 tools = cdll.LoadLibrary('./libtools.so')
+pi = 3.1415926
 
 def seed(t):
     tools.seed(c_uint32(t))
+
+def copy(world_depth_new, world_color_new, world_depth, world_color):
+    color_ptr = cast(world_color.ctypes.data, POINTER(c_uint8))
+    depth_ptr = cast(world_depth.ctypes.data, POINTER(c_float))
+    color_ptr_new = cast(world_color_new.ctypes.data, POINTER(c_uint8))
+    depth_ptr_new = cast(world_depth_new.ctypes.data, POINTER(c_float))
+    tools.copy(depth_ptr_new, color_ptr_new, depth_ptr, color_ptr, c_int(h), c_int(w)) 
 
 def create():
     world_color = np.zeros([h, w, 3], dtype=np.uint8)
@@ -43,7 +51,24 @@ def generate(
         c_float(450), 
         c_float(500),
         c_float(f),
-        c_int(10))
+        c_int(0))
+    '''
+    tools.set_world_depth(
+        depth_ptr,
+        c_int(h),
+        c_int(w),
+        c_float(450),
+        c_float(500),
+        c_float(f)
+    )
+    tools.set_pixel_map(
+        color_ptr,
+        depth_ptr,
+        c_int(h),
+        c_int(w),
+        c_int(30),
+        c_int(30)
+    )'''
 
 def transform(
     world_color_new, 
@@ -69,6 +94,27 @@ def transform(
         c_float(dx),
         c_float(dy),
         c_float(dz))
+
+def rotateX(
+    world_color_new, 
+    world_depth_new, 
+    world_color, 
+    world_depth,
+    theta):
+    color_ptr = cast(world_color.ctypes.data, POINTER(c_uint8))
+    depth_ptr = cast(world_depth.ctypes.data, POINTER(c_float))
+    color_ptr_new = cast(world_color_new.ctypes.data, POINTER(c_uint8))
+    depth_ptr_new = cast(world_depth_new.ctypes.data, POINTER(c_float))
+    # transform the 3d world
+    tools.rotateX(
+        depth_ptr,
+        depth_ptr_new,
+        color_ptr,
+        color_ptr_new,
+        c_int(h),
+        c_int(w),
+        c_float(f),
+        c_float(theta))
    
 def test():
     tools.seed(123)
@@ -93,18 +139,12 @@ def test():
             paused = 1 - paused
         if paused:
             continue
-        transform(
-            world_color_new, 
-            world_depth_new, 
-            world_color, 
-            world_depth,
-            i,
-            i,
-            500)
+        #transform(world_color_new, world_depth_new, world_color, world_depth, i, 0, 0)
+        rotateX(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
         i += v
-        if i==2000:
+        if i==1800:
             v = -v
-        elif i==-2000:
+        elif i==-1800:
             v = -v
         else:
             pass

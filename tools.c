@@ -134,10 +134,26 @@ void rand_world(
     
     for(i=0; i<h; ++i){
         for(j=0; j<w; ++j){
-            depth[i*w+j] = rand()%1000;
-            color[i*w*3+j*3] = rand()%256;
-            color[i*w*3+j*3+1] = rand()%256;
-            color[i*w*3+j*3+2] = rand()%256;
+            /*depth[i*w+j] = rand()%256;
+            color[i*w*3+j*3] = depth[i*w+j];
+            color[i*w*3+j*3+1] = depth[i*w+j];
+            color[i*w*3+j*3+2] = depth[i*w+j];*/
+            if(i>=100&&i<200&&j>=100&&j<200){
+                depth[i*w+j] = 100;
+                color[i*w*3+j*3] = 200;
+                color[i*w*3+j*3+1] = 100;
+                color[i*w*3+j*3+2] = 50;
+            }else if(i>=100&&i<200&&j>=200&&j<300){
+                depth[i*w+j] = 200;
+                color[i*w*3+j*3] = 50;
+                color[i*w*3+j*3+1] = 100;
+                color[i*w*3+j*3+2] = 200;
+            }else{
+                depth[i*w+j] = -1;
+                color[i*w*3+j*3] = 0;
+                color[i*w*3+j*3+1] = 0;
+                color[i*w*3+j*3+2] = 0;
+            }
         }
     }
     
@@ -274,7 +290,7 @@ void transform(
     for(i=0; i<h; ++i){
         for(j=0; j<w; ++j){
             z = depth[i*w+j];
-            if(z-dz<=0 || z<=0) continue;
+            if(z-dz<=0||z<=0) continue;
             x = (int)(((j-w/2)*z-dx*f)/(z-dz) + w/2);
             y = (int)(((i-h/2)*z-dy*f)/(z-dz) + h/2);
             z -= dz;
@@ -291,7 +307,7 @@ void transform(
 }
 
 
-// Using Euler rotation equation
+// Rotate along axis X
 void rotateX(
     float * depth, 
     float * depth_new,
@@ -305,6 +321,8 @@ void rotateX(
     int i, j, k;
     int x, y;
     float z;
+    float ratio;
+    float sinval, cosval;
     
     for(i=0; i<h*w; ++i){
         depth_new[i] = -1;
@@ -313,13 +331,18 @@ void rotateX(
         color_new[3*i+2] = 0;
     }
     
+    // prepare dictionary for fast computation
+    sinval = sin(theta);
+    cosval = cos(theta);
+    
     for(i=0; i<h; ++i){
+        ratio = f/((i-h/2)*sinval+f*cosval);
+        y = (int)(ratio*((i-h/2)*cosval-f*sinval)+ h/2);
         for(j=0; j<w; ++j){
-            z = depth[i*w+j];
-            if(z-dz<=0 || z<=0) continue;
-            x = (int)(((j-w/2)*z-dx*f)/(z-dz) + w/2);
-            y = (int)(((i-h/2)*z-dy*f)/(z-dz) + h/2);
-            z -= dz;
+            // update the z offset
+            z = depth[i*w+j]*(cosval+sinval*(i-h/2)/f);
+            if(z<=0||depth[i*w+j]<=0) continue; // exceeds the view
+            x = (int)(ratio*(j-w/2) + w/2);
             if(x>=0 && x<w && y>=0 && y<h){
                 if(depth_new[y*w+x]<=0 || z<depth_new[y*w+x]){
                     depth_new[y*w+x] = z;
