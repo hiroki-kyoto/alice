@@ -115,6 +115,27 @@ def rotateX(
         c_int(w),
         c_float(f),
         c_float(theta))
+
+def rotateY(
+    world_color_new, 
+    world_depth_new, 
+    world_color, 
+    world_depth,
+    theta):
+    color_ptr = cast(world_color.ctypes.data, POINTER(c_uint8))
+    depth_ptr = cast(world_depth.ctypes.data, POINTER(c_float))
+    color_ptr_new = cast(world_color_new.ctypes.data, POINTER(c_uint8))
+    depth_ptr_new = cast(world_depth_new.ctypes.data, POINTER(c_float))
+    # transform the 3d world
+    tools.rotateY(
+        depth_ptr,
+        depth_ptr_new,
+        color_ptr,
+        color_ptr_new,
+        c_int(h),
+        c_int(w),
+        c_float(f),
+        c_float(theta))
    
 def test():
     tools.seed(123)
@@ -140,7 +161,8 @@ def test():
         if paused:
             continue
         #transform(world_color_new, world_depth_new, world_color, world_depth, i, 0, 0)
-        rotateX(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
+        #rotateX(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
+        rotateY(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
         i += v
         if i==1800:
             v = -v
