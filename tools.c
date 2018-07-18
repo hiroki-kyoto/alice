@@ -420,32 +420,28 @@ void rotateZ(
     float ratio;
     float sinval, cosval;
     
-    for(i=0; i<h*w; ++i){
-        depth_new[i] = -1;
-        color_new[3*i] = 0;
-        color_new[3*i+1] = 0;
-        color_new[3*i+2] = 0;
-    }
-    
     // prepare dictionary for fast computation
     sinval = sin(theta);
     cosval = cos(theta);
     
-    for(j=0; j<w; ++j){
-        ratio = f*cosval - (j-w/2)*sinval;
-        x = (int)(((j-w/2)*cosval+f*sinval)/ratio*f+w/2);
-        for(i=0; i<h; ++i){
-            // update the z offset
-            z = depth[i*w+j]*ratio/f;
-            if(z<=0||depth[i*w+j]<=0) continue; // exceeds the view
-            y = (int)((i-h/2)*f/ratio+h/2);
+    j = w*h;
+    for(i=0; i<j; ++i){
+        depth_new[i] = -1;
+        color_new[i*3] = 0;
+        color_new[i*3+1] = 0;
+        color_new[i*3+2] = 0;
+    }
+    
+    for(i=0; i<h; ++i){
+        for(j=0; j<w; ++j){
+            if(depth[i*w+j]<=0) continue; // exceeds the view
+            x = (int)((j-w/2)*cosval-(i-h/2)*sinval+w/2);
+            y = (int)((i-h/2)*cosval+(j-w/2)*sinval+h/2);
             if(x>=0 && x<w && y>=0 && y<h){
-                if(depth_new[y*w+x]<=0 || z<depth_new[y*w+x]){
-                    depth_new[y*w+x] = z;
-                    color_new[y*w*3+x*3] = color[i*w*3+j*3];
-                    color_new[y*w*3+x*3+1] = color[i*w*3+j*3+1];
-                    color_new[y*w*3+x*3+2] = color[i*w*3+j*3+2];
-                }
+                depth_new[y*w+x] = depth[i*w+j];
+                color_new[y*w*3+x*3] = color[i*w*3+j*3];
+                color_new[y*w*3+x*3+1] = color[i*w*3+j*3+1];
+                color_new[y*w*3+x*3+2] = color[i*w*3+j*3+2];                
             }
         }
     }
