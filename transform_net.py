@@ -181,9 +181,9 @@ def test():
             paused = 1 - paused
         if paused:
             continue
-        #transform(world_color_new, world_depth_new, world_color, world_depth, i, 0, 0)
+        transform(world_color_new, world_depth_new, world_color, world_depth, i, 0, 0)
         #rotateX(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
-        rotateY(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
+        #rotateY(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
         #rotateZ(world_color_new, world_depth_new, world_color, world_depth, i/1800.0*pi)
         i += v
         if i==1800:
@@ -199,6 +199,7 @@ def test():
     cv.destroyAllWindows()
 
 def build_net():
+    
     pass
     
 test()

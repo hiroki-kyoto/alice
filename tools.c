@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define RENDER_LEVEL 5
+#define SUBPIXELS 10
+
 void seed(__uint32_t t){
     srand(time(NULL));
 }
@@ -318,7 +321,8 @@ void rotateX(
     float f,
     float theta
 ){
-    int i, j, k;
+    int i, j, k, n;
+    float x0, y0;
     int x, y;
     float z;
     float ratio;
@@ -334,6 +338,29 @@ void rotateX(
     // prepare dictionary for fast computation
     sinval = sin(theta);
     cosval = cos(theta);
+    /*
+    n = RENDER_LEVEL * h * w;
+    for(k=0; k<n; ++k){
+        x0 = (rand()%(SUBPIXELS*w))*1.0/SUBPIXELS;
+        y0 = (rand()%(SUBPIXELS*h))*1.0/SUBPIXELS;
+        i = floor(y0);
+        j = floor(x0);
+        j = x0-j<0.5?j:j+1;
+        i = y0-i<0.5?i:i+1;
+        ratio = f/((y0-h/2)*sinval + f*cosval);
+        x = (int)(ratio*(x0-w/2) + w/2);
+        y = (int)(ratio*((y0-h/2)*cosval - f*sinval) + h/2);
+        z = depth[i*w+j]*(cosval+sinval*(y0-h/2)/f);
+        if(z<=0||depth[i*w+j]<=0) continue; // exceeds the view
+        if(x>=0 && x<w && y>=0 && y<h){
+            if(depth_new[y*w+x]<=0 || z<depth_new[y*w+x]){
+                depth_new[y*w+x] = z;
+                color_new[y*w*3+x*3] = color[i*w*3+j*3];
+                color_new[y*w*3+x*3+1] = color[i*w*3+j*3+1];
+                color_new[y*w*3+x*3+2] = color[i*w*3+j*3+2];
+            }
+        }
+    }*/
     
     for(i=0; i<h; ++i){
         ratio = f/((i-h/2)*sinval+f*cosval);
@@ -353,6 +380,7 @@ void rotateX(
             }
         }
     }
+    
 }
 
 // Rotate along axis Y
