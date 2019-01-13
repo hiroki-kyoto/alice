@@ -1,12 +1,21 @@
 import numpy as np
 import tensorflow as tf
 
+
 # the activation function
-def g(x):
-    assert len(x.shape)==1
+def g_1(x):
+    assert len(x.shape) == 1
     rand = tf.random_uniform([x.shape.as_list()[0]], dtype=tf.float32)
-    t = x - rand
+    t = tf.nn.sigmoid(x) - rand
     return 0.5*(1 + t / (tf.abs(t) + 1e-8))
+
+
+def g_2(x):
+    return tf.nn.sigmoid(x)
+
+
+def g(x):
+    return tf.nn.leaky_relu(x)
 
 
 def merge(inputs, weights):
@@ -36,39 +45,56 @@ class RealNN(object):
         self.in_dim = feats[0]
         self.inputs = tf.placeholder(shape=[self.in_dim], dtype=tf.float32)
         self.layers = [self.inputs]
-        for i in range(1,len(feats)):
+        self.before_act = []
+        self.alpha = 0.0
+        self.reg = None
+        self.opt = None
+        self.loss = None
+        self.minimizer = None
+        self.sess = None
+        for i in range(1, len(feats)):
             w = tf.get_variable(initializer=rand_init([feats[i], feats[i-1]]), name='L%dW' % i)
             self.weights.append(w)
             b = tf.get_variable(initializer=rand_init([feats[i]]), name='L%dB' % i)
             self.biases.append(b)
-            self.layers.append(g(merge(self.layers[-1], w)+b))
+            if i==len(feats)-1:
+                self.layers.append(merge(self.layers[-1], w)+b)
+            else:
+                self.before_act.append(merge(self.layers[-1], w)+b)
+                self.layers.append(g(self.before_act[-1]))
         self.out_dim = feats[-1]
         self.outputs = self.layers[-1]
         self.truth = tf.placeholder(shape=[self.out_dim], dtype=tf.float32)
     
     def train(self, x, y, max_iter):
-        self.opt = tf.train.GradientDescentOptimizer(learning_rate=1e-1)
+        self.opt = tf.train.GradientDescentOptimizer(learning_rate=1e-2)
         self.loss = tf.reduce_mean(tf.abs(self.truth - self.outputs))
-        self.minimizer = self.opt.minimize(self.loss)
+        self.reg = 0.00
+        for i in range(len(self.before_act)):
+            self.reg = self.reg + tf.reduce_mean(tf.maximum(tf.abs(self.before_act[i])-3.0, 0))
+        self.reg = self.reg / len(self.before_act)
+        self.minimizer = self.opt.minimize((1-self.alpha)*self.loss + self.alpha*self.reg)
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(tf.global_variables())
         _cnt = 0
         while _cnt < max_iter:
             ind = np.random.randint(0, len(x), [])
-            _, _loss, _output = self.sess.run([self.minimizer, self.loss, self.weights[-1]], 
-                    feed_dict={
-                        self.inputs: x[ind],
-                        self.truth: y[ind]
-                        })
-            print('ITR# %d\t LOSS=%.6f' % (_cnt, _loss))
-            print(_output)
+            _, _loss, _reg, _output = self.sess.run(
+                [self.minimizer, self.loss, self.reg, self.layers[-1]],
+                feed_dict={
+                    self.inputs: x[ind],
+                    self.truth: y[ind]
+                })
+            print('ITR# %d\t LOSS=%.6f REG=%.6f' % (_cnt, _loss, _reg))
+            #print(_output)
             _cnt += 1
         saver.save(self.sess, 'models/model.ckpt')
         print('model saved to path: models/....')
 
     def infer(self, x):
         return None
+
 
 def int2bins(x):
     x = np.uint8(x)
@@ -96,12 +122,12 @@ def observe(size):
         if x[i,0] > x[i, 1]:
             _y[i, 0] = 0
             _y[i, 1] = 1
-        elif x[i, 0] < x[i, 1]:
+        elif x[i, 0] <= x[i, 1]:
             _y[i, 0] = 1
             _y[i, 1] = 0
-        else:
-            _y[i, 0] = 1
-            _y[i, 1] = 1
+        # else:
+        #     _y[i, 0] = 1
+        #     _y[i, 1] = 1
     return _x, _y
 
 
@@ -114,9 +140,11 @@ def check_acc(y, y_i):
 
 
 if __name__ == '__main__':
-    nn = RealNN([16,5,2])
-    x, y = observe(1)
-    nn.train(x, y, 100)
+    nn = RealNN([16, 32, 16, 8, 2])
+    x, y = observe(10)
+    print(x)
+    print(y)
+    nn.train(x, y, 100000)
     #x, y = observe(10)
     #y_i = nn.infer(x)
     #check_acc(y_i, y)
