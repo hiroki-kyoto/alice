@@ -33,15 +33,26 @@ class RLNN(object):
                 self.params_.append(np.zeros([dims[i], dims[i-1]], dtype=np.int8))
         print('Building model done.')
 
-    def forward(self):
+    def forward(self, x):
+        self.layers_[0] = x
         for i in range(len(self.dims_)-1):
             self.layers_[i+1] = activate(np.dot(self.params_[i], self.layers_[i]))
+
+    def train(self, samples):
+        for x_, y_ in samples:
+            self.forward(x_)
+            reward_ = self.layers_[-1] == y_
+            if reward_.any():
+
+
+
+
+
 
 
 if __name__ == '__main__':
     nn = RLNN([16, 8, 4, 2])
-    nn.layers_[0] = np.random.randint(0, 2, [nn.dims_[0]], dtype=np.uint8)
-    nn.forward()
+    nn.forward(np.random.randint(0, 2, [nn.dims_[0]], dtype=np.uint8))
     print(nn.layers_[0])
     print(nn.layers_[1])
     print(nn.layers_[2])
