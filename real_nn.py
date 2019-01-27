@@ -125,9 +125,9 @@ def observe(size):
         elif x[i, 0] <= x[i, 1]:
             _y[i, 0] = 1
             _y[i, 1] = 0
-        # else:
-        #     _y[i, 0] = 1
-        #     _y[i, 1] = 1
+        else:
+            _y[i, 0] = 1
+            _y[i, 1] = 1
     return _x, _y
 
 
