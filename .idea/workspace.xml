@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="" />
+    <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/build_concept.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -11,21 +14,12 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/rlnn.py">
+        <entry file="file://$PROJECT_DIR$/build_concept.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="24" column="17" lean-forward="true" selection-start-line="24" selection-start-column="17" selection-end-line="24" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/real_nn.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3075">
-              <caret line="124" column="32" selection-start-line="124" selection-start-column="32" selection-end-line="124" selection-end-column="32" />
+            <state relative-caret-position="673">
+              <caret line="54" column="14" lean-forward="true" selection-start-line="54" selection-start-column="14" selection-end-line="54" selection-end-column="14" />
               <folding>
-                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#19#37#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -54,6 +48,7 @@
       <list>
         <option value="$PROJECT_DIR$/real_nn.py" />
         <option value="$PROJECT_DIR$/rlnn.py" />
+        <option value="$PROJECT_DIR$/build_concept.py" />
       </list>
     </option>
   </component>
@@ -106,7 +101,28 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.rlnn">
+  <component name="RunManager" selected="Python.build_concept">
+    <configuration name="build_concept" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Alice" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/build_concept.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="real_nn" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Alice" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -151,6 +167,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.build_concept" />
         <item itemvalue="Python.rlnn" />
         <item itemvalue="Python.real_nn" />
       </list>
@@ -171,14 +188,13 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17913593" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.9315069" weight="0.42361864" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.9315069" weight="0.3943662" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -186,7 +202,7 @@
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49841937" weight="0.32936078" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50052685" side_tool="true" weight="0.32936078" />
-      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49947312" weight="0.32936078" />
+      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49947312" weight="0.3997833" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -195,17 +211,27 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/rlnn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="24" column="17" lean-forward="true" selection-start-line="24" selection-start-column="17" selection-end-line="24" selection-end-column="17" />
+        <state relative-caret-position="425">
+          <caret line="50" column="29" lean-forward="true" selection-start-line="50" selection-start-column="29" selection-end-line="50" selection-end-column="29" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/real_nn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3075">
+        <state relative-caret-position="823">
           <caret line="124" column="32" selection-start-line="124" selection-start-column="32" selection-end-line="124" selection-end-column="32" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build_concept.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="673">
+          <caret line="54" column="14" lean-forward="true" selection-start-line="54" selection-start-column="14" selection-end-line="54" selection-end-column="14" />
+          <folding>
+            <element signature="e#19#37#0" expanded="true" />
           </folding>
         </state>
       </provider>
