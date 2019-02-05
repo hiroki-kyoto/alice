@@ -10,12 +10,12 @@ bias = 0.5
 
 
 def f(x):
-    # return np.minimum(np.maximum(x, 0), 1)
-    return np.maximum(x, 0)
+    return np.minimum(np.maximum(x, 0), 1)
+    # return np.maximum(x, 0)
 
 
 def rand_trans_matrix(n):
-    conns_ = 0.5*(np.random.rand(n, n) - 0.5)
+    conns_ = 2*(np.random.rand(n, n) - 0.5)
     diag_ = 1 - np.diag([1]*n)
     return conns_ * diag_
 
@@ -25,7 +25,7 @@ def rand_init_states(n):
 
 
 def trans(x, x0, w):
-    return (x0 - bias) + w.dot(f(x))
+    return (x0 - bias) + w.dot(f(x))/len(x)
 
 
 def sparsity(x):
@@ -34,9 +34,9 @@ def sparsity(x):
 
 
 if __name__ == '__main__':
-    N = 10
-    repeats = 100
-    steps = 10
+    N = 32
+    repeats = 1000
+    steps = 5
     errs_ = np.zeros([repeats, steps])
     spa_inc_ = np.zeros([repeats])
     for k in range(repeats):
