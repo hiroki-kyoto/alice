@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/macro2micro_image2class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macro2micro_image2class.py" beforeDir="false" afterPath="$PROJECT_DIR$/macro2micro_image2class.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/macro2micro_image2class.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="8" lean-forward="true" selection-start-line="8" selection-end-line="8" />
+            <state relative-caret-position="220">
+              <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
               <folding>
                 <element signature="e#40#58#0" expanded="true" />
               </folding>
@@ -194,7 +193,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17913593" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -245,8 +243,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/macro2micro_image2class.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="176">
-          <caret line="8" lean-forward="true" selection-start-line="8" selection-end-line="8" />
+        <state relative-caret-position="220">
+          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
           <folding>
             <element signature="e#40#58#0" expanded="true" />
           </folding>
