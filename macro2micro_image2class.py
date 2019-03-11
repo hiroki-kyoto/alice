@@ -38,6 +38,26 @@ def recursive_split(input_, depth_):
     return tf.concat(all_splits, axis=0)
 
 
+def point_conv2d(input_, out_channels, scope):
+    with tf.variable_scope(name_or_scope=scope, reuse=tf.AUTO_REUSE):
+        w_ = tf.get_variable(
+            name='w',
+            shape=[1, 1, input_.shape.as_list()[-1], out_channels],
+            dtype=tf.float32,
+            initializer=tf.initializers.random_normal(0.2))
+        b_ = tf.get_variable(
+            name='b',
+            shape=[out_channels],
+            dtype=tf.float32,
+            initializer=tf.initializers.constant(0.0))
+        return tf.nn.relu(tf.nn.conv2d(input_, w_, (1, 1, 1, 1), padding='SAME') + b_)
+
+
+def simple_cnn(input_):
+    return point_conv2d(point_conv2d(input_, 16, 'ptconv1'), 4, 'ptconv2')
+xxxxxxxxx
+
+
 def macro2micro_image2class(input_, depth_):
     shape_of_input = input_.shape.as_list()
     if shape_of_input[0] != 1:
@@ -55,11 +75,16 @@ def macro2micro_image2class(input_, depth_):
         print('image resized into :[%d x %d]!' % (h_, w_))
         input_ = tf.image.resize_bilinear(input_, (h_, w_))
     batches = recursive_split(input_, depth_)
-    # batches = simple_cnn(batches)
-    output_ = None
+    batches = simple_cnn(batches)
+    print(batches.shape.as_list())
+    output_ = tf.reduce_mean(batches, axis=[1, 2])
+    print(output_.shape.as_list())
     return output_
 
 
 def main():
     in_ = tf.placeholder(dtype=tf.float32, shape=[1, 32, 32, 1])
-    out_ = model_macro2micro_image2class(in_, 3)
+    out_ = macro2micro_image2class(in_, 3)
+
+
+main()
