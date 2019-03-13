@@ -2,6 +2,8 @@
 
 import numpy as np
 import tensorflow as tf
+import struct
+import os
 
 
 def recursive_split(input_, depth_):
@@ -44,7 +46,7 @@ def conv2d(input_, ksize, stride, out_channels, scope):
             name='w',
             shape=[ksize, ksize, input_.shape.as_list()[-1], out_channels],
             dtype=tf.float32,
-            initializer=tf.initializers.random_normal(0.2))
+            initializer=tf.initializers.random_normal(0.02))
         b_ = tf.get_variable(
             name='b',
             shape=[out_channels],
@@ -59,7 +61,7 @@ def fully_connect(input_, units, scope):
             name='w',
             shape=[input_.shape.as_list()[-1], units],
             dtype=tf.float32,
-            initializer=tf.initializers.random_normal(0.2))
+            initializer=tf.initializers.random_normal(0.02))
         b_ = tf.get_variable(
             name='b',
             shape=[units],
@@ -72,11 +74,11 @@ def simple_cnn(input_):
     return conv2d(conv2d(conv2d(input_, 2, 1, 16, 'conv1'), 2, 1, 4, 'conv2'), 2, 1, 1, 'conv3')
 
 
-def simple_classfier(input_):
-    return fully_connect(fully_connect(input_, 2, 'fc1'), 10, 'fc2')
+def simple_classfier(input_, classes):
+    return fully_connect(fully_connect(input_, 2, 'fc1'), classes, 'fc2')
 
 
-def macro2micro_image2class(input_, depth_):
+def macro2micro_image2class(input_, depth_, classes):
     shape_of_input = input_.shape.as_list()
     if shape_of_input[0] != 1:
         print('Such network only support single batch!!!')
@@ -98,18 +100,60 @@ def macro2micro_image2class(input_, depth_):
     output_ = tf.reduce_mean(batches, axis=[1, 2])
     print(output_.shape.as_list())
     output_ = tf.transpose(output_, perm=[1, 0])
-    output_ = simple_classfier(output_)
+    output_ = simple_classfier(output_, classes)
     print(output_.shape.as_list())
     return output_
 
 
-def main():
-    in_ = tf.placeholder(dtype=tf.float32, shape=[1, 32, 32, 1])
-    out_ = macro2micro_image2class(in_, 3)
-    sess = tf.Session()
-    saver = tf.train.Saver()
+def read_images(path):
+    with open(path, 'rb') as f:
+        magic, num, rows, cols = struct.unpack('>4I', f.read(16))
+        assert rows == 28
+        assert cols == 28
+        return np.float32(np.fromfile(f, dtype=np.uint8)).reshape(num, rows, cols)/255.0
 
+
+def read_labels(path):
+    with open(path, 'rb') as f:
+        _, num = struct.unpack('>2I', f.read(8))
+        labels = np.zeros([num, 10])
+        ids = np.fromfile(f, dtype=np.uint8)
+        for i in range(num):
+            labels[i, ids[i]] = 1.0
+        return labels
+
+
+if __name__ == '__main__':
     # load the dataset
+    data_dir = 'E:/CodeHub/Datasets/MNIST'
+    train_image_path = os.path.join(data_dir, 'train-images.idx3-ubyte')
+    train_label_path = os.path.join(data_dir, 'train-labels.idx1-ubyte')
+    ims = read_images(train_image_path)
+    lbs = read_labels(train_label_path)
+    # build the network
+    t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
+    t_out_ = macro2micro_image2class(t_in_, 3, lbs.shape[1])
+    t_feedback = tf.placeholder(dtype=tf.float32, shape=[1, lbs.shape[1]])
+    #t_loss = tf.nn.softmax_cross_entropy_with_logits_v2(onehot_labels=t_feedback, logits=t_out_)
+    t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
+    t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(t_loss)
 
+    # train the model with data
+    repeats = 600000
+    sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
+    loss_av_ = np.zeros([500], dtype=np.float32)
+    corr_ = np.zeros([500], dtype=np.float32)
+    for i in range(repeats):
+        id_ = np.random.randint(len(ims))
+        loss_, _, out_ = sess.run([t_loss, t_opt, t_out_], feed_dict={
+            t_in_: np.expand_dims(np.expand_dims(ims[id_], axis=0), axis=-1),
+            t_feedback: np.expand_dims(lbs[id_], axis=0)
+        })
+        loss_av_[i%len(loss_av_)] = loss_
+        if np.argmax(out_) == np.argmax(lbs[id_]):
+            corr_[i%len(corr_)] = 1
+        else:
+            corr_[i % len(corr_)] = 0
+        print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), np.sum(corr_)/len(corr_)))
 
-main()
