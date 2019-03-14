@@ -61,21 +61,28 @@ def fully_connect(input_, units, scope):
             name='w',
             shape=[input_.shape.as_list()[-1], units],
             dtype=tf.float32,
-            initializer=tf.initializers.random_normal(0.02))
+            initializer=tf.initializers.random_normal(0.2))
         b_ = tf.get_variable(
             name='b',
             shape=[units],
             dtype=tf.float32,
             initializer=tf.initializers.constant(0.0))
-        return tf.nn.relu(tf.matmul(input_, w_) + b_)
+        # return tf.nn.sigmoid(tf.matmul(input_, w_) + b_)
+        return tf.matmul(input_, w_) + b_
 
 
 def simple_cnn(input_):
     return conv2d(conv2d(conv2d(input_, 2, 1, 16, 'conv1'), 2, 1, 4, 'conv2'), 2, 1, 1, 'conv3')
 
 
-def simple_classfier(input_, classes):
-    return fully_connect(fully_connect(input_, 2, 'fc1'), classes, 'fc2')
+def simple_feature_extractor(input_, out_channels):
+    with tf.variable_scope(name_or_scope='simple_feature_extractor', reuse=tf.AUTO_REUSE):
+        return fully_connect(fully_connect(fully_connect(input_, 8, 'fc1'), 4, 'fc2'), out_channels, 'fc3')
+
+
+def simple_classifier(input_, classes):
+    with tf.variable_scope(name_or_scope='simple_classifier', reuse=tf.AUTO_REUSE):
+        return fully_connect(fully_connect(fully_connect(input_, 16, 'fc1'), 32, 'fc2'), classes, 'fc3')
 
 
 def macro2micro_image2class(input_, depth_, classes):
@@ -95,12 +102,15 @@ def macro2micro_image2class(input_, depth_, classes):
         print('image resized into :[%d x %d]!' % (h_, w_))
         input_ = tf.image.resize_bilinear(input_, (h_, w_))
     batches = recursive_split(input_, depth_)
-    batches = simple_cnn(batches)
+    shape_ = batches.shape.as_list()
+    print(shape_)
+    batches = tf.reshape(batches, [shape_[0], shape_[1] * shape_[2] * shape_[3]])
     print(batches.shape.as_list())
-    output_ = tf.reduce_mean(batches, axis=[1, 2])
-    print(output_.shape.as_list())
-    output_ = tf.transpose(output_, perm=[1, 0])
-    output_ = simple_classfier(output_, classes)
+    batches = simple_feature_extractor(batches, 3)
+    print(batches.shape.as_list())
+    shape_ = batches.shape.as_list()
+    batches = tf.reshape(batches, [1, shape_[0] * shape_[1]])
+    output_ = simple_classifier(batches, classes)
     print(output_.shape.as_list())
     return output_
 
@@ -123,6 +133,10 @@ def read_labels(path):
         return labels
 
 
+def dense_layer(input_, units):
+    return tf.layers.dense(input_, units, tf.nn.sigmoid, True, tf.initializers.random_normal(0.02))
+
+
 if __name__ == '__main__':
     # load the dataset
     data_dir = 'E:/CodeHub/Datasets/MNIST'
@@ -132,11 +146,21 @@ if __name__ == '__main__':
     lbs = read_labels(train_label_path)
     # build the network
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
-    t_out_ = macro2micro_image2class(t_in_, 3, lbs.shape[1])
+
+    # t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
+
+    t_vec = tf.reshape(t_in_, [1, 28*28])
+    t_out_ = dense_layer(t_vec, 8)
+    t_out_ = dense_layer(t_out_, 32)
+    t_out_ = dense_layer(t_out_, 32)
+    t_out_ = dense_layer(t_out_, 16)
+    t_out_ = dense_layer(t_out_, 10)
+
     t_feedback = tf.placeholder(dtype=tf.float32, shape=[1, lbs.shape[1]])
-    #t_loss = tf.nn.softmax_cross_entropy_with_logits_v2(onehot_labels=t_feedback, logits=t_out_)
-    t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
-    t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(t_loss)
+    # t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
+    t_loss = tf.reduce_mean(tf.abs(t_feedback - t_out_))
+    # t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(t_loss)
+    t_opt = tf.train.GradientDescentOptimizer(learning_rate=0.01).minimize(t_loss)
 
     # train the model with data
     repeats = 600000
@@ -150,10 +174,11 @@ if __name__ == '__main__':
             t_in_: np.expand_dims(np.expand_dims(ims[id_], axis=0), axis=-1),
             t_feedback: np.expand_dims(lbs[id_], axis=0)
         })
-        loss_av_[i%len(loss_av_)] = loss_
+        loss_av_[i % len(loss_av_)] = loss_
         if np.argmax(out_) == np.argmax(lbs[id_]):
-            corr_[i%len(corr_)] = 1
+            corr_[i % len(corr_)] = 1
         else:
             corr_[i % len(corr_)] = 0
+        print(np.argmax(out_))
         print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), np.sum(corr_)/len(corr_)))
 
