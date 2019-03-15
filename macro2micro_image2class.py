@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import struct
 import os
+from PIL import Image
 
 
 def recursive_split(input_, depth_):
@@ -134,7 +135,7 @@ def read_labels(path):
 
 
 def dense_layer(input_, units):
-    return tf.layers.dense(input_, units, tf.nn.sigmoid, True, tf.initializers.random_normal(0.02))
+    return tf.layers.dense(input_, units, tf.nn.tanh, True, tf.initializers.random_uniform)
 
 
 if __name__ == '__main__':
@@ -144,23 +145,28 @@ if __name__ == '__main__':
     train_label_path = os.path.join(data_dir, 'train-labels.idx1-ubyte')
     ims = read_images(train_image_path)
     lbs = read_labels(train_label_path)
+
+    # test the dataset
+    # im_ = Image.fromarray(np.uint8(ims[203] * 255))
+    # print(lbs[203])
+    # im_.show()
+    # exit(0)
+
     # build the network
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
-
     # t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
 
-    t_vec = tf.reshape(t_in_, [1, 28*28])
-    t_out_ = dense_layer(t_vec, 8)
-    t_out_ = dense_layer(t_out_, 32)
-    t_out_ = dense_layer(t_out_, 32)
+    t_in_resized = tf.image.resize_bilinear(t_in_, [8, 8])
+    t_out_ = tf.reshape(t_in_resized, [1, 8 * 8])
+    t_out_ = dense_layer(t_out_, 16)
     t_out_ = dense_layer(t_out_, 16)
     t_out_ = dense_layer(t_out_, 10)
 
     t_feedback = tf.placeholder(dtype=tf.float32, shape=[1, lbs.shape[1]])
     # t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
-    t_loss = tf.reduce_mean(tf.abs(t_feedback - t_out_))
-    # t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(t_loss)
-    t_opt = tf.train.GradientDescentOptimizer(learning_rate=0.01).minimize(t_loss)
+    t_loss = tf.reduce_mean(tf.square(t_feedback - t_out_))
+    t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(t_loss)
+    # t_opt = tf.train.GradientDescentOptimizer(learning_rate=1e-3).minimize(t_loss)
 
     # train the model with data
     repeats = 600000
@@ -179,6 +185,6 @@ if __name__ == '__main__':
             corr_[i % len(corr_)] = 1
         else:
             corr_[i % len(corr_)] = 0
-        print(np.argmax(out_))
-        print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), np.sum(corr_)/len(corr_)))
+        if i % 1000 == 0:
+            print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), np.sum(corr_)/np.minimum((i+1), len(corr_))))
 
