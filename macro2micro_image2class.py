@@ -135,7 +135,7 @@ def read_labels(path):
 
 
 def dense_layer(input_, units):
-    return tf.layers.dense(input_, units, tf.nn.tanh, True, tf.initializers.random_uniform)
+    return tf.layers.dense(tf.layers.batch_normalization(input_), units, tf.nn.tanh, True, tf.initializers.random_uniform)
 
 
 if __name__ == '__main__':
@@ -156,20 +156,21 @@ if __name__ == '__main__':
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
     # t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
 
-    t_in_resized = tf.image.resize_bilinear(t_in_, [8, 8])
-    t_out_ = tf.reshape(t_in_resized, [1, 8 * 8])
-    t_out_ = dense_layer(t_out_, 16)
-    t_out_ = dense_layer(t_out_, 16)
+    t_in_resized = tf.image.resize_bilinear(t_in_, [16, 16])
+    t_out_ = tf.reshape(t_in_resized, [1, 16 * 16])
+    t_out_ = dense_layer(t_out_, 8)
+    t_out_ = dense_layer(t_out_, 8)
+    t_out_ = dense_layer(t_out_, 8)
     t_out_ = dense_layer(t_out_, 10)
 
     t_feedback = tf.placeholder(dtype=tf.float32, shape=[1, lbs.shape[1]])
     # t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
     t_loss = tf.reduce_mean(tf.square(t_feedback - t_out_))
-    t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(t_loss)
+    t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(t_loss)
     # t_opt = tf.train.GradientDescentOptimizer(learning_rate=1e-3).minimize(t_loss)
 
     # train the model with data
-    repeats = 600000
+    repeats = 1200000
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
     loss_av_ = np.zeros([500], dtype=np.float32)
