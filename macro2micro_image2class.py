@@ -156,9 +156,8 @@ if __name__ == '__main__':
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
     # t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
 
-    t_in_resized = tf.image.resize_bilinear(t_in_, [16, 16])
-    t_out_ = tf.reshape(t_in_resized, [1, 16 * 16])
-    t_out_ = dense_layer(t_out_, 8)
+    t_in_resized = tf.image.resize_bilinear(t_in_, [4, 4])
+    t_out_ = tf.reshape(t_in_resized, [1, 4 * 4])
     t_out_ = dense_layer(t_out_, 8)
     t_out_ = dense_layer(t_out_, 8)
     t_out_ = dense_layer(t_out_, 10)
@@ -182,10 +181,15 @@ if __name__ == '__main__':
             t_feedback: np.expand_dims(lbs[id_], axis=0)
         })
         loss_av_[i % len(loss_av_)] = loss_
+        acc_ = np.sum(corr_)/np.minimum((i+1), len(corr_))
         if np.argmax(out_) == np.argmax(lbs[id_]):
             corr_[i % len(corr_)] = 1
+            if acc_ > 0.5:
+                print('Y=%.3f' % np.max(out_))
         else:
             corr_[i % len(corr_)] = 0
+            if acc_ > 0.5:
+                print('N=%.3f' % np.max(out_))
         if i % 1000 == 0:
-            print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), np.sum(corr_)/np.minimum((i+1), len(corr_))))
+            print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), acc_))
 
