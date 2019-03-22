@@ -25,6 +25,7 @@ def read_labels(path):
 def build_world():
     world = {}
     world['name'] = 'mnist'
+    world['order'] = np.arange(0, 10)
 
     data_dir = 'E:/CodeHub/Datasets/MNIST'
     train_image_path = os.path.join(data_dir, 'train-images.idx3-ubyte')
@@ -45,26 +46,52 @@ def build_world():
 
     world['display'] = select_random_images_from_1_to_10
 
-    def reward(input_, response_):
-        if np.argmax(response_) == np.argmax(lbs(input_)):
-            return +1
-        else:
-            return -1
+    def reward(ids, res):
+        score_ = 0
+        for i in range(len(ids)):
+            score_ += int(np.argmax(res[i]) == np.argmax(lbs[ids[i]]))
+        return score_
 
     world['interact'] = reward
 
+    def alter_task():
+        world['order'] = np.random.permutation(np.arange(0, 10))
+
+    world['alter'] = alter_task
 
     return world
 
 
+def generate_agent():
+    agent = {}
+    agent['name'] = 'Agent'
+    agent['age'] = 10000
+    agent['life'] = 100
+    agent['states'] = []
+    agent['controls'] = []
+
+    def update(reward_):
+        agent['life'] += reward_
+
+    def grow_old():
+        agent['age'] -= 1
+        agent['life'] -= 1
+        if agent['age'] <= 0:
+            print('Agent dead being too old.')
+        if agent['life'] <= 0:
+            print('Agent dead being too hungry.')
+
+    def observe(world):
+        ids = world['display']()
+        # run through controls and states
+
+
 if __name__ == '__main__':
     world = build_world()
-    ids = world['display']()
-    # input_ = agent['observe']()
+    # input_ = agent['observe'](world)
     # response = agent['act'](input)
     # reward_ = world['interact'](ids[i], response)
     # agent['update'](reward_)
     # agent['die']()
     # agent['recreate']()
     # ...
-    print(ids)
