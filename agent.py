@@ -65,25 +65,52 @@ def build_world():
 def generate_agent():
     agent = {}
     agent['name'] = 'Agent'
-    agent['age'] = 10000
+    agent['age'] = 0
     agent['life'] = 100
     agent['states'] = []
     agent['controls'] = []
+    agent['alive'] = True
 
     def update(reward_):
         agent['life'] += reward_
 
-    def grow_old():
-        agent['age'] -= 1
+    agent['update'] = update
+
+    def grow():
+        agent['age'] += 1
         agent['life'] -= 1
-        if agent['age'] <= 0:
+        if agent['age'] >= 10000:
+            agent['alive'] = False
             print('Agent dead being too old.')
         if agent['life'] <= 0:
+            agent['alive'] = False
             print('Agent dead being too hungry.')
+
+    agent['grow'] = grow
 
     def observe(world):
         ids = world['display']()
         # run through controls and states
+        # each bot has two acceptors: one for image input, one for label input
+        # build 28 x 28 map of input # 1, and 10 x 1 map of input # 2
+        # output is set to be the same size of input # 2
+        # but how to connect states and controls with inputs and output
+
+    agent['observe'] = observe
+
+    def recreate():
+        cond_ = True
+        cond_ = cond_ and agent['age'] >= 2000
+        cond_ = cond_ and agent['age'] <= 6000
+        cond_ = cond_ and agent['age'] % 100 == 0
+        cond_ = cond_ and agent['life'] >= 50
+        if cond_:
+            print('child created!')
+            return generate_agent()
+        else:
+            return None
+
+    agent['recreate'] = recreate
 
 
 if __name__ == '__main__':
@@ -92,6 +119,6 @@ if __name__ == '__main__':
     # response = agent['act'](input)
     # reward_ = world['interact'](ids[i], response)
     # agent['update'](reward_)
-    # agent['die']()
+    # agent['grow']()
     # agent['recreate']()
     # ...
