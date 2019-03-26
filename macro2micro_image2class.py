@@ -53,7 +53,13 @@ def conv2d(input_, ksize, stride, out_channels, scope):
             shape=[out_channels],
             dtype=tf.float32,
             initializer=tf.initializers.constant(0.0))
-        return tf.nn.relu(tf.nn.conv2d(input_, w_, (1, stride, stride, 1), padding='SAME') + b_)
+        return tf.nn.relu(
+            tf.nn.conv2d(
+                input_,
+                w_,
+                (1, stride, stride, 1),
+                padding='SAME')
+            + b_)
 
 
 def fully_connect(input_, units, scope):
@@ -69,21 +75,34 @@ def fully_connect(input_, units, scope):
             dtype=tf.float32,
             initializer=tf.initializers.constant(0.0))
         # return tf.nn.sigmoid(tf.matmul(input_, w_) + b_)
-        return tf.matmul(input_, w_) + b_
+        # return tf.matmul(input_, w_) + b_
+        return tf.nn.tanh(tf.matmul(input_, w_) + b_)
 
 
 def simple_cnn(input_):
-    return conv2d(conv2d(conv2d(input_, 2, 1, 16, 'conv1'), 2, 1, 4, 'conv2'), 2, 1, 1, 'conv3')
-
-
-def simple_feature_extractor(input_, out_channels):
-    with tf.variable_scope(name_or_scope='simple_feature_extractor', reuse=tf.AUTO_REUSE):
-        return fully_connect(fully_connect(fully_connect(input_, 8, 'fc1'), 4, 'fc2'), out_channels, 'fc3')
+    out_ = conv2d(
+        conv2d(
+            conv2d(
+                conv2d(
+                    input_, 3, 1, 16, 'conv1'),
+                3, 1, 8, 'conv2'),
+            3, 1, 4, 'conv3'),
+        3, 1, 2, 'conv4')
+    channels = out_.shape[1] * out_.shape[2] * out_.shape[3]
+    out_ = tf.reshape(out_, [out_.shape[0], channels])
+    return fully_connect(
+        fully_connect(
+            fully_connect(out_, 8, 'fc1'),
+            4, 'fc2'),
+        1, 'fc3')
 
 
 def simple_classifier(input_, classes):
-    with tf.variable_scope(name_or_scope='simple_classifier', reuse=tf.AUTO_REUSE):
-        return fully_connect(fully_connect(fully_connect(input_, 16, 'fc1'), 32, 'fc2'), classes, 'fc3')
+    return fully_connect(
+        fully_connect(
+            fully_connect(input_, 4, 'fc4'),
+            16, 'fc5'),
+        classes, 'fc6')
 
 
 def macro2micro_image2class(input_, depth_, classes):
@@ -97,17 +116,14 @@ def macro2micro_image2class(input_, depth_, classes):
     h_, w_ = shape_of_input[1], shape_of_input[2]
     shrinkage = 2 << depth_
     if h_ % shrinkage or w_ % shrinkage:
-        print('network depth setting warning: input shape does not perfectly fit into this depth!')
+        print('warning: input shape does not perfectly fit into this depth!')
         h_ = int(np.ceil(h_ / shrinkage) * shrinkage)
         w_ = int(np.ceil(w_ / shrinkage) * shrinkage)
         print('image resized into :[%d x %d]!' % (h_, w_))
         input_ = tf.image.resize_bilinear(input_, (h_, w_))
     batches = recursive_split(input_, depth_)
-    shape_ = batches.shape.as_list()
-    print(shape_)
-    batches = tf.reshape(batches, [shape_[0], shape_[1] * shape_[2] * shape_[3]])
     print(batches.shape.as_list())
-    batches = simple_feature_extractor(batches, 3)
+    batches = simple_cnn(batches)
     print(batches.shape.as_list())
     shape_ = batches.shape.as_list()
     batches = tf.reshape(batches, [1, shape_[0] * shape_[1]])
@@ -154,19 +170,18 @@ if __name__ == '__main__':
 
     # build the network
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
-    # t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
+    t_out_ = macro2micro_image2class(t_in_, 3, lbs.shape[1])
 
-    t_in_resized = tf.image.resize_bilinear(t_in_, [4, 4])
-    t_out_ = tf.reshape(t_in_resized, [1, 4 * 4])
-    t_out_ = dense_layer(t_out_, 8)
-    t_out_ = dense_layer(t_out_, 8)
-    t_out_ = dense_layer(t_out_, 10)
+    # t_in_resized = tf.image.resize_bilinear(t_in_, [4, 4])
+    # t_out_ = tf.reshape(t_in_resized, [1, 4 * 4])
+    # t_out_ = dense_layer(t_out_, 8)
+    # t_out_ = dense_layer(t_out_, 8)
+    # t_out_ = dense_layer(t_out_, 10)
 
     t_feedback = tf.placeholder(dtype=tf.float32, shape=[1, lbs.shape[1]])
     # t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
     t_loss = tf.reduce_mean(tf.square(t_feedback - t_out_))
     t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(t_loss)
-    # t_opt = tf.train.GradientDescentOptimizer(learning_rate=1e-3).minimize(t_loss)
 
     # train the model with data
     repeats = 1200000
