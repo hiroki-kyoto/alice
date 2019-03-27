@@ -68,41 +68,30 @@ def fully_connect(input_, units, scope):
             name='w',
             shape=[input_.shape.as_list()[-1], units],
             dtype=tf.float32,
-            initializer=tf.initializers.random_normal(0.2))
+            initializer=tf.initializers.random_normal(0.02))
         b_ = tf.get_variable(
             name='b',
             shape=[units],
             dtype=tf.float32,
             initializer=tf.initializers.constant(0.0))
         # return tf.nn.sigmoid(tf.matmul(input_, w_) + b_)
-        # return tf.matmul(input_, w_) + b_
-        return tf.nn.tanh(tf.matmul(input_, w_) + b_)
+        return tf.matmul(input_, w_) + b_
+        # return tf.nn.tanh(tf.matmul(input_, w_) + b_)
 
 
 def simple_cnn(input_):
-    out_ = conv2d(
-        conv2d(
-            conv2d(
-                conv2d(
-                    input_, 3, 1, 16, 'conv1'),
-                3, 1, 8, 'conv2'),
-            3, 1, 4, 'conv3'),
-        3, 1, 2, 'conv4')
+    out_ = conv2d(input_, 3, 1, 4, 'cnn/conv1')
+    out_ = conv2d(out_, 3, 1, 4, 'cnn/conv2')
     channels = out_.shape[1] * out_.shape[2] * out_.shape[3]
     out_ = tf.reshape(out_, [out_.shape[0], channels])
-    return fully_connect(
-        fully_connect(
-            fully_connect(out_, 8, 'fc1'),
-            4, 'fc2'),
-        1, 'fc3')
+    out_ = fully_connect(out_, 1, 'cnn/fc1')
+    return out_
 
 
 def simple_classifier(input_, classes):
-    return fully_connect(
-        fully_connect(
-            fully_connect(input_, 4, 'fc4'),
-            16, 'fc5'),
-        classes, 'fc6')
+    out_ = fully_connect(input_, 4, 'classifier/fc1')
+    out_ = fully_connect(out_, classes, 'classifier/fc2')
+    return out_
 
 
 def macro2micro_image2class(input_, depth_, classes):
@@ -170,7 +159,7 @@ if __name__ == '__main__':
 
     # build the network
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
-    t_out_ = macro2micro_image2class(t_in_, 3, lbs.shape[1])
+    t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
 
     # t_in_resized = tf.image.resize_bilinear(t_in_, [4, 4])
     # t_out_ = tf.reshape(t_in_resized, [1, 4 * 4])
@@ -199,12 +188,12 @@ if __name__ == '__main__':
         acc_ = np.sum(corr_)/np.minimum((i+1), len(corr_))
         if np.argmax(out_) == np.argmax(lbs[id_]):
             corr_[i % len(corr_)] = 1
-            if acc_ > 0.5:
-                print('Y=%.3f' % np.max(out_))
+            # if acc_ > 0.5:
+            #     print('Y=%.3f' % np.max(out_))
         else:
             corr_[i % len(corr_)] = 0
-            if acc_ > 0.5:
-                print('N=%.3f' % np.max(out_))
+            # if acc_ > 0.5:
+            #     print('N=%.3f' % np.max(out_))
         if i % 1000 == 0:
             print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), acc_))
 
