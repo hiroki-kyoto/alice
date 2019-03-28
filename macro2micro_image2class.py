@@ -53,7 +53,7 @@ def conv2d(input_, ksize, stride, out_channels, scope):
             shape=[out_channels],
             dtype=tf.float32,
             initializer=tf.initializers.constant(0.0))
-        return tf.nn.relu(
+        return tf.nn.leaky_relu(
             tf.nn.conv2d(
                 input_,
                 w_,
@@ -74,9 +74,7 @@ def fully_connect(input_, units, scope):
             shape=[units],
             dtype=tf.float32,
             initializer=tf.initializers.constant(0.0))
-        # return tf.nn.sigmoid(tf.matmul(input_, w_) + b_)
-        return tf.matmul(input_, w_) + b_
-        # return tf.nn.tanh(tf.matmul(input_, w_) + b_)
+        return tf.nn.leaky_relu(tf.matmul(input_, w_) + b_)
 
 
 def simple_cnn(input_):
@@ -161,12 +159,6 @@ if __name__ == '__main__':
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
     t_out_ = macro2micro_image2class(t_in_, 2, lbs.shape[1])
 
-    # t_in_resized = tf.image.resize_bilinear(t_in_, [4, 4])
-    # t_out_ = tf.reshape(t_in_resized, [1, 4 * 4])
-    # t_out_ = dense_layer(t_out_, 8)
-    # t_out_ = dense_layer(t_out_, 8)
-    # t_out_ = dense_layer(t_out_, 10)
-
     t_feedback = tf.placeholder(dtype=tf.float32, shape=[1, lbs.shape[1]])
     # t_loss = tf.losses.softmax_cross_entropy(t_feedback, t_out_)
     t_loss = tf.reduce_mean(tf.square(t_feedback - t_out_))
@@ -188,12 +180,8 @@ if __name__ == '__main__':
         acc_ = np.sum(corr_)/np.minimum((i+1), len(corr_))
         if np.argmax(out_) == np.argmax(lbs[id_]):
             corr_[i % len(corr_)] = 1
-            # if acc_ > 0.5:
-            #     print('Y=%.3f' % np.max(out_))
         else:
             corr_[i % len(corr_)] = 0
-            # if acc_ > 0.5:
-            #     print('N=%.3f' % np.max(out_))
         if i % 1000 == 0:
             print('#%d\t loss: %f\t acc= %f' % (i, loss_av_[np.where(loss_av_)].mean(), acc_))
 
