@@ -80,6 +80,8 @@ def fully_connect(input_, units, scope):
 def simple_cnn(input_):
     out_ = conv2d(input_, 3, 1, 4, 'cnn/conv1')
     out_ = conv2d(out_, 3, 1, 4, 'cnn/conv2')
+    out_ = conv2d(out_, 3, 1, 4, 'cnn/conv3')
+    out_ = conv2d(out_, 3, 1, 4, 'cnn/conv4')
     channels = out_.shape[1] * out_.shape[2] * out_.shape[3]
     out_ = tf.reshape(out_, [out_.shape[0], channels])
     out_ = fully_connect(out_, 1, 'cnn/fc1')
