@@ -89,7 +89,7 @@ def encoder(input_, scope_):
     channels = out_.shape[1] * out_.shape[2] * out_.shape[3]
     out_ = tf.reshape(out_, [out_.shape[0], channels])
     out_ = fully_connect(out_, 4, scope_ + '/encoder/fc1')
-    out_ = fully_connect(out_, 4, scope_ + '/encoder/fc2')
+    out_ = fully_connect(out_, 2, scope_ + '/encoder/fc2')
     return out_
 
 
@@ -139,6 +139,14 @@ if __name__ == '__main__':
     ims = read_images(train_image_path)
     lbs = read_labels(train_label_path)
 
+    ids = [-1] * 10
+    i = 0
+    while np.min(ids) < 0:
+        id_ = np.argmax(lbs[i])
+        ids[id_] = i
+        i += 1
+    print(ids)
+
     # build the network
     t_in_ = tf.placeholder(dtype=tf.float32, shape=[1, ims.shape[1], ims.shape[2], 1])
     # build encoder
@@ -149,27 +157,41 @@ if __name__ == '__main__':
     t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(t_loss)
 
     # train the model with data
-    repeats = 5000000
+    repeats = 1000000
     sess = tf.Session()
     saver = tf.train.Saver()
-    sess.run(tf.global_variables_initializer())
-    loss_av_ = np.zeros([500], dtype=np.float32)
+    ckpt_prefix = 'models/mnist.ckpt'
+    if tf.train.checkpoint_exists(ckpt_prefix):
+        saver.restore(sess, ckpt_prefix)
+    else:
+        sess.run(tf.global_variables_initializer())
 
+    # test the result
+    id_ = 0
+    out_ = sess.run(t_in_rec, feed_dict={
+        t_in_: np.expand_dims(np.expand_dims(ims[ids[id_]], axis=0), axis=-1)})
+    out_ = np.maximum(np.minimum(out_, 1.0), 0.0)
+    out_ = out_[0, :, :, 0]
+    merged_ = np.concatenate((ims[ids[id_]], out_), axis=1)
+    Image.fromarray(gray2rgb(np.uint8(merged_ * 255))).show()
+    exit(0)
+
+    loss_av_ = np.zeros([500], dtype=np.float32)
     for i in range(repeats):
-        id_ = np.random.randint(len(ims))
+        id_ = np.random.randint(len(ids))
         loss_, _, out_ = sess.run([t_loss, t_opt, t_in_rec], feed_dict={
-            t_in_: np.expand_dims(np.expand_dims(ims[id_], axis=0), axis=-1)
+            t_in_: np.expand_dims(np.expand_dims(ims[ids[id_]], axis=0), axis=-1)
         })
         loss_av_[i % len(loss_av_)] = loss_
 
-        if i % 1000 == 0:
+        if i % 10000 == 0:
             print('#%d\t loss: %f' % (i, loss_av_[np.where(loss_av_)].mean()))
             # save the reconstructed image
             out_ = np.maximum(np.minimum(out_, 1.0), 0.0)
-            Image.fromarray(gray2rgb(np.uint8(out_[0, :, :, 0] * 255))).save('rec_%d.jpg' % i)
+            Image.fromarray(gray2rgb(np.uint8(out_[0, :, :, 0] * 255))).save('shots/rec_%d.jpg' % i)
 
     # save the model
-    saver.save(sess, './model_mnist.ckpt')
+    saver.save(sess, ckpt_prefix)
 
     # stage II: enhance autoencoder with self produced input
     # stage III: recursively repeat such training until AE converged.
