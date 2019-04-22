@@ -4,8 +4,8 @@ import tensorflow as tf
 from PIL import Image
 
 # canvas setting: canvas height and width, and pen radius
-h, w = 256, 256
-r = w // 32
+h, w = 64, 64
+r = w // 16
 color_bound = 0.5
 sim_c = 0.5 # the speed of light in simulation: the maximum of speed enabled
 sim_d = 1.0/w # the minimum of simulation in space
@@ -60,20 +60,26 @@ def draw_on_sheet(start_, moves):
         v_x = v_x + a_x
         v_y = v_y + a_y
         v_p = v_p + a_p
-        assert np.abs(v_x) < sim_c
-        assert np.abs(v_y) < sim_c
+        # assert np.abs(v_x) < sim_c
+        # assert np.abs(v_y) < sim_c
+        if p >= 1 or p <= -1:
+            v_p = 0
+            p = p / np.abs(p)
     return bmp
 
 
 def simulator():
-    t_in = tf.placeholder(dtype=tf.float32, shape=[1, 1, num_moves, 3])
-    
+    t_move = tf.placeholder(dtype=tf.float32, shape=[1, 1, 1, 3])
+    t_state = tf.placeholder(dtype=tf.float32, shape=[1, 1, 2, 3])
+    t_obsv = tf.placeholder(dtype=tf.float32, shape=[1, h, w, 1])
+    t_pred = tf.placeholder(dtype=tf.float32, shape=[1, h, w, 1])
+    t_next_state = tf.placeholder(dtype=tf.float32, shape=[1, 1, 2, 3])
 
 
 
 if __name__ == '__main__':
     bmp = draw_on_sheet(
-        [0.33, 0.33, 0.0],
+        [0.3, 0.3, 0.0],
         [
             [0.01, 0.02, 0.2],
             [0.0, -0.02, 0.0],
