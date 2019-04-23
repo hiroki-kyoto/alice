@@ -33,46 +33,47 @@ def dot(bmp, x, y, p):
 
 
 # draw black lines on white sheet
-def draw_on_sheet(start_, moves):
+def update_sheet(bmp_, pos_, vel_, mov_):
     # start_ includes initial position, pressure.
     # moves includes: acceleration over position and pressure.
     # the velocity and position over sheet surface and along the direction
     # erected to the sheet.
-    x, y, p = start_[0], start_[1], start_[2]
-    bmp = np.zeros([h, w], dtype=np.float32)
-    v_x, v_y, v_p = 0, 0, 0
-    dot(bmp, x, y, p)
+    x, y, p = pos_[0], pos_[1], pos_[2]
+    v_x, v_y, v_p = vel_[0], vel_[1], vel_[2]
+    a_x, a_y, a_p = mov_[0], mov_[1], mov_[2]
     last_x = x
     last_y = y
-    for m_ in moves:
-        a_x, a_y, a_p = m_[0], m_[1], m_[2]
-        for t in np.arange(0, 1, sim_t):
-            x_t = x + v_x * t + 0.5 * a_x * t * t
-            y_t = y + v_y * t + 0.5 * a_y * t * t
-            p_t = p + v_p * t + 0.5 * a_p * t * t
-            if x_t != last_x or y_t == last_y:
-                dot(bmp, x_t, y_t, p_t)
-                last_x = x_t
-                last_y = y_t
-        x = x + v_x + 0.5 * a_x
-        y = y + v_y + 0.5 * a_y
-        p = p + v_p + 0.5 * a_p
-        v_x = v_x + a_x
-        v_y = v_y + a_y
-        v_p = v_p + a_p
-        # assert np.abs(v_x) < sim_c
-        # assert np.abs(v_y) < sim_c
-        if p > 1 or p < 0:
-            v_p = 0
-            p = np.minimum(np.maximum(p, 0), 1)
-        if x > 1 or x < 0:
-            v_x = 0
-            x = np.minimum(np.maximum(x, 0), 1)
-        if y > 1 or y < 0:
-            v_y = 0
-            y = np.minimum(np.maximum(y, 0), 1)
-
-    return bmp
+    for t in np.arange(0, 1, sim_t):
+        x_t = x + v_x * t + 0.5 * a_x * t * t
+        y_t = y + v_y * t + 0.5 * a_y * t * t
+        p_t = p + v_p * t + 0.5 * a_p * t * t
+        if x_t != last_x or y_t == last_y:
+            dot(bmp_, x_t, y_t, p_t)
+            last_x = x_t
+            last_y = y_t
+    x = x + v_x + 0.5 * a_x
+    y = y + v_y + 0.5 * a_y
+    p = p + v_p + 0.5 * a_p
+    v_x = v_x + a_x
+    v_y = v_y + a_y
+    v_p = v_p + a_p
+    # assert np.abs(v_x) < sim_c
+    # assert np.abs(v_y) < sim_c
+    if p > 1 or p < 0:
+        v_p = 0
+        p = np.minimum(np.maximum(p, 0), 1)
+    if x > 1 or x < 0:
+        v_x = 0
+        x = np.minimum(np.maximum(x, 0), 1)
+    if y > 1 or y < 0:
+        v_y = 0
+        y = np.minimum(np.maximum(y, 0), 1)
+    pos_[0] = x
+    pos_[1] = y
+    pos_[2] = p
+    vel_[0] = v_x
+    vel_[1] = v_y
+    vel_[2] = v_p
 
 
 def act_fn():
@@ -150,7 +151,11 @@ def observ_decoder(t_feat_merged):
         return t_out
 
 
-class simulator:
+def visualize_bmp(bmp):
+    Image.fromarray(np.uint8(bmp * 255)).show()
+
+
+class Simulator:
     def __init__(self):
         self.t_action = tf.placeholder(dtype=tf.float32, shape=[1, 1, 1, 3])
         self.t_states = tf.placeholder(dtype=tf.float32, shape=[1, 1, 2, 3])
@@ -181,9 +186,24 @@ class simulator:
         self.t_loss_global = self.t_loss_states * alpha + self.t_loss_observ * (1 - alpha)
 
         self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(self.t_loss_global)
+        self.sess = tf.Session()
 
-    def train(self, samples):
-        pass
+    def train(self, model_path):
+        saver = tf.train.Saver()
+        if tf.train.checkpoint_exists(model_path):
+            saver.restore(self.sess, model_path)
+        else:
+            self.sess.run(tf.global_variables_initializer())
+        train_step = 10
+        reset_prob = 0.05
+        for i in range(train_step):
+            if np.random.rand() < reset_prob or i==0:
+                bmp = np.zeros([h, w], dtype=np.float32)
+                pos = np.random.rand(3)
+                vel = np.random.rand(3)
+            action_ = 0.1 * (np.random.rand(3) - 0.3)
+            update_sheet(bmp, pos, vel, action_)
+        visualize_bmp(bmp)
 
     def load(self, model_path):
         pass
@@ -193,6 +213,7 @@ class simulator:
 
 
 if __name__ == '__main__':
+    # bmp = np.zeros([h, w], dtype=np.float32)
     # bmp = draw_on_sheet(
     #     [0.3, 0.3, 0.0],
     #     [
@@ -212,7 +233,7 @@ if __name__ == '__main__':
     # moves = 0.1 * (np.random.rand(100, 3) - 0.3)
     # bmp = draw_on_sheet(pos, moves)
     # Image.fromarray(np.uint8(bmp*255)).show()
-    sim = simulator()
+    sim = Simulator()
     samples = []
     # cache samples in separate threads
-    sim.train(samples)
+    sim.train('models/simulator.ckpt')
