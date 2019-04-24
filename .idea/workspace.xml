@@ -6,10 +6,57 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handwrite.py" beforeDir="false" afterPath="$PROJECT_DIR$/handwrite.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_0.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_10000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_100000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_110000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_120000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_130000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_140000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_150000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_160000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_170000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_180000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_190000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_20000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_200000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_210000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_220000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_230000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_240000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_250000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_260000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_270000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_280000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_290000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_30000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_300000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_310000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_320000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_330000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_340000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_350000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_360000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_370000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_380000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_390000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_40000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_400000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_410000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_420000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_430000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_440000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_450000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_460000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_470000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_480000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_490000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_50000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_60000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_70000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_80000.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shots/rec_90000.jpg" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,8 +69,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/handwrite.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2603">
-              <caret line="33" selection-start-line="33" selection-end-line="33" />
+            <state relative-caret-position="793">
+              <caret line="276" column="33" lean-forward="true" selection-start-line="276" selection-start-column="33" selection-end-line="276" selection-end-column="33" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -48,6 +95,7 @@
       <find>resize</find>
       <find>relu</find>
       <find>train_mnist</find>
+      <find>0.01</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -67,7 +115,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-4" />
     <option name="y" value="661" />
     <option name="width" value="1088" />
@@ -242,7 +290,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.8232514" visible="true" weight="0.39763114" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.30851665" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -328,8 +376,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/handwrite.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2603">
-          <caret line="33" selection-start-line="33" selection-end-line="33" />
+        <state relative-caret-position="793">
+          <caret line="276" column="33" lean-forward="true" selection-start-line="276" selection-start-column="33" selection-end-line="276" selection-end-column="33" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

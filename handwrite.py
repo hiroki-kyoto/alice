@@ -80,57 +80,130 @@ def act_fn():
     return tf.nn.leaky_relu
 
 
+def ini_fn():
+    return tf.initializers.truncated_normal(0.0, 0.1)
+
+
+def dense_block(input_, dims, norm):
+    if norm:
+        out_ = tf.layers.batch_normalization(input_)
+    else:
+        out_ = input_
+    for i in range(len(dims)-1):
+        out_ = tf.layers.dense(
+            out_,
+            dims[i],
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+    out_ = tf.layers.dense(
+        out_,
+        dims[-1],
+        None,
+        True,
+        kernel_initializer=ini_fn())
+    return out_
+
+
+def conv_block(input_, filters, strides, norm):
+    if norm:
+        out_ = tf.layers.batch_normalization(input_)
+    else:
+        out_ = input_
+    for i in range(len(filters)-1):
+        out_ = tf.layers.conv2d(
+            out_,
+            filters[i],
+            3,
+            strides[i],
+            'same',
+            activation=act_fn(),
+            kernel_initializer=ini_fn())
+    out_ = tf.layers.conv2d(
+        out_,
+        filters[-1],
+        3,
+        strides[-1],
+        'same',
+        kernel_initializer=ini_fn())
+    return out_
+
+
+def deconv_block(input_, filters, strides, norm):
+    if norm:
+        out_ = tf.layers.batch_normalization(input_)
+    else:
+        out_ = input_
+    for i in range(len(filters)-1):
+        out_ = tf.layers.conv2d(
+            out_,
+            filters[i],
+            3,
+            strides[i],
+            'same',
+            activation=act_fn(),
+            kernel_initializer=ini_fn())
+    out_ = tf.layers.conv2d_transpose(
+        out_,
+        filters[-1],
+        3,
+        strides[-1],
+        'same',
+        kernel_initializer=ini_fn())
+    return out_
+
+
 def action_encoder(t_action):
-    with tf.variable_scope(name_or_scope='action/encoder', reuse=tf.AUTO_REUSE):
-        t_out = tf.layers.dense(t_action, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
+    with tf.variable_scope(
+            name_or_scope='action/encoder',
+            reuse=tf.AUTO_REUSE):
+        t_out = dense_block(t_action, [8, 16], False)
+        t_out = dense_block(t_out, [8, 16], True)
         return t_out
 
 
 def states_encoder(t_states):
-    with tf.variable_scope(name_or_scope='states/encoder', reuse=tf.AUTO_REUSE):
+    with tf.variable_scope(
+            name_or_scope='states/encoder',
+            reuse=tf.AUTO_REUSE):
         # reshape into one-dimension vector in such form:
         # (v_x, v_y, v_p, x, y, p), a 6-item group.
         t_out = tf.reshape(t_states, shape=[1, 1, 1, 6])
-        t_out = tf.layers.dense(t_out, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
+        t_out = dense_block(t_out, [8, 16], False)
+        t_out = dense_block(t_out, [8, 16], True)
         return t_out
 
 
 def observ_encoder(t_observ):
-    with tf.variable_scope(name_or_scope='observ/encoder', reuse=tf.AUTO_REUSE):
-        t_out = tf.layers.conv2d(t_observ, 8, 3, 2, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 16, 3, 2, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 8, 3, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 16, 3, 2, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 8, 1, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 4, 1, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 1, 1, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
+    with tf.variable_scope(
+            name_or_scope='observ/encoder',
+            reuse=tf.AUTO_REUSE):
+        t_out = conv_block(t_observ, [8, 16], [2, 2], False)
+        t_out = conv_block(t_out, [8, 16], [1, 2], True)
+        t_out = conv_block(t_out, [8, 4, 1], [1, 1, 1], True)
         shape_ = t_out.shape.as_list()
         t_out = tf.reshape(t_out, shape=[1, 1, 1, shape_[1] * shape_[2]])
         return t_out
 
 
 def merge_features(t_feat_action, t_feat_states, t_feat_observ):
-    with tf.variable_scope(name_or_scope='merge', reuse=tf.AUTO_REUSE):
-        t_out = tf.concat([t_feat_action, t_feat_states, t_feat_observ], axis=-1)
-        t_out = tf.layers.dense(t_out, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
+    with tf.variable_scope(
+            name_or_scope='merge',
+            reuse=tf.AUTO_REUSE):
+        t_out = tf.concat(
+            [t_feat_action, t_feat_states, t_feat_observ],
+            axis=-1)
+        t_out = dense_block(t_out, [8, 16], True)
+        t_out = dense_block(t_out, [8, 16], True)
         return t_out
 
 
 def states_decoder(t_feat_merged):
-    with tf.variable_scope(name_or_scope='states/decoder', reuse=tf.AUTO_REUSE):
-        t_out = tf.layers.dense(t_feat_merged, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 16, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 8, None, True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.dense(t_out, 6, act_fn(), True, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
+    with tf.variable_scope(
+            name_or_scope='states/decoder',
+            reuse=tf.AUTO_REUSE):
+        t_out = dense_block(t_feat_merged, [8, 16], True)
+        t_out = dense_block(t_out, [8, 6], True)
         # reshape into 2-dimension array in such form:
         # [[v_x, v_y, v_p], [x, y, p]], a 2x3 array.
         t_out = tf.reshape(t_out, shape=[1, 1, 2, 3])
@@ -138,16 +211,14 @@ def states_decoder(t_feat_merged):
 
 
 def observ_decoder(t_feat_merged):
-    with tf.variable_scope(name_or_scope='observ/decoder', reuse=tf.AUTO_REUSE):
+    with tf.variable_scope(
+            name_or_scope='observ/decoder',
+            reuse=tf.AUTO_REUSE):
         t_out = tf.reshape(t_feat_merged, shape=[1, 4, 4, 1])
-        t_out = tf.layers.conv2d(t_out, 4, 3, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d_transpose(t_out, 1, 3, 2, 'same', kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 4, 3, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d_transpose(t_out, 1, 3, 2, 'same', kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 4, 3, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d_transpose(t_out, 1, 3, 2, 'same', kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d(t_out, 4, 3, 1, 'same', activation=tf.nn.relu, kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
-        t_out = tf.layers.conv2d_transpose(t_out, 1, 3, 2, 'same', kernel_initializer=tf.initializers.truncated_normal(0.0, 0.02))
+        t_out = deconv_block(t_out, [4, 1], [1, 2], True)
+        t_out = deconv_block(t_out, [4, 1], [1, 2], True)
+        t_out = deconv_block(t_out, [4, 1], [1, 2], True)
+        t_out = deconv_block(t_out, [4, 1], [1, 2], True)
         return t_out
 
 
@@ -198,12 +269,16 @@ class Simulator:
         print(self.t_pred_states.shape)
         print(self.t_pred_observ.shape)
 
-        self.t_loss_states = tf.reduce_mean(tf.abs(self.t_pred_states - self.t_next_states))
-        self.t_loss_observ = tf.reduce_mean(tf.abs(self.t_pred_observ - self.t_next_observ))
-        alpha = 0.5
-        self.t_loss_global = self.t_loss_states * alpha + self.t_loss_observ * (1 - alpha)
+        self.t_loss_states = tf.reduce_mean(
+            tf.abs(self.t_pred_states - self.t_next_states))
+        self.t_loss_observ = tf.reduce_mean(
+            tf.abs(self.t_pred_observ - self.t_next_observ))
+        alpha = 1.0
+        self.t_loss_global = self.t_loss_states * alpha \
+                             + self.t_loss_observ * (1 - alpha)
 
-        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(self.t_loss_global)
+        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-3)\
+            .minimize(self.t_loss_global)
         self.sess = tf.Session()
 
     def train(self, model_path, dump_path):
@@ -218,8 +293,6 @@ class Simulator:
 
         bmp = np.zeros([h, w], dtype=np.float32)
         bmp_last = np.zeros([h, w], dtype=np.float32)
-        pred = np.zeros([1, h, w, 1], dtype=np.float32)
-        bmp_merged = merge_bmp(bmp, cut(pred[0, :, :, 0]))
 
         pos = np.random.rand(3)
         vel = np.random.rand(3)
@@ -238,13 +311,18 @@ class Simulator:
             bmp_last[:, :] = bmp[:, :]
             states_last[:, :] = states[:, :]
 
-            action_ = 0.1 * (np.random.rand(3) - 0.3)
+            action_ = np.random.rand(3) - 0.5
+            action_[:2] = 0.05 * action_[:2]
+            action_[2] = 0.5 * action_[2]
             update_sheet(bmp, pos, vel, action_)
             states[0, :] = vel
             states[1, :] = pos
 
-            pred, _, loss = self.sess.run([
-                self.t_pred_observ, self.t_opt, self.t_loss_global],
+            pred, _, loss_s, loss_o = self.sess.run(
+                [self.t_pred_observ,
+                 self.t_opt,
+                 self.t_loss_states,
+                 self.t_loss_observ],
                 feed_dict={
                     self.t_action: expand_dims(action_, axises=[0, 0, 0]),
                     self.t_states: expand_dims(states_last, axises=[0, 0]),
@@ -254,9 +332,8 @@ class Simulator:
                 }
             )
             if i % 1000 == 0:
-                print("Itr=%d, Loss=%.5f" % (i, loss))
+                print("Itr=%d States=%.5f Observ=%.5f" % (i, loss_s, loss_o))
                 bmp_merged = merge_bmp(bmp, cut(pred[0, :, :, 0]))
-                print(pred.max())
                 save_bmp(bmp_merged, i, dump_path)
 
         saver.save(self.sess, model_path)
