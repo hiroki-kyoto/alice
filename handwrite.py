@@ -382,6 +382,12 @@ class StatePredictor:
             kernel_initializer=ini_fn())
         t_feat = tf.layers.dense(
             t_feat,
+            8,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
             6,
             act_fn(),
             True,
@@ -391,7 +397,7 @@ class StatePredictor:
 
         self.t_loss = tf.reduce_mean(tf.abs(self.t_pred_states - self.t_next_states))
 
-        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(self.t_loss)
+        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.t_loss)
         self.sess = tf.Session()
 
     def train(self, model_path, dump_path):
@@ -401,7 +407,7 @@ class StatePredictor:
         else:
             self.sess.run(tf.global_variables_initializer())
 
-        train_step = 100000
+        train_step = 1000000
         reset_prob = 0.01
 
         pos = np.random.rand(3)
@@ -422,7 +428,7 @@ class StatePredictor:
             states_last[:, :] = states[:, :]
 
             action_ = np.random.rand(3) - 0.5
-            action_[:2] = 0.05 * action_[:2]
+            action_[:2] = 0.5 * action_[:2]
             action_[2] = 0.5 * action_[2]
 
             # update the states with physical rules
@@ -457,11 +463,8 @@ class StatePredictor:
 
             if i % 1000 == 0:
                 print("Itr=%d Loss=%.5f" % (i, loss_av))
-                # print('acceleration=%s' % str(action_))
-                # print('previous velocity=%s' % str(states_last[0, :]))
-                # print('previous position=%s' % str(states_last[1, :]))
-                # print('velocity=%s' % str(states[0, :]))
-                # print('position=%s' % str(states[1, :]))
+                print('velocity: %s - %s' % (str(states[0, :]), str(pred[0, :])))
+                print('position: %s - %s' % (str(states[1, :]), str(pred[1, :])))
 
         saver.save(self.sess, model_path)
 

@@ -1,2 +1,2 @@
-model_checkpoint_path: "simulator.ckpt"
-all_model_checkpoint_paths: "simulator.ckpt"
+model_checkpoint_path: "state_predictor.ckpt"
+all_model_checkpoint_paths: "state_predictor.ckpt"

@@ -10,9 +10,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handwrite.py" beforeDir="false" afterPath="$PROJECT_DIR$/handwrite.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/simulator.ckpt.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/simulator.ckpt.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/simulator.ckpt.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/checkpoint" beforeDir="false" afterPath="$PROJECT_DIR$/models/checkpoint" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,8 +23,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/handwrite.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="370">
-              <caret line="426" lean-forward="true" selection-start-line="426" selection-end-line="426" />
+            <state relative-caret-position="591">
+              <caret line="399" column="62" selection-start-line="399" selection-start-column="62" selection-end-line="399" selection-end-column="62" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -87,7 +85,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -239,14 +237,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1096" height="1906" extended-state="6" />
+    <frame x="-8" y="-8" width="1096" height="1896" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.24669187" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.42808798" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.4276801" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -332,8 +330,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/handwrite.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="370">
-          <caret line="426" lean-forward="true" selection-start-line="426" selection-end-line="426" />
+        <state relative-caret-position="591">
+          <caret line="399" column="62" selection-start-line="399" selection-start-column="62" selection-end-line="399" selection-end-column="62" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>
