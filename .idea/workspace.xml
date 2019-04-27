@@ -23,8 +23,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/handwrite.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="591">
-              <caret line="399" column="62" selection-start-line="399" selection-start-column="62" selection-end-line="399" selection-end-column="62" />
+            <state relative-caret-position="563">
+              <caret line="523" column="38" selection-start-line="523" selection-start-column="38" selection-end-line="523" selection-end-column="38" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -47,10 +47,17 @@
       <find>get_v</find>
       <find>dataset</find>
       <find>resize</find>
-      <find>relu</find>
       <find>train_mnist</find>
       <find>0.01</find>
       <find>learning_</find>
+      <find>loss</find>
+      <find>relu</find>
+      <find>0.5</find>
+      <find>act_f</find>
+      <find>learning</find>
+      <find>reduce_max</find>
+      <find>update_sheet</find>
+      <find>save_bmp</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -71,10 +78,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-4" />
-    <option name="y" value="661" />
-    <option name="width" value="1088" />
-    <option name="height" value="1220" />
+    <option name="x" value="-8" />
+    <option name="y" value="22" />
+    <option name="width" value="1040" />
+    <option name="height" value="754" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -237,14 +244,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1096" height="1896" extended-state="6" />
+    <frame x="-8" y="22" width="1096" height="1906" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.24669187" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.4276801" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.35194585" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -330,8 +337,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/handwrite.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="591">
-          <caret line="399" column="62" selection-start-line="399" selection-start-column="62" selection-end-line="399" selection-end-column="62" />
+        <state relative-caret-position="563">
+          <caret line="523" column="38" selection-start-line="523" selection-start-column="38" selection-end-line="523" selection-end-column="38" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

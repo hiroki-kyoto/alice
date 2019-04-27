@@ -221,15 +221,23 @@ def observ_decoder(t_feat_merged):
 
 
 def visualize_bmp(bmp):
-    Image.fromarray(np.uint8(bmp * 255)).show()
+    Image.fromarray(np.uint8((1 - bmp) * 255)).show()
 
 
 def save_bmp(bmp, itr, dir_):
-    Image.fromarray(np.uint8(bmp * 255)).save('%s/%d.jpg' % (dir_, itr))
+    Image.fromarray(np.uint8((1 - bmp) * 255)).save('%s/%d.jpg' % (dir_, itr))
 
 
-def merge_bmp(bmp_left, bmp_right):
-    return np.concatenate((bmp_left, bmp_right), axis=1)
+def merge_bmp(bmp_ori, bmp_left, bmp_right):
+    seg_width = 3
+    seg_band = np.zeros([bmp_ori.shape[0], seg_width, 3])
+    seg_band[:, :, 0] = 0.0
+    seg_band[:, :, 1] = 1.0
+    seg_band[:, :, 2] = 1.0
+    bmp_ori = np.stack([bmp_ori, bmp_ori, bmp_ori], axis=-1)
+    bmp_left = np.stack([bmp_left, bmp_left, bmp_left], axis=-1)
+    bmp_right = np.stack([bmp_right, bmp_right, bmp_right], axis=-1)
+    return np.concatenate((bmp_ori, seg_band, bmp_left, seg_band, bmp_right), axis=1)
 
 
 def expand_dims(tensor, axises):
@@ -366,7 +374,6 @@ class StatePredictor:
 
         t_feat = tf.concat((self.t_action, self.t_states), axis=0)
         t_feat = tf.reshape(t_feat, shape=[1, 9])
-        print(t_feat.shape.as_list())
 
         t_feat = tf.layers.dense(
             t_feat,
@@ -376,13 +383,7 @@ class StatePredictor:
             kernel_initializer=ini_fn())
         t_feat = tf.layers.dense(
             t_feat,
-            8,
-            act_fn(),
-            True,
-            kernel_initializer=ini_fn())
-        t_feat = tf.layers.dense(
-            t_feat,
-            8,
+            16,
             act_fn(),
             True,
             kernel_initializer=ini_fn())
@@ -394,9 +395,7 @@ class StatePredictor:
             kernel_initializer=ini_fn())
 
         self.t_pred_states = tf.reshape(t_feat, shape=[2, 3])
-
-        self.t_loss = tf.reduce_mean(tf.abs(self.t_pred_states - self.t_next_states))
-
+        self.t_loss = tf.reduce_max(tf.abs(self.t_pred_states - self.t_next_states))
         self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.t_loss)
         self.sess = tf.Session()
 
@@ -416,7 +415,7 @@ class StatePredictor:
         states = np.stack([vel, pos], axis=0)
         states_last = np.copy(states)
 
-        loss_av = 0
+        loss_cache = np.zeros([1000])
 
         for i in range(train_step):
             if np.random.rand() < reset_prob:
@@ -428,7 +427,7 @@ class StatePredictor:
             states_last[:, :] = states[:, :]
 
             action_ = np.random.rand(3) - 0.5
-            action_[:2] = 0.5 * action_[:2]
+            action_[:2] = 0.1 * action_[:2]
             action_[2] = 0.5 * action_[2]
 
             # update the states with physical rules
@@ -455,16 +454,151 @@ class StatePredictor:
                 }
             )
 
-            m = 100.0
-            if i < m:
-                loss_av = loss_av * (i / m) + loss * (1 - i / m)
-            else:
-                loss_av = loss_av * ((m - 1) / m) + loss * (1 / m)
+            loss_cache[i%len(loss_cache)] = loss
 
             if i % 1000 == 0:
-                print("Itr=%d Loss=%.5f" % (i, loss_av))
+                loss_mean = np.mean(loss_cache)
+                loss_vari = np.sqrt(np.sum(np.square(loss_cache - loss_mean)) / (len(loss_cache) - 1))
+                print("Itr=%d Loss=%.5f(+/-%.5f)" % (i, loss_mean, loss_vari))
                 print('velocity: %s - %s' % (str(states[0, :]), str(pred[0, :])))
                 print('position: %s - %s' % (str(states[1, :]), str(pred[1, :])))
+
+        saver.save(self.sess, model_path)
+
+
+class ObservationPredictor:
+    def __init__(self):
+        self.t_action = tf.placeholder(dtype=tf.float32, shape=[1, 3])
+        self.t_states = tf.placeholder(dtype=tf.float32, shape=[2, 3])
+        self.t_observ = tf.placeholder(dtype=tf.float32, shape=[1, h, w, 1])
+        self.t_next_observ = tf.placeholder(dtype=tf.float32, shape=[1, h, w, 1])
+
+        t_feat = tf.concat((self.t_action, self.t_states), axis=0)
+        t_feat = tf.reshape(t_feat, shape=[1, 9])
+
+        t_feat = tf.layers.dense(
+            t_feat,
+            8,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            16,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            64,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        # convert into a image
+        t_feat = tf.reshape(t_feat, [1, 8, 8, 1])
+        t_feat = tf.image.resize_bilinear(t_feat, [64, 64])
+        # t_feat = tf.layers.conv2d_transpose(
+        #     inputs=t_feat,
+        #     filters=4,
+        #     kernel_size=3,
+        #     strides=2,
+        #     padding='same',
+        #     activation=act_fn(),
+        #     kernel_initializer=ini_fn())
+        # t_feat = tf.layers.conv2d_transpose(
+        #     inputs=t_feat,
+        #     filters=4,
+        #     kernel_size=3,
+        #     strides=2,
+        #     padding='same',
+        #     activation=act_fn(),
+        #     kernel_initializer=ini_fn())
+        # t_feat = tf.layers.conv2d_transpose(
+        #     inputs=t_feat,
+        #     filters=4,
+        #     kernel_size=3,
+        #     strides=2,
+        #     padding='same',
+        #     activation=act_fn(),
+        #     kernel_initializer=ini_fn())
+        # t_feat = tf.layers.conv2d_transpose(
+        #     inputs=t_feat,
+        #     filters=1,
+        #     kernel_size=3,
+        #     strides=2,
+        #     padding='same',
+        #     activation=act_fn(),
+        #     kernel_initializer=ini_fn())
+
+        self.t_pred_observ = t_feat + self.t_observ
+
+        self.t_loss = tf.reduce_sum(tf.abs(self.t_pred_observ - self.t_next_observ))
+        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-1).minimize(self.t_loss)
+        self.sess = tf.Session()
+
+    def train(self, model_path, dump_path):
+        saver = tf.train.Saver()
+        if tf.train.checkpoint_exists(model_path):
+            saver.restore(self.sess, model_path)
+        else:
+            self.sess.run(tf.global_variables_initializer())
+
+        train_step = 100000
+        reset_prob = 1.0
+
+        bmp = np.zeros([h, w], dtype=np.float32)
+        bmp_last = np.zeros([h, w], dtype=np.float32)
+
+        pos = np.random.rand(3)
+        vel = np.random.rand(3)
+
+        states = np.stack([vel, pos], axis=0)
+        states_last = np.copy(states)
+
+        loss_cache = np.zeros([1000])
+
+        for i in range(train_step):
+            if np.random.rand() < reset_prob:
+                bmp[:, :] = 0
+                pos = np.random.rand(3)
+                vel = np.random.rand(3) - 0.5
+                states[0, :] = vel[:]
+                states[1, :] = pos[:]
+
+            bmp_last[:, :] = bmp[:, :]
+            states_last[:, :] = states[:, :]
+
+            action_ = np.random.rand(3) - 0.5
+            action_[:2] = 0.1 * action_[:2]
+            action_[2] = 0.5 * action_[2]
+
+            # update the states with physical rules
+            update_sheet(bmp, pos, vel, action_)
+            states[0, :] = vel
+            states[1, :] = pos
+
+            pred, _, loss = self.sess.run(
+                [
+                    self.t_pred_observ,
+                    self.t_opt,
+                    self.t_loss
+                 ],
+                feed_dict={
+                    self.t_action: expand_dims(action_, axises=[0]),
+                    self.t_states: states_last,
+                    self.t_observ: expand_dims(bmp_last, axises=[-1, 0]),
+                    self.t_next_observ: expand_dims(bmp, axises=[-1, 0])
+                }
+            )
+
+            loss_cache[i%len(loss_cache)] = loss
+
+            if (i + 1) % 1000 == 0:
+                loss_mean = np.mean(loss_cache)
+                loss_vari = np.sqrt(np.sum(np.square(loss_cache - loss_mean)) / (len(loss_cache) - 1))
+                print("Itr=%d Loss=%.5f(+/-%.5f)" % (i, loss_mean, loss_vari))
+                bmp_merged = merge_bmp(bmp, cut(bmp - bmp_last), cut(pred[0, :, :, 0] - bmp_last))
+                save_bmp(bmp_merged, i, dump_path)
 
         saver.save(self.sess, model_path)
 
@@ -493,6 +627,9 @@ if __name__ == '__main__':
     # sim = Simulator()
     # sim.train('models/simulator.ckpt', 'shots')
 
-    state_predictor = StatePredictor()
-    state_predictor.train('models/state_predictor.ckpt',  'shots')
+    # state_predictor = StatePredictor()
+    # state_predictor.train('models/state_predictor.ckpt',  'shots')
+
+    observ_predictor = ObservationPredictor()
+    observ_predictor.train('models/observ_predictor.ckpt', 'shots')
 
