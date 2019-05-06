@@ -6,11 +6,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/happy_loop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handwrite.py" beforeDir="false" afterPath="$PROJECT_DIR$/handwrite.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/checkpoint" beforeDir="false" afterPath="$PROJECT_DIR$/models/checkpoint" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,10 +21,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/handwrite.py">
+        <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="563">
-              <caret line="523" column="38" selection-start-line="523" selection-start-column="38" selection-end-line="523" selection-end-column="38" />
+            <state relative-caret-position="1105">
+              <caret line="322" column="78" lean-forward="true" selection-start-line="322" selection-start-column="78" selection-end-line="322" selection-end-column="78" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -74,6 +74,7 @@
         <option value="$PROJECT_DIR$/macro2micro_image2class.py" />
         <option value="$PROJECT_DIR$/count.py" />
         <option value="$PROJECT_DIR$/handwrite.py" />
+        <option value="$PROJECT_DIR$/happy_loop.py" />
       </list>
     </option>
   </component>
@@ -114,7 +115,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.handwrite">
+  <component name="RunManager" selected="Python.happy_loop">
     <configuration name="agent" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Alice" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -128,27 +129,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/agent.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="chat" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="Alice" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/chat.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -199,6 +179,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="happy_loop" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Alice" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/happy_loop.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="macro2micro_image2class" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Alice" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -222,11 +223,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.happy_loop" />
         <item itemvalue="Python.handwrite" />
         <item itemvalue="Python.count" />
         <item itemvalue="Python.macro2micro_image2class" />
         <item itemvalue="Python.agent" />
-        <item itemvalue="Python.chat" />
       </list>
     </recent_temporary>
   </component>
@@ -244,14 +245,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1096" height="1906" extended-state="6" />
+    <frame x="-8" y="-8" width="1096" height="1896" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.24669187" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.35194585" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.35167328" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -337,8 +338,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/handwrite.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="563">
-          <caret line="523" column="38" selection-start-line="523" selection-start-column="38" selection-end-line="523" selection-end-column="38" />
+        <state relative-caret-position="198">
+          <caret line="9" column="23" selection-start-line="9" selection-start-column="23" selection-end-line="9" selection-end-column="23" />
+          <folding>
+            <element signature="e#15#33#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/happy_loop.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1105">
+          <caret line="322" column="78" lean-forward="true" selection-start-line="322" selection-start-column="78" selection-end-line="322" selection-end-column="78" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

@@ -4,7 +4,7 @@ import tensorflow as tf
 from PIL import Image
 
 # canvas setting: canvas height and width, and pen radius
-h, w = 64, 64
+h, w = 256, 256
 r = w // 16
 color_bound = 0.5
 sim_c = 0.5 # the speed of light in simulation: the maximum of speed enabled
@@ -466,6 +466,18 @@ class StatePredictor:
         saver.save(self.sess, model_path)
 
 
+# pos: the input position
+# vel: the input velocity
+# acc: tge input acceleration
+def coordconv(pos, vel, acc):
+    h, w = x.shape.as_list()[1], x.shape.as_list()[2]
+    rows = np.linspace(0, 1, h)
+    cols = np.linspace(0, 1, w)
+    rows, cols = np.meshgrid(rows, cols)
+    coords = np.stack([rows, cols], axis=-1)
+    spots = 1 / (1 + tf.reduce_sum(tf.square(coords - pos), axis=-1, keep_dims=True))
+
+
 class ObservationPredictor:
     def __init__(self):
         self.t_action = tf.placeholder(dtype=tf.float32, shape=[1, 3])
@@ -496,7 +508,7 @@ class ObservationPredictor:
             kernel_initializer=ini_fn())
         # convert into a image
         t_feat = tf.reshape(t_feat, [1, 8, 8, 1])
-        t_feat = tf.image.resize_bilinear(t_feat, [64, 64])
+        t_feat = tf.image.resize_bilinear(t_feat, [h, w])
         # t_feat = tf.layers.conv2d_transpose(
         #     inputs=t_feat,
         #     filters=4,
@@ -530,10 +542,10 @@ class ObservationPredictor:
         #     activation=act_fn(),
         #     kernel_initializer=ini_fn())
 
-        self.t_pred_observ = t_feat + self.t_observ
+        self.t_pred_observ = tf.minimum(t_feat + self.t_observ, 1.0)
 
         self.t_loss = tf.reduce_sum(tf.abs(self.t_pred_observ - self.t_next_observ))
-        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-1).minimize(self.t_loss)
+        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(self.t_loss)
         self.sess = tf.Session()
 
     def train(self, model_path, dump_path):
@@ -603,26 +615,39 @@ class ObservationPredictor:
         saver.save(self.sess, model_path)
 
 
+def example_chinese_word():
+    return np.array([
+        [0.01, 0.02, 0.2],
+        [0.0, -0.02, 0.0],
+        [0.3, -0.02, -0.07],
+        [-0.3, 0.04, 0.03],
+        [-0.1, 0.25, -0.5],
+        [-0.05, 0.0, 0.5],
+        [0.1, -0.7, -1.0],
+        [0.1, 0.0, 1.0],
+        [0.05, 0.6, 0.8],
+        [-0.35, 0.3, -1.5],
+        [0.0, -0.3, 1.0]
+    ])
+
+
+def dataset_stroke():
+    strokes = list()
+    # horizontal strokes
+    strokes.append(np.array([
+        [0.1, 0.05, 0.5],
+    ]))
+    return strokes
+
+
 if __name__ == '__main__':
-    # bmp = np.zeros([h, w], dtype=np.float32)
-    # pos = np.array([0.3, 0.3, 0.0])
-    # moves = np.array([
-    #     [0.01, 0.02, 0.2],
-    #     [0.0, -0.02, 0.0],
-    #     [0.3, -0.02, -0.07],
-    #     [-0.3, 0.04, 0.03],
-    #     [-0.1, 0.25, -0.5],
-    #     [-0.05, 0.0, 0.5],
-    #     [0.1, -0.7, -1.0],
-    #     [0.1, 0.0, 1.0],
-    #     [0.05, 0.6, 0.8],
-    #     [-0.35, 0.3, -1.5],
-    #     [0.0, -0.3, 1.0]
-    # ])
-    # vel = np.zeros([3])
-    # for mov_ in moves:
-    #     update_sheet(bmp, pos, vel, mov_)
-    # visualize_bmp(bmp)
+    bmp = np.zeros([h, w], dtype=np.float32)
+    pos = np.array([0.5, 0.5, 0.0])
+    vel = np.zeros([3])
+    moves = dataset_stroke()[0]
+    for mov_ in moves:
+        update_sheet(bmp, pos, vel, mov_)
+    visualize_bmp(bmp)
 
     # sim = Simulator()
     # sim.train('models/simulator.ckpt', 'shots')
@@ -630,6 +655,5 @@ if __name__ == '__main__':
     # state_predictor = StatePredictor()
     # state_predictor.train('models/state_predictor.ckpt',  'shots')
 
-    observ_predictor = ObservationPredictor()
-    observ_predictor.train('models/observ_predictor.ckpt', 'shots')
-
+    # observ_predictor = ObservationPredictor()
+    # observ_predictor.train('models/observ_predictor.ckpt', 'shots')
