@@ -13,6 +13,10 @@ sim_t = sim_d / sim_c
 num_moves = 128
 
 
+# define all the possible moves for robot
+_ACT_ = [-1, 0, 1]
+
+
 def depth2color(depth):
     if depth < color_bound:
         return depth / color_bound
@@ -319,18 +323,30 @@ class ObservationPredictor:
 
 
 # we need a better sampling method to fully explore the handwriting world!!!
-def sample_strokes():
-    strokes = np.concatenate((np.random.rand(1, 2) - 0.5, np.random.rand(1, 1)), axis=1)
+def sample_strokes(n):
+    strokes = 0.1 * (np.random.rand(n, 3) - 0.5)
     return strokes
 
 
+def uniform_distribution(n):
+    return np.argmax(np.random.uniform(0, 1.0, [n, 3, 3]), axis=-1)
+
+
+def render_with_moves(im_, moves_):
+    # do the rendering job
+
+
 if __name__ == '__main__':
+    print(uniform_distribution(10))
+    exit(0)
+
     bmp = np.zeros([h, w], dtype=np.float32)
     pos = np.array([0.5, 0.5, 0.0])
     vel = np.zeros([3])
-    moves = sample_strokes()
-    for mov_ in moves:
-        update_sheet(bmp, pos, vel, mov_)
+    moves = sample_strokes(10)
+    for i in range( len(moves)):
+        print(moves[i])
+        update_sheet(bmp, pos, vel, moves[i])
     visualize_bmp(bmp)
 
     # sim = Simulator()

@@ -3,14 +3,12 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/build_concept.py" line="32" />
     <bookmark url="file://$PROJECT_DIR$/handwrite.py" line="20" />
+    <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="16" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/happy_loop.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handwrite.py" beforeDir="false" afterPath="$PROJECT_DIR$/handwrite.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/happy_loop.py" beforeDir="false" afterPath="$PROJECT_DIR$/happy_loop.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -23,8 +21,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1105">
-              <caret line="322" column="78" lean-forward="true" selection-start-line="322" selection-start-column="78" selection-end-line="322" selection-end-column="78" />
+            <state relative-caret-position="1039">
+              <caret line="335" column="26" selection-start-line="335" selection-start-column="26" selection-end-line="335" selection-end-column="26" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -348,8 +346,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1105">
-          <caret line="322" column="78" lean-forward="true" selection-start-line="322" selection-start-column="78" selection-end-line="322" selection-end-column="78" />
+        <state relative-caret-position="1039">
+          <caret line="335" column="26" selection-start-line="335" selection-start-column="26" selection-end-line="335" selection-end-column="26" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>
