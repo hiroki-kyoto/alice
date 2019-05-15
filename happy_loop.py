@@ -14,7 +14,7 @@ num_moves = 128
 
 
 # define all the possible moves for robot
-_ACT_ = [-1, 0, 1]
+_M_ = np.array([-1.0, 0.0, 1.0])
 
 
 def depth2color(depth):
@@ -332,22 +332,25 @@ def uniform_distribution(n):
     return np.argmax(np.random.uniform(0, 1.0, [n, 3, 3]), axis=-1)
 
 
-def render_with_moves(im_, moves_):
-    # do the rendering job
+def render_step(im_, pos_, move_):
+    delta_pos = _M_[move_]
+    delta_pos = delta_pos * np.array([1.0 / w, 1.0 / h, 1.0 / r])
+    print(delta_pos)
+    pos_ += delta_pos
+    #print(pos_)
+    dot(im_, pos_[0], pos_[1], pos_[2])
 
 
 if __name__ == '__main__':
-    print(uniform_distribution(10))
-    exit(0)
-
-    bmp = np.zeros([h, w], dtype=np.float32)
+    im = np.zeros([h, w], dtype=np.float32)
     pos = np.array([0.5, 0.5, 0.0])
-    vel = np.zeros([3])
-    moves = sample_strokes(10)
-    for i in range( len(moves)):
+    moves = uniform_distribution(100)
+
+    for i in range(len(moves)):
         print(moves[i])
-        update_sheet(bmp, pos, vel, moves[i])
-    visualize_bmp(bmp)
+        render_step(im, pos, moves[i])
+
+    visualize_bmp(im)
 
     # sim = Simulator()
     # sim.train('models/simulator.ckpt', 'shots')
