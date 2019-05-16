@@ -3,12 +3,18 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+import math
+
+
 # canvas setting: canvas height and width, and pen radius
-h, w = 256, 256
+h, w = 64, 64
 r = w // 16
 color_bound = 0.5
 sim_c = 0.5 # the speed of light in simulation: the maximum of speed enabled
-sim_d = 1.0/w # the minimum of simulation in space
+sim_d = 1.0 / w # the minimum of simulation in space
 sim_t = sim_d / sim_c
 num_moves = 128
 
@@ -342,6 +348,22 @@ def render_step(im_, pos_, move_):
 
 
 if __name__ == '__main__':
+
+    plt.ion()
+    plt.figure(1)
+    # t = [0]
+    # t_now = 0
+    # m = [math.sin(t_now)]
+
+    # for i in range(2000):
+    #     plt.clf()
+    #     t_now = i * 0.1
+    #     t.append(t_now)
+    #     m.append(math.sin(t_now))
+    #     plt.plot(t, m, '-r')
+    #     plt.pause(0.01)
+    # exit(0)
+
     im = np.zeros([h, w], dtype=np.float32)
     pos = np.array([0.5, 0.5, 0.0])
     moves = uniform_distribution(100)
@@ -349,8 +371,11 @@ if __name__ == '__main__':
     for i in range(len(moves)):
         print(moves[i])
         render_step(im, pos, moves[i])
+        plt.clf()
+        plt.imshow(im)
+        plt.pause(1)
 
-    visualize_bmp(im)
+    #visualize_bmp(im)
 
     # sim = Simulator()
     # sim.train('models/simulator.ckpt', 'shots')
