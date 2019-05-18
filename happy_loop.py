@@ -244,30 +244,6 @@ class Render:
             kernel_initializer=ini_fn())
         t_feat = tf.layers.dense(
             t_feat,
-            32,
-            act_fn(),
-            True,
-            kernel_initializer=ini_fn())
-        t_feat = tf.layers.dense(
-            t_feat,
-            32,
-            act_fn(),
-            True,
-            kernel_initializer=ini_fn())
-        t_feat = tf.layers.dense(
-            t_feat,
-            16,
-            act_fn(),
-            True,
-            kernel_initializer=ini_fn())
-        t_feat = tf.layers.dense(
-            t_feat,
-            8,
-            act_fn(),
-            True,
-            kernel_initializer=ini_fn())
-        t_feat = tf.layers.dense(
-            t_feat,
             self.patch_h * self.patch_w,
             act_fn(),
             True,
@@ -279,7 +255,7 @@ class Render:
         self.t_loss = tf.reduce_mean(
             tf.abs(self.t_pred_observ - self.t_next_observ))
         self.t_opt = tf.train.AdamOptimizer(
-            learning_rate=1e-3).minimize(self.t_loss)
+            learning_rate=1e-4).minimize(self.t_loss)
         self.sess = tf.Session()
 
     def train(self, model_path, dump_path):
@@ -365,6 +341,62 @@ class Render:
                         saver.save(self.sess, model_path)
                     counter += 1
 
+    def test(self, model_path, dump_path):
+        saver = tf.train.Saver()
+        if tf.train.checkpoint_exists(model_path):
+            saver.restore(self.sess, model_path)
+        else:
+            assert False
+
+        train_sessions = 1000
+        train_episodes = 100
+        train_steps = 50
+
+        plt.ion()
+        plt.figure(1)
+
+        for _ in range(train_sessions):
+            hit_wall = False
+            im = np.zeros([h, w], dtype=np.float32)
+            im_o = np.copy(im)
+            pos = np.array([0.5, 0.5, 0.0])
+            moves = action_generator(train_episodes)
+            for i in range(train_episodes):
+                if hit_wall:
+                    break
+                steps_ = int(train_steps * np.random.rand())
+                for _ in range(steps_):
+                    ppos = [int(pos[0] * w), int(pos[1] * h)]
+                    pbeg = [ppos[0] - self.patch_r,
+                            ppos[1] - self.patch_r]
+                    pend = [ppos[0] + self.patch_r + 1,
+                            ppos[1] + self.patch_r + 1]
+                    if pbeg[0] < 0 or pbeg[1] < 0 \
+                            or pend[0] > w or pend[1] > h:
+                        hit_wall = True
+                        print("===== hit the wall, start new session =====")
+                        break
+                    curr = np.copy(im_o[pbeg[1]:pend[1], pbeg[0]:pend[0]])
+                    im, pos = render_step(im, pos, moves[i])
+                    pred = self.sess.run(
+                        [self.t_pred_observ],
+                        feed_dict={
+                            self.t_action: expand_dims(
+                                index_to_onehot(
+                                    moves[i],
+                                    [len(_M_X), len(_M_Y), len(_M_Z)]),
+                                axises=[0]),
+                            self.t_observ: np.reshape(
+                                curr,
+                                [1, self.patch_h * self.patch_w])
+                        })
+                    pred = np.reshape(pred, [self.patch_h, self.patch_w])
+                    im_o[pbeg[1]:pend[1], pbeg[0]:pend[0]] = pred
+                    out = np.concatenate((im, im_o), axis=1)
+                    plt.clf()
+                    plt.imshow(1 - out, cmap="gray", vmin=0.0, vmax=1.0)
+                    plt.pause(0.01)
+
 
 def test_dynamic_disp():
     plt.ion()
@@ -385,4 +417,5 @@ def test_dynamic_disp():
 
 if __name__ == '__main__':
     render = Render()
-    render.train('models/render.ckpt', 'shots')
+    # render.train('models/render.ckpt', 'shots')
+    render.test('models/render.ckpt', 'shots')
