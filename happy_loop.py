@@ -4,14 +4,13 @@ import tensorflow as tf
 from PIL import Image
 
 import matplotlib.pyplot as plt
-import numpy as np
 import time
 import math
 
 
 # canvas setting: canvas height and width, and pen radius
-h, w = 64, 64
-r = w // 16
+h, w = 256, 256
+r = w // 32
 color_bound = 0.5
 sim_c = 0.5 # the speed of light in simulation: the maximum of speed enabled
 sim_d = 1.0 / w # the minimum of simulation in space
@@ -20,7 +19,9 @@ num_moves = 128
 
 
 # define all the possible moves for robot
-_M_ = np.array([-1.0, 0.0, 1.0])
+_M_X = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / w
+_M_Y = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / h
+_M_Z = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
 
 def depth2color(depth):
@@ -191,19 +192,65 @@ def cut(bmp):
     return np.maximum(np.minimum(bmp, 1), 0)
 
 
-class ObservationPredictor:
-    def __init__(self):
-        self.t_action = tf.placeholder(dtype=tf.float32, shape=[1, 3])
-        self.t_states = tf.placeholder(dtype=tf.float32, shape=[2, 3])
-        self.t_observ = tf.placeholder(dtype=tf.float32, shape=[1, h, w, 1])
-        self.t_next_observ = tf.placeholder(dtype=tf.float32, shape=[1, h, w, 1])
+def action_generator(n):
+    # generate action over x axis
+    x_ = np.argmax(np.random.uniform(0.0, 1.0, [n, len(_M_X)]), axis=-1)
+    y_ = np.argmax(np.random.uniform(0.0, 1.0, [n, len(_M_Y)]), axis=-1)
+    z_ = np.argmax(np.random.uniform(0.0, 1.0, [n, len(_M_Z)]), axis=-1)
+    return np.stack([x_, y_, z_], axis=-1)
 
-        t_feat = tf.concat((self.t_action, self.t_states), axis=0)
-        t_feat = tf.reshape(t_feat, shape=[1, 9])
+
+def render_step(im_, pos_, move_):
+    delta_x = _M_X[move_[0]]
+    delta_y = _M_Y[move_[1]]
+    z = _M_Z[move_[2]]
+    pos_[0] = pos_[0] + delta_x
+    pos_[1] = pos_[1] + delta_y
+    pos_[2] = z
+    pos_ = np.maximum(np.minimum(pos_, 1.0), 0.0)
+    dot(im_, pos_[0], pos_[1], pos_[2])
+    return im_, pos_
+
+
+def index_to_onehot(inds, dims):
+    onehot = np.zeros([np.sum(dims, keepdims=True)[0]], dtype=np.float32)
+    offset = 0
+    for i in range(len(inds)):
+        onehot[inds[i] + offset] = 1
+        offset += dims[i]
+    return onehot
+
+
+class Render:
+    def __init__(self):
+        self.t_action = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
+        self.patch_r = r + 1
+        self.patch_h = 2 * self.patch_r + 1
+        self.patch_w = 2 * self.patch_r + 1
+        self.t_observ = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, self.patch_h * self.patch_w])
+        self.t_next_observ = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, self.patch_h * self.patch_w])
 
         t_feat = tf.layers.dense(
+            self.t_action,
+            16,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
             t_feat,
-            8,
+            32,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            32,
             act_fn(),
             True,
             kernel_initializer=ini_fn())
@@ -215,50 +262,24 @@ class ObservationPredictor:
             kernel_initializer=ini_fn())
         t_feat = tf.layers.dense(
             t_feat,
-            64,
+            8,
             act_fn(),
             True,
             kernel_initializer=ini_fn())
-        # convert into a image
-        t_feat = tf.reshape(t_feat, [1, 8, 8, 1])
-        t_feat = tf.image.resize_bilinear(t_feat, [h, w])
-        # t_feat = tf.layers.conv2d_transpose(
-        #     inputs=t_feat,
-        #     filters=4,
-        #     kernel_size=3,
-        #     strides=2,
-        #     padding='same',
-        #     activation=act_fn(),
-        #     kernel_initializer=ini_fn())
-        # t_feat = tf.layers.conv2d_transpose(
-        #     inputs=t_feat,
-        #     filters=4,
-        #     kernel_size=3,
-        #     strides=2,
-        #     padding='same',
-        #     activation=act_fn(),
-        #     kernel_initializer=ini_fn())
-        # t_feat = tf.layers.conv2d_transpose(
-        #     inputs=t_feat,
-        #     filters=4,
-        #     kernel_size=3,
-        #     strides=2,
-        #     padding='same',
-        #     activation=act_fn(),
-        #     kernel_initializer=ini_fn())
-        # t_feat = tf.layers.conv2d_transpose(
-        #     inputs=t_feat,
-        #     filters=1,
-        #     kernel_size=3,
-        #     strides=2,
-        #     padding='same',
-        #     activation=act_fn(),
-        #     kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            self.patch_h * self.patch_w,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
 
-        self.t_pred_observ = tf.minimum(t_feat + self.t_observ, 1.0)
+        self.t_pred_observ = tf.maximum(
+            tf.minimum(t_feat + self.t_observ, 1.0), 0)
 
-        self.t_loss = tf.reduce_sum(tf.abs(self.t_pred_observ - self.t_next_observ))
-        self.t_opt = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(self.t_loss)
+        self.t_loss = tf.reduce_mean(
+            tf.abs(self.t_pred_observ - self.t_next_observ))
+        self.t_opt = tf.train.AdamOptimizer(
+            learning_rate=1e-3).minimize(self.t_loss)
         self.sess = tf.Session()
 
     def train(self, model_path, dump_path):
@@ -268,120 +289,100 @@ class ObservationPredictor:
         else:
             self.sess.run(tf.global_variables_initializer())
 
-        train_step = 100000
-        reset_prob = 1.0
+        train_sessions = 1000
+        train_episodes = 100
+        train_steps = 30
+        loss_cache = np.zeros([100])
+        loss_means = []
+        loss_varis = []
+        counter = 0
 
-        bmp = np.zeros([h, w], dtype=np.float32)
-        bmp_last = np.zeros([h, w], dtype=np.float32)
+        plt.ion()
+        plt.figure(1)
 
-        pos = np.random.rand(3)
-        vel = np.random.rand(3)
+        for _ in range(train_sessions):
+            hit_wall = False
+            im = np.zeros([h, w], dtype=np.float32)
+            pos = np.array([0.5, 0.5, 0.0])
+            moves = action_generator(train_episodes)
+            for i in range(train_episodes):
+                if hit_wall:
+                    break
+                steps_ = int(train_steps * np.random.rand())
+                for _ in range(steps_):
+                    ppos = [int(pos[0]*w), int(pos[1]*h)]
+                    pbeg = [ppos[0] - self.patch_r,
+                            ppos[1] - self.patch_r]
+                    pend = [ppos[0] + self.patch_r + 1,
+                            ppos[1] + self.patch_r + 1]
+                    if pbeg[0] < 0 or pbeg[1] < 0\
+                        or pend[0] > w or pend[1] > h:
+                        hit_wall = True
+                        print("===== hit the wall, start new session =====")
+                        break
+                    curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
+                    im, pos = render_step(im, pos, moves[i])
+                    next = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
 
-        states = np.stack([vel, pos], axis=0)
-        states_last = np.copy(states)
+                    _, loss = self.sess.run([
+                        self.t_opt,
+                        self.t_loss],
+                        feed_dict={
+                            self.t_action: expand_dims(
+                                index_to_onehot(
+                                    moves[i],
+                                    [len(_M_X), len(_M_Y), len(_M_Z)]),
+                                axises=[0]),
+                            self.t_observ: np.reshape(
+                                curr,
+                                [1, self.patch_h * self.patch_w]),
+                            self.t_next_observ: np.reshape(
+                                next,
+                                [1, self.patch_h * self.patch_w])
+                        })
 
-        loss_cache = np.zeros([1000])
+                    loss_cache[counter % len(loss_cache)] = loss
 
-        for i in range(train_step):
-            if np.random.rand() < reset_prob:
-                bmp[:, :] = 0
-                pos = np.random.rand(3)
-                vel = np.random.rand(3) - 0.5
-                states[0, :] = vel[:]
-                states[1, :] = pos[:]
-
-            bmp_last[:, :] = bmp[:, :]
-            states_last[:, :] = states[:, :]
-
-            action_ = np.random.rand(3) - 0.5
-            action_[:2] = 0.1 * action_[:2]
-            action_[2] = 0.5 * action_[2]
-
-            # update the states with physical rules
-            update_sheet(bmp, pos, vel, action_)
-            states[0, :] = vel
-            states[1, :] = pos
-
-            pred, _, loss = self.sess.run(
-                [
-                    self.t_pred_observ,
-                    self.t_opt,
-                    self.t_loss
-                 ],
-                feed_dict={
-                    self.t_action: expand_dims(action_, axises=[0]),
-                    self.t_states: states_last,
-                    self.t_observ: expand_dims(bmp_last, axises=[-1, 0]),
-                    self.t_next_observ: expand_dims(bmp, axises=[-1, 0])
-                }
-            )
-
-            loss_cache[i%len(loss_cache)] = loss
-
-            if (i + 1) % 1000 == 0:
-                loss_mean = np.mean(loss_cache)
-                loss_vari = np.sqrt(np.sum(np.square(loss_cache - loss_mean)) / (len(loss_cache) - 1))
-                print("Itr=%d Loss=%.5f(+/-%.5f)" % (i, loss_mean, loss_vari))
-                bmp_merged = merge_bmp(bmp, cut(bmp - bmp_last), cut(pred[0, :, :, 0] - bmp_last))
-                save_bmp(bmp_merged, i, dump_path)
-
-        saver.save(self.sess, model_path)
-
-
-# we need a better sampling method to fully explore the handwriting world!!!
-def sample_strokes(n):
-    strokes = 0.1 * (np.random.rand(n, 3) - 0.5)
-    return strokes
-
-
-def uniform_distribution(n):
-    return np.argmax(np.random.uniform(0, 1.0, [n, 3, 3]), axis=-1)
-
-
-def render_step(im_, pos_, move_):
-    delta_pos = _M_[move_]
-    delta_pos = delta_pos * np.array([1.0 / w, 1.0 / h, 1.0 / r])
-    print(delta_pos)
-    pos_ += delta_pos
-    #print(pos_)
-    dot(im_, pos_[0], pos_[1], pos_[2])
+                    if (counter + 1) % 100 == 0:
+                        loss_means.append(np.mean(loss_cache))
+                        loss_varis.append(np.sqrt(np.sum(
+                            np.square(loss_cache - loss_means[-1])) /
+                                                  (len(loss_cache) - 1)))
+                        plt.clf()
+                        plt.plot(
+                            range(len(loss_means)),
+                            loss_means,
+                            '-*',
+                            label='mean')
+                        plt.plot(
+                            range(len(loss_varis)),
+                            loss_varis,
+                            '+-',
+                            label='vari')
+                        plt.legend()
+                        plt.pause(0.01)
+                    if (counter + 1) % 1000 == 0:
+                        saver.save(self.sess, model_path)
+                    counter += 1
 
 
-if __name__ == '__main__':
-
+def test_dynamic_disp():
     plt.ion()
     plt.figure(1)
-    # t = [0]
-    # t_now = 0
-    # m = [math.sin(t_now)]
-
-    # for i in range(2000):
-    #     plt.clf()
-    #     t_now = i * 0.1
-    #     t.append(t_now)
-    #     m.append(math.sin(t_now))
-    #     plt.plot(t, m, '-r')
-    #     plt.pause(0.01)
-    # exit(0)
-
     im = np.zeros([h, w], dtype=np.float32)
     pos = np.array([0.5, 0.5, 0.0])
-    moves = uniform_distribution(100)
+    moves = action_generator(100)
+    episode = 50
 
     for i in range(len(moves)):
         print(moves[i])
-        render_step(im, pos, moves[i])
-        plt.clf()
-        plt.imshow(im)
-        plt.pause(1)
+        for j in range(int(episode * np.random.rand())):
+            im, pos = render_step(im, pos, moves[i])
+            plt.clf()
+            plt.imshow(1 - im, cmap="gray", vmin=0.0, vmax=1.0)
+            plt.pause(0.01)
 
-    #visualize_bmp(im)
 
-    # sim = Simulator()
-    # sim.train('models/simulator.ckpt', 'shots')
-
-    # state_predictor = StatePredictor()
-    # state_predictor.train('models/state_predictor.ckpt',  'shots')
-
-    # observ_predictor = ObservationPredictor()
-    # observ_predictor.train('models/observ_predictor.ckpt', 'shots')
+if __name__ == '__main__':
+    render = Render()
+    render.train('models/render.ckpt', 'shots')
