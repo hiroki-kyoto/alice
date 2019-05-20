@@ -398,6 +398,51 @@ class Render:
                     plt.pause(0.01)
 
 
+class Solver:
+    def __init__(self):
+        self.t_action = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
+        self.t_action_solved = tf.get_variable(
+            "action_solved",
+            dtype=tf.float32,
+            initializer=tf.random_uniform(
+                shape=self.t_action.shape,
+                minval=0,
+                maxval=1.0,
+                dtype=tf.float32))
+        self.patch_r = r + 1
+        self.patch_h = 2 * self.patch_r + 1
+        self.patch_w = 2 * self.patch_r + 1
+        self.t_observ = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, self.patch_h * self.patch_w])
+        self.t_next_observ = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, self.patch_h * self.patch_w])
+        with tf.variable_scope("render", reuse=tf.AUTO_REUSE):
+            t_feat = tf.layers.dense(
+                self.t_action_solved,
+                16,
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_feat = tf.layers.dense(
+                t_feat,
+                self.patch_h * self.patch_w,
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            self.t_pred_observ = tf.maximum(
+                tf.minimum(t_feat + self.t_observ, 1.0), 0)
+
+        self.t_loss = tf.reduce_mean(
+            tf.abs(self.t_pred_observ - self.t_next_observ))
+        self.t_opt = tf.train.AdamOptimizer(
+            learning_rate=1e-4).minimize(self.t_loss)
+        self.sess = tf.Session()
+
+
 def test_dynamic_disp():
     plt.ion()
     plt.figure(1)
