@@ -435,11 +435,57 @@ class Solver:
                 kernel_initializer=ini_fn())
             self.t_pred_observ = tf.maximum(
                 tf.minimum(t_feat + self.t_observ, 1.0), 0)
-
-        self.t_loss = tf.reduce_mean(
+        self.t_loss_render = tf.reduce_mean(
             tf.abs(self.t_pred_observ - self.t_next_observ))
-        self.t_opt = tf.train.AdamOptimizer(
-            learning_rate=1e-4).minimize(self.t_loss)
+        self.t_opt_render = tf.train.AdamOptimizer(
+            learning_rate=1e-3).minimize(self.t_loss_render)
+
+        # create model for solution initializer
+        with tf.variable_scope("guess", reuse=tf.AUTO_REUSE):
+            t_feat_src = tf.layers.dense(
+                self.t_observ,
+                16,
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_feat_dst = tf.layers.dense(
+                self.t_next_observ,
+                16,
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_feat_merg = tf.concat([t_feat_src, t_feat_dst], axis=-1)
+            print(t_feat_merg.shape)
+            t_feat = tf.layers.dense(
+                t_feat_merg,
+                16,
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_guess_x = tf.layers.dense(
+                t_feat,
+                len(_M_X),
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_guess_y = tf.layers.dense(
+                t_feat,
+                len(_M_Y),
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_guess_z = tf.layers.dense(
+                t_feat,
+                len(_M_Z),
+                act_fn(),
+                True,
+                kernel_initializer=ini_fn())
+            t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
+            t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
+            t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
+            print(t_guess_x.shape)
+            self.t_guess_action = ...
+
         self.sess = tf.Session()
 
 
