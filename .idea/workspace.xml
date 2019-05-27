@@ -20,8 +20,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="858">
-              <caret line="513" column="19" lean-forward="true" selection-start-line="513" selection-start-column="19" selection-end-line="513" selection-end-column="19" />
+            <state relative-caret-position="220">
+              <caret line="531" column="96" selection-start-line="531" selection-start-column="96" selection-end-line="531" selection-end-column="96" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -255,7 +255,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.35110608" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.33976176" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -352,8 +352,8 @@
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/matplotlib/pyplot.py" />
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="858">
-          <caret line="513" column="19" lean-forward="true" selection-start-line="513" selection-start-column="19" selection-end-line="513" selection-end-column="19" />
+        <state relative-caret-position="220">
+          <caret line="531" column="96" selection-start-line="531" selection-start-column="96" selection-end-line="531" selection-end-column="96" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

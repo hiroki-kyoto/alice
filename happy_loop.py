@@ -455,7 +455,6 @@ class Solver:
                 True,
                 kernel_initializer=ini_fn())
             t_feat_merg = tf.concat([t_feat_src, t_feat_dst], axis=-1)
-            print(t_feat_merg.shape)
             t_feat = tf.layers.dense(
                 t_feat_merg,
                 16,
@@ -480,14 +479,14 @@ class Solver:
                 act_fn(),
                 True,
                 kernel_initializer=ini_fn())
-            t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
-            t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
-            t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
-            print(t_guess_x.shape)
+
+            #t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
+            #t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
+            #t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
+
             self.t_guess_action = tf.concat(
                 [t_guess_x, t_guess_y, t_guess_z],
-                axis=-1
-            )
+                axis=-1)
         # guess action is initial solution for action solver.
         # however, solved action behaves as a supervisor for guess model.
         self.t_loss_guess = tf.reduce_mean(
@@ -497,13 +496,40 @@ class Solver:
 
         self.sess = tf.Session()
 
-    def train(self, model_path, dump_path):
-        saver = tf.train.Saver()
-        ============ initialize the uninitialized variables ======
-        if tf.train.checkpoint_exists(model_path):
-            saver.restore(self.sess, model_path)
+    def train(self, ckpt_render, ckpt_guess, dump_path):
+        all_vars = tf.trainable_variables()
+        render_vars = dict()
+        guess_vars = dict()
+        unintialized_vars = []
+        for v in all_vars:
+            if v.name.startswith('render/'):
+                render_vars[v.name[len('render/'):-2]] = v
+            elif v.name.startswith('guess/'):
+                guess_vars[v.name[len('guess/'):-2]] = v
+            else:
+                unintialized_vars.append(v)
+
+        # load the pre-trained render model with specified name-var list
+        saver = tf.train.Saver(var_list=render_vars)
+        if tf.train.checkpoint_exists(ckpt_render):
+            saver.restore(self.sess, ckpt_render)
         else:
-            self.sess.run(tf.global_variables_initializer())
+            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT PATH: ' + ckpt_render)
+            assert False
+
+        # load the pre-trained render model with specified name-var list
+        saver = tf.train.Saver(var_list=guess_vars)
+        if tf.train.checkpoint_exists(ckpt_guess):
+            saver.restore(self.sess, ckpt_render)
+        else:
+            #initialize the guess model
+            self.sess.run(tf.initialize_variables(guess_vars))
+
+        # initialize the uninitialized variables
+        self.sess.run(tf.initialize_variables(unintialized_vars))
+
+        # initialize those local variables
+        ?????? do global variables like Adam optimizer variables should be manually initialized?
 
         train_sessions = 1000
         train_episodes = 100
@@ -520,7 +546,7 @@ class Solver:
             hit_wall = False
             im = np.zeros([h, w], dtype=np.float32)
             pos = np.array([0.5, 0.5, 0.0])
-            moves = action_generator(train_episodes)
+            moves = action_generator(train_episodes) ##### [TO-DO] replace this with observ
             for i in range(train_episodes):
                 if hit_wall:
                     break
@@ -600,6 +626,10 @@ def test_dynamic_disp():
 
 
 if __name__ == '__main__':
-    render = Render()
+    #render = Render()
     # render.train('models/render.ckpt', 'shots')
-    render.test('models/render.ckpt', 'shots')
+    # render.test('models/render.ckpt', 'shots')
+
+    slr = Solver()
+    slr.train('models/render.ckpt', 'models/guess.ckpt', 'shots')
+
