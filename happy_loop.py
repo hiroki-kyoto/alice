@@ -6,6 +6,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import time
 import math
+import glob
 
 
 # canvas setting: canvas height and width, and pen radius
@@ -398,16 +399,23 @@ class Render:
                     plt.pause(0.01)
 
 
+def initialize_uninitialized(sess):
+    global_vars = tf.global_variables()
+    bool_inits = sess.run([tf.is_variable_initialized(var) for var in global_vars])
+    uninit_vars = [v for (v, b) in zip(global_vars, bool_inits) if not b]
+    for v in uninit_vars:
+        print("Initialize alone: " + str(v.name))
+    if len(uninit_vars):
+        sess.run(tf.variables_initializer(uninit_vars))
+
+
 class Solver:
     def __init__(self):
-        self.t_action = tf.placeholder(
-            dtype=tf.float32,
-            shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
         self.t_action_solved = tf.get_variable(
             "action_solved",
             dtype=tf.float32,
             initializer=tf.random_uniform(
-                shape=self.t_action.shape,
+                shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)],
                 minval=0,
                 maxval=1.0,
                 dtype=tf.float32))
@@ -490,7 +498,7 @@ class Solver:
         # guess action is initial solution for action solver.
         # however, solved action behaves as a supervisor for guess model.
         self.t_loss_guess = tf.reduce_mean(
-            tf.abs(self.t_guess_action - self.t_action))
+            tf.abs(self.t_guess_action - self.t_action_solved))
         self.t_opt_guess = tf.train.AdamOptimizer(
             learning_rate=1e-3).minimize(self.t_loss_guess)
 
@@ -500,40 +508,35 @@ class Solver:
         all_vars = tf.trainable_variables()
         render_vars = dict()
         guess_vars = dict()
-        unintialized_vars = []
         for v in all_vars:
             if v.name.startswith('render/'):
                 render_vars[v.name[len('render/'):-2]] = v
             elif v.name.startswith('guess/'):
                 guess_vars[v.name[len('guess/'):-2]] = v
-            else:
-                unintialized_vars.append(v)
 
         # load the pre-trained render model with specified name-var list
-        saver = tf.train.Saver(var_list=render_vars)
         if tf.train.checkpoint_exists(ckpt_render):
+            saver = tf.train.Saver(var_list=render_vars)
             saver.restore(self.sess, ckpt_render)
         else:
             print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT PATH: ' + ckpt_render)
             assert False
 
         # load the pre-trained render model with specified name-var list
-        saver = tf.train.Saver(var_list=guess_vars)
         if tf.train.checkpoint_exists(ckpt_guess):
+            saver = tf.train.Saver(var_list=guess_vars)
             saver.restore(self.sess, ckpt_render)
-        else:
-            #initialize the guess model
-            self.sess.run(tf.initialize_variables(guess_vars))
 
         # initialize the uninitialized variables
-        self.sess.run(tf.initialize_variables(unintialized_vars))
+        initialize_uninitialized(self.sess)
 
-        # initialize those local variables
-        ?????? do global variables like Adam optimizer variables should be manually initialized?
+        train_data_dir = '../Datasets/ChineseStroke/'
+        train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
-        train_episodes = 100
-        train_steps = 30
+        train_steps = 1000
+        stop_error = 1e-2
+
         loss_cache = np.zeros([100])
         loss_means = []
         loss_varis = []
@@ -543,15 +546,15 @@ class Solver:
         plt.figure(1)
 
         for _ in range(train_sessions):
-            hit_wall = False
+            sample_idx = np.random.randint(0, len(train_samples))
+            target_draw = np.array(Image.open(train_samples[sample_idx]),
+                                   dtype=np.float32)[:, :, 0]
+            session_over = False
             im = np.zeros([h, w], dtype=np.float32)
             pos = np.array([0.5, 0.5, 0.0])
-            moves = action_generator(train_episodes) ##### [TO-DO] replace this with observ
-            for i in range(train_episodes):
-                if hit_wall:
-                    break
-                steps_ = int(train_steps * np.random.rand())
-                for _ in range(steps_):
+
+            while not session_over:
+                for _ in range(train_steps):
                     ppos = [int(pos[0]*w), int(pos[1]*h)]
                     pbeg = [ppos[0] - self.patch_r,
                             ppos[1] - self.patch_r]
@@ -559,32 +562,33 @@ class Solver:
                             ppos[1] + self.patch_r + 1]
                     if pbeg[0] < 0 or pbeg[1] < 0\
                         or pend[0] > w or pend[1] > h:
-                        hit_wall = True
+                        session_over = True
                         print("===== hit the wall, start new session =====")
                         break
                     curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
-                    im, pos = render_step(im, pos, moves[i])
-                    next = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
+                    next = np.copy(target_draw[pbeg[1]:pend[1], pbeg[0]:pend[0]])
 
-                    _, loss = self.sess.run([
-                        self.t_opt,
-                        self.t_loss],
+                    # run the guess model to comes up with an initial solution
+                    action_guess = self.sess.run(
+                        self.t_guess_action,
                         feed_dict={
-                            self.t_action: expand_dims(
-                                index_to_onehot(
-                                    moves[i],
-                                    [len(_M_X), len(_M_Y), len(_M_Z)]),
-                                axises=[0]),
-                            self.t_observ: np.reshape(
-                                curr,
-                                [1, self.patch_h * self.patch_w]),
-                            self.t_next_observ: np.reshape(
-                                next,
-                                [1, self.patch_h * self.patch_w])
-                        })
+                            self.t_observ: curr,
+                            self.t_next_observ: next
+                        }
+                    )
+
+                    # run the render model to optimize for the best action
+                    _, loss = self.sess.run(
+                        [self.t_opt_render, self.t_loss_render],
+                        feed_dict={
+                            self.t_observ: curr,
+                            self.t_next_observ: next,
+                            self.t_action_solved: action_guess # a initial solution
+                        }
+                    )
 
                     loss_cache[counter % len(loss_cache)] = loss
-
+                    ////////////////////////
                     if (counter + 1) % 100 == 0:
                         loss_means.append(np.mean(loss_cache))
                         loss_varis.append(np.sqrt(np.sum(
