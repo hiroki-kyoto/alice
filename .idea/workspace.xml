@@ -7,7 +7,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/happy_loop.py" beforeDir="false" afterPath="$PROJECT_DIR$/happy_loop.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,8 +20,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1143">
-              <caret line="590" column="44" selection-start-line="590" selection-start-column="44" selection-end-line="590" selection-end-column="44" />
+            <state relative-caret-position="1010">
+              <caret line="624" column="86" lean-forward="true" selection-start-line="624" selection-start-column="86" selection-end-line="624" selection-end-column="86" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -265,7 +264,7 @@
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49716446" weight="0.32898468" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50189036" side_tool="true" weight="0.39931935" />
-      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49810964" weight="0.39875212" />
+      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49810964" weight="0.48440158" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -354,8 +353,8 @@
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/matplotlib/pyplot.py" />
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1143">
-          <caret line="590" column="44" selection-start-line="590" selection-start-column="44" selection-end-line="590" selection-end-column="44" />
+        <state relative-caret-position="1010">
+          <caret line="624" column="86" lean-forward="true" selection-start-line="624" selection-start-column="86" selection-end-line="624" selection-end-column="86" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

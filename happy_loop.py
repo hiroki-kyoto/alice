@@ -419,6 +419,10 @@ class Solver:
                 minval=0,
                 maxval=1.0,
                 dtype=tf.float32))
+        self.t_action = tf.placeholder(
+            dtype=self.t_action_solved.dtype,
+            shape=self.t_action_solved.shape
+        )
         self.patch_r = r + 1
         self.patch_h = 2 * self.patch_r + 1
         self.patch_w = 2 * self.patch_r + 1
@@ -446,7 +450,11 @@ class Solver:
         self.t_loss_render = tf.reduce_mean(
             tf.abs(self.t_pred_observ - self.t_next_observ))
         self.t_opt_render = tf.train.AdamOptimizer(
-            learning_rate=1e-3).minimize(self.t_loss_render)
+            learning_rate=1e-3).minimize(
+            self.t_loss_render,
+            global_step=None,
+            var_list=[self.t_action_solved]
+        )
 
         # create model for solution initializer
         with tf.variable_scope("guess", reuse=tf.AUTO_REUSE):
@@ -498,9 +506,12 @@ class Solver:
         # guess action is initial solution for action solver.
         # however, solved action behaves as a supervisor for guess model.
         self.t_loss_guess = tf.reduce_mean(
-            tf.abs(self.t_guess_action - self.t_action_solved))
+            tf.abs(self.t_guess_action - self.t_action))
         self.t_opt_guess = tf.train.AdamOptimizer(
             learning_rate=1e-3).minimize(self.t_loss_guess)
+
+        # building connections between the two model
+        self.t_action_init_op = self.t_action_solved.assign(self.t_action)
 
         self.sess = tf.Session()
 
@@ -519,7 +530,8 @@ class Solver:
             saver = tf.train.Saver(var_list=render_vars)
             saver.restore(self.sess, ckpt_render)
         else:
-            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT PATH: ' + ckpt_render)
+            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT PATH: '
+                  + ckpt_render)
             assert False
 
         # load the pre-trained render model with specified name-var list
@@ -534,7 +546,7 @@ class Solver:
         train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
-        train_steps = 1000
+        train_steps = 100
         stop_error = 1e-2
 
         loss_cache = np.zeros([100])
@@ -554,7 +566,7 @@ class Solver:
             pos = np.array([0.5, 0.5, 0.0])
 
             while not session_over:
-                for _ in range(train_steps):
+
                     ppos = [int(pos[0]*w), int(pos[1]*h)]
                     pbeg = [ppos[0] - self.patch_r,
                             ppos[1] - self.patch_r]
@@ -578,17 +590,39 @@ class Solver:
                     )
 
                     # run the render model to optimize for the best action
-                    _, loss = self.sess.run(
-                        [self.t_opt_render, self.t_loss_render],
-                        feed_dict={
-                            self.t_observ: curr,
-                            self.t_next_observ: next,
-                            self.t_action_solved: action_guess # a initial solution
-                        }
-                    )
-
-                    loss_cache[counter % len(loss_cache)] = loss
-                    ////////////////////////
+                    # firstly, initialize the solution of action
+                    self.sess.run(self.t_action_init_op,
+                                  feed_dict={
+                                      self.t_action: action_guess
+                                  })
+                    # next, train the render model with parameters but action fixed.
+                    for _ in range(train_steps):
+                        _, loss = self.sess.run(
+                            [self.t_opt_render, self.t_loss_render],
+                            feed_dict={
+                                self.t_observ: curr,
+                                self.t_next_observ: next
+                            })
+                        if loss < stop_error:
+                            break
+                    # use this solved action to train guess model
+                    action_gt = self.sess.run(self.t_action_solved)
+                    for _ in range(train_steps):
+                        _, loss = self.sess.run(
+                            [self.t_opt_guess, self.t_loss_guess],
+                            feed_dict={
+                                self.t_observ: curr,
+                                self.t_next_observ: next,
+                                self.t_action: action_gt
+                            }
+                        )
+                        if loss < stop_error:
+                            break
+                    # The real loss is: diff between solved and guess action
+                    loss_cache[counter % len(loss_cache)] = np.mean(np.abs(
+                        action_gt - action_guess
+                    ))
+                    //////////////////////// create condition for judging session over
                     if (counter + 1) % 100 == 0:
                         loss_means.append(np.mean(loss_cache))
                         loss_varis.append(np.sqrt(np.sum(
