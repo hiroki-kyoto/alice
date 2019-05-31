@@ -450,7 +450,7 @@ class Solver:
         self.t_loss_render = tf.reduce_mean(
             tf.abs(self.t_pred_observ - self.t_next_observ))
         self.t_opt_render = tf.train.AdamOptimizer(
-            learning_rate=1e-3).minimize(
+            learning_rate=1e-4).minimize(
             self.t_loss_render,
             global_step=None,
             var_list=[self.t_action_solved]
@@ -508,7 +508,7 @@ class Solver:
         self.t_loss_guess = tf.reduce_mean(
             tf.abs(self.t_guess_action - self.t_action))
         self.t_opt_guess = tf.train.AdamOptimizer(
-            learning_rate=1e-3).minimize(self.t_loss_guess)
+            learning_rate=1e-4).minimize(self.t_loss_guess)
 
         # building connections between the two model
         self.t_action_init_op = self.t_action_solved.assign(self.t_action)
@@ -537,17 +537,17 @@ class Solver:
         # load the pre-trained render model with specified name-var list
         if tf.train.checkpoint_exists(ckpt_guess):
             saver = tf.train.Saver(var_list=guess_vars)
-            saver.restore(self.sess, ckpt_render)
+            saver.restore(self.sess, ckpt_guess)
 
         # initialize the uninitialized variables
         initialize_uninitialized(self.sess)
 
-        train_data_dir = '../Datasets/ChineseStroke/'
+        train_data_dir = './ChineseStroke/'
         train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
         train_steps = 100
-        stop_error = 1e-2
+        stop_error = 2e-3
 
         loss_cache = np.zeros([100])
         loss_means = []
@@ -559,91 +559,161 @@ class Solver:
 
         for _ in range(train_sessions):
             sample_idx = np.random.randint(0, len(train_samples))
-            target_draw = np.array(Image.open(train_samples[sample_idx]),
-                                   dtype=np.float32)[:, :, 0]
+            target_draw = 1 - np.array(Image.open(train_samples[sample_idx]),
+                                   dtype=np.float32)[:, :, 0] / 255.0
             session_over = False
             im = np.zeros([h, w], dtype=np.float32)
-            pos = np.array([0.5, 0.5, 0.0])
+            pos = np.array([0.5, 0.5])
 
             while not session_over:
+                ppos = [int(pos[0]*w), int(pos[1]*h)]
+                pbeg = [ppos[0] - self.patch_r,
+                        ppos[1] - self.patch_r]
+                pend = [ppos[0] + self.patch_r + 1,
+                        ppos[1] + self.patch_r + 1]
+                if pbeg[0] < 0 or pbeg[1] < 0\
+                    or pend[0] > w or pend[1] > h:
+                    session_over = True
+                    print("===== hit the wall, start new session =====")
+                    break
+                curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
+                next = np.copy(target_draw[pbeg[1]:pend[1], pbeg[0]:pend[0]])
 
-                    ppos = [int(pos[0]*w), int(pos[1]*h)]
+                # run the guess model to comes up with an initial solution
+                action_guess = self.sess.run(
+                    self.t_guess_action,
+                    feed_dict={
+                        self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
+                        self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
+                    }
+                )
+
+                # run the render model to optimize for the best action
+                # firstly, initialize the solution of action
+                self.sess.run(self.t_action_init_op,
+                              feed_dict={
+                                  self.t_action: action_guess
+                              })
+                # next, train the render model with parameters but action fixed.
+                for _ in range(train_steps):
+                    _, loss = self.sess.run(
+                        [self.t_opt_render, self.t_loss_render],
+                        feed_dict={
+                            self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
+                            self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
+                        })
+                    if loss < stop_error:
+                        break
+                # use this solved action to train guess model
+                action_gt = self.sess.run(self.t_action_solved)
+                for _ in range(train_steps):
+                    _, loss = self.sess.run(
+                        [self.t_opt_guess, self.t_loss_guess],
+                        feed_dict={
+                            self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
+                            self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list()),
+                            self.t_action: action_gt
+                        })
+                    if loss < stop_error:
+                        break
+                # The real loss is: diff between solved and guess action
+                loss_cache[counter % len(loss_cache)] = np.mean(np.abs(
+                    action_gt - action_guess
+                ))
+
+                if (counter + 1) % 100 == 0:
+                    loss_means.append(np.mean(loss_cache))
+                    loss_varis.append(np.sqrt(np.sum(
+                        np.square(loss_cache - loss_means[-1])) /
+                                              (len(loss_cache) - 1)))
+                    plt.clf()
+                    plt.plot(
+                        range(len(loss_means)),
+                        loss_means,
+                        '-*',
+                        label='mean')
+                    plt.plot(
+                        range(len(loss_varis)),
+                        loss_varis,
+                        '+-',
+                        label='vari')
+                    plt.legend()
+                    plt.pause(0.01)
+                if (counter + 1) % 1000 == 0:
+                    saver = tf.train.Saver(var_list=guess_vars)
+                    saver.save(self.sess, ckpt_guess)
+                counter += 1
+
+                # update the session state
+                if np.mean(np.abs(curr - next)) < stop_error:
+                    print("============ SESSION DONE ==============")
+                    session_over = True
+                # update internal state including position and virtual world
+                pos[0] += _M_X[np.argmax(action_gt[0][0:5])]
+                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])]
+                # on test, replace this to be below
+                # real_observ = self.sess.run(
+                #   self.t_pred_observ,
+                #   feed_dict={self.t_observ: np.reshape(curr,
+                #       self.t_observ.shape.as_list())})
+                # im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = real_observ
+                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
+
+    def test(self, ckpt_render, ckpt_guess, dump_path):
+        saver = tf.train.Saver()
+        if tf.train.checkpoint_exists(model_path):
+            saver.restore(self.sess, model_path)
+        else:
+            assert False
+
+        train_sessions = 1000
+        train_episodes = 100
+        train_steps = 50
+
+        plt.ion()
+        plt.figure(1)
+
+        for _ in range(train_sessions):
+            hit_wall = False
+            im = np.zeros([h, w], dtype=np.float32)
+            im_o = np.copy(im)
+            pos = np.array([0.5, 0.5, 0.0])
+            moves = action_generator(train_episodes)
+            for i in range(train_episodes):
+                if hit_wall:
+                    break
+                steps_ = int(train_steps * np.random.rand())
+                for _ in range(steps_):
+                    ppos = [int(pos[0] * w), int(pos[1] * h)]
                     pbeg = [ppos[0] - self.patch_r,
                             ppos[1] - self.patch_r]
                     pend = [ppos[0] + self.patch_r + 1,
                             ppos[1] + self.patch_r + 1]
-                    if pbeg[0] < 0 or pbeg[1] < 0\
-                        or pend[0] > w or pend[1] > h:
-                        session_over = True
+                    if pbeg[0] < 0 or pbeg[1] < 0 \
+                            or pend[0] > w or pend[1] > h:
+                        hit_wall = True
                         print("===== hit the wall, start new session =====")
                         break
-                    curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
-                    next = np.copy(target_draw[pbeg[1]:pend[1], pbeg[0]:pend[0]])
-
-                    # run the guess model to comes up with an initial solution
-                    action_guess = self.sess.run(
-                        self.t_guess_action,
+                    curr = np.copy(im_o[pbeg[1]:pend[1], pbeg[0]:pend[0]])
+                    im, pos = render_step(im, pos, moves[i])
+                    pred = self.sess.run(
+                        [self.t_pred_observ],
                         feed_dict={
-                            self.t_observ: curr,
-                            self.t_next_observ: next
-                        }
-                    )
-
-                    # run the render model to optimize for the best action
-                    # firstly, initialize the solution of action
-                    self.sess.run(self.t_action_init_op,
-                                  feed_dict={
-                                      self.t_action: action_guess
-                                  })
-                    # next, train the render model with parameters but action fixed.
-                    for _ in range(train_steps):
-                        _, loss = self.sess.run(
-                            [self.t_opt_render, self.t_loss_render],
-                            feed_dict={
-                                self.t_observ: curr,
-                                self.t_next_observ: next
-                            })
-                        if loss < stop_error:
-                            break
-                    # use this solved action to train guess model
-                    action_gt = self.sess.run(self.t_action_solved)
-                    for _ in range(train_steps):
-                        _, loss = self.sess.run(
-                            [self.t_opt_guess, self.t_loss_guess],
-                            feed_dict={
-                                self.t_observ: curr,
-                                self.t_next_observ: next,
-                                self.t_action: action_gt
-                            }
-                        )
-                        if loss < stop_error:
-                            break
-                    # The real loss is: diff between solved and guess action
-                    loss_cache[counter % len(loss_cache)] = np.mean(np.abs(
-                        action_gt - action_guess
-                    ))
-                    //////////////////////// create condition for judging session over
-                    if (counter + 1) % 100 == 0:
-                        loss_means.append(np.mean(loss_cache))
-                        loss_varis.append(np.sqrt(np.sum(
-                            np.square(loss_cache - loss_means[-1])) /
-                                                  (len(loss_cache) - 1)))
-                        plt.clf()
-                        plt.plot(
-                            range(len(loss_means)),
-                            loss_means,
-                            '-*',
-                            label='mean')
-                        plt.plot(
-                            range(len(loss_varis)),
-                            loss_varis,
-                            '+-',
-                            label='vari')
-                        plt.legend()
-                        plt.pause(0.01)
-                    if (counter + 1) % 1000 == 0:
-                        saver.save(self.sess, model_path)
-                    counter += 1
+                            self.t_action: expand_dims(
+                                index_to_onehot(
+                                    moves[i],
+                                    [len(_M_X), len(_M_Y), len(_M_Z)]),
+                                axises=[0]),
+                            self.t_observ: np.reshape(
+                                curr,
+                                [1, self.patch_h * self.patch_w])
+                        })
+                    pred = np.reshape(pred, [self.patch_h, self.patch_w])
+                    im_o[pbeg[1]:pend[1], pbeg[0]:pend[0]] = pred
+                    out = np.concatenate((im, im_o), axis=1)
+                    plt.clf()
+                    plt.imshow(1 - out, cmap="gray", vmin=0.0, vmax=1.0)
+                    plt.pause(0.01)
 
 
 def test_dynamic_disp():

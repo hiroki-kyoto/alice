@@ -1,2 +1,2 @@
-model_checkpoint_path: "render.ckpt"
-all_model_checkpoint_paths: "render.ckpt"
+model_checkpoint_path: "guess.ckpt"
+all_model_checkpoint_paths: "guess.ckpt"
