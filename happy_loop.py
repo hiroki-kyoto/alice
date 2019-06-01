@@ -447,14 +447,17 @@ class Solver:
                 kernel_initializer=ini_fn())
             self.t_pred_observ = tf.maximum(
                 tf.minimum(t_feat + self.t_observ, 1.0), 0)
-        self.t_loss_render = tf.reduce_mean(
-            tf.abs(self.t_pred_observ - self.t_next_observ))
+
+        iou = tf.reduce_mean(self.t_pred_observ * self.t_next_observ, axis=-1)
+        norm = tf.reduce_mean(self.t_next_observ, axis=-1) + 1e-5
+        iod = tf.reduce_mean(self.t_pred_observ * (1 - self.t_next_observ), axis=-1)
+        self.t_loss_render = 1 - iou / (norm * (1e5 * iod + 1))
+
         self.t_opt_render = tf.train.GradientDescentOptimizer(
             learning_rate=1e-2).minimize(
             self.t_loss_render,
             global_step=None,
-            var_list=[self.t_action_solved]
-        )
+            var_list=[self.t_action_solved])
 
         # create model for solution initializer
         with tf.variable_scope("guess", reuse=tf.AUTO_REUSE):
@@ -496,9 +499,9 @@ class Solver:
                 True,
                 kernel_initializer=ini_fn())
 
-            #t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
-            #t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
-            #t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
+            t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
+            t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
+            t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
 
             self.t_guess_action = tf.concat(
                 [t_guess_x, t_guess_y, t_guess_z],
@@ -690,7 +693,7 @@ class Solver:
         train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
-        train_steps = 10000
+        train_steps = 1000
         stop_error = 1e-2
 
         plt.ion()
@@ -724,8 +727,7 @@ class Solver:
                     feed_dict={
                         self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
                         self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
-                    }
-                )
+                    })
 
                 # run the render model to optimize for the best action
                 # firstly, initialize the solution of action
