@@ -10,8 +10,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ChineseStroke/Yong1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/ChineseStroke/Yong1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/happy_loop.py" beforeDir="false" afterPath="$PROJECT_DIR$/happy_loop.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -24,8 +22,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="431">
-              <caret line="694" column="29" lean-forward="true" selection-start-line="694" selection-start-column="29" selection-end-line="694" selection-end-column="29" />
+            <state relative-caret-position="524">
+              <caret line="712" column="36" selection-start-line="712" selection-start-column="36" selection-end-line="712" selection-end-column="36" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -65,6 +63,7 @@
       <find>glob.glo</find>
       <find>render</find>
       <find>glo</find>
+      <find>softma</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -255,14 +254,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1096" height="1906" extended-state="6" />
+    <frame x="-8" y="-8" width="1096" height="1896" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.13327032" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.36153412" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8232514" weight="0.4203063" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -359,8 +358,8 @@
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/matplotlib/pyplot.py" />
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="431">
-          <caret line="694" column="29" lean-forward="true" selection-start-line="694" selection-start-column="29" selection-end-line="694" selection-end-column="29" />
+        <state relative-caret-position="524">
+          <caret line="712" column="36" selection-start-line="712" selection-start-column="36" selection-end-line="712" selection-end-column="36" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

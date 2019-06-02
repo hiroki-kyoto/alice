@@ -448,13 +448,18 @@ class Solver:
             self.t_pred_observ = tf.maximum(
                 tf.minimum(t_feat + self.t_observ, 1.0), 0)
 
-        iou = tf.reduce_mean(self.t_pred_observ * self.t_next_observ, axis=-1)
-        norm = tf.reduce_mean(self.t_next_observ, axis=-1) + 1e-5
-        iod = tf.reduce_mean(self.t_pred_observ * (1 - self.t_next_observ), axis=-1)
-        self.t_loss_render = 1 - iou / (norm * (1e5 * iod + 1))
+        #iou = tf.reduce_mean(self.t_pred_observ * self.t_next_observ, axis=-1)
+        #norm = tf.reduce_mean(self.t_next_observ, axis=-1) + 1e-5
+        #iod = tf.reduce_mean(self.t_pred_observ * (1 - self.t_next_observ), axis=-1)
+        #self.t_loss_render = 1 - iou / (norm * (1e1 * iod + 1))
+
+        # new loss
+        inter = tf.reduce_mean(tf.minimum(self.t_pred_observ, self.t_next_observ), axis=-1)
+        union = tf.reduce_mean(tf.maximum(self.t_pred_observ, self.t_next_observ), axis=-1)
+        self.t_loss_render = 1 - inter / (union + 1e-5)
 
         self.t_opt_render = tf.train.GradientDescentOptimizer(
-            learning_rate=1e-2).minimize(
+            learning_rate=1e-3).minimize(
             self.t_loss_render,
             global_step=None,
             var_list=[self.t_action_solved])
@@ -499,9 +504,9 @@ class Solver:
                 True,
                 kernel_initializer=ini_fn())
 
-            t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
-            t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
-            t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
+            # t_guess_x = tf.nn.softmax(t_guess_x, axis=-1)
+            # t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
+            # t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
 
             self.t_guess_action = tf.concat(
                 [t_guess_x, t_guess_y, t_guess_z],
@@ -693,7 +698,7 @@ class Solver:
         train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
-        train_steps = 1000
+        train_steps = 100
         stop_error = 1e-2
 
         plt.ion()
@@ -763,7 +768,7 @@ class Solver:
                         break
                 if self.loss > stop_error:
                     print('ACTION GUESS BAD!')
-                    #assert False
+                   #assert False
 
                 # update the session state
                 if np.mean(np.abs(curr - next)) < stop_error:
@@ -806,8 +811,8 @@ def test_dynamic_disp():
 
 if __name__ == '__main__':
     #render = Render()
-    # render.train('models/render.ckpt', 'shots')
-    # render.test('models/render.ckpt', 'shots')
+    #render.train('models/render.ckpt', 'shots')
+    #render.test('models/render.ckpt', 'shots')
 
     slr = Solver()
     slr.test('models/render.ckpt', 'models/guess.ckpt', 'shots')
