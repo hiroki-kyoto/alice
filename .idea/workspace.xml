@@ -4,6 +4,7 @@
     <bookmark url="file://$PROJECT_DIR$/build_concept.py" line="32" />
     <bookmark url="file://$PROJECT_DIR$/handwrite.py" line="20" />
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="20" />
+    <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="256" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
@@ -23,8 +24,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="245" column="33" lean-forward="true" selection-start-line="245" selection-start-column="33" selection-end-line="245" selection-end-column="33" />
+            <state relative-caret-position="817">
+              <caret line="211" column="78" selection-start-line="211" selection-start-column="78" selection-end-line="211" selection-end-column="78" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -255,7 +256,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1096" height="1906" extended-state="6" />
+    <frame x="-8" y="-8" width="1096" height="1896" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.13327032" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -359,8 +360,8 @@
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/matplotlib/pyplot.py" />
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="245" column="33" lean-forward="true" selection-start-line="245" selection-start-column="33" selection-end-line="245" selection-end-column="33" />
+        <state relative-caret-position="817">
+          <caret line="211" column="78" selection-start-line="211" selection-start-column="78" selection-end-line="211" selection-end-column="78" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>

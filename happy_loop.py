@@ -20,8 +20,9 @@ num_moves = 128
 
 
 # define all the possible moves for robot
-_M_X = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / w
-_M_Y = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / h
+STEP_SIZE = 8
+_M_X = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / w * STEP_SIZE
+_M_Y = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / h * STEP_SIZE
 _M_Z = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
 
@@ -208,6 +209,7 @@ def render_step(im_, pos_, move_):
     pos_[0] = pos_[0] + delta_x
     pos_[1] = pos_[1] + delta_y
     pos_[2] = z
+    # modify this to render a curve instead of a dot!!!!!!!!!!!!!!!!!!!!!!!!!!
     pos_ = np.maximum(np.minimum(pos_, 1.0), 0.0)
     dot(im_, pos_[0], pos_[1], pos_[2])
     return im_, pos_
@@ -250,13 +252,14 @@ class Render:
             True,
             kernel_initializer=ini_fn())
 
-        self.t_pred_observ = tf.maximum(
-            tf.minimum(t_feat + self.t_observ, 1.0), 0)
+        # addition required to be non-negative
+        t_feat = tf.maximum(t_feat, 0)
+        self.t_pred_observ = tf.minimum(t_feat + self.t_observ, 1.0)
 
         self.t_loss = tf.reduce_mean(
             tf.abs(self.t_pred_observ - self.t_next_observ))
         self.t_opt = tf.train.AdamOptimizer(
-            learning_rate=1e-4).minimize(self.t_loss)
+            learning_rate=1e-3).minimize(self.t_loss)
         self.sess = tf.Session()
 
     def train(self, model_path, dump_path):
