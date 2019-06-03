@@ -810,10 +810,10 @@ def test_dynamic_disp():
 
 
 if __name__ == '__main__':
-    #render = Render()
-    #render.train('models/render.ckpt', 'shots')
+    render = Render()
+    render.train('models/render.ckpt', 'shots')
     #render.test('models/render.ckpt', 'shots')
 
-    slr = Solver()
-    slr.test('models/render.ckpt', 'models/guess.ckpt', 'shots')
+    #slr = Solver()
+    #slr.test('models/render.ckpt', 'models/guess.ckpt', 'shots')
 
