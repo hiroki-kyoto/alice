@@ -230,7 +230,8 @@ class Model:
         with self.graph.as_default():
             self.sess = tf.Session()
 
-    def build(self, graph):
+    @staticmethod
+    def build(graph):
         pass
 
     def train(self, ckpt_paths, dump_path):
@@ -242,10 +243,10 @@ class Model:
 
 class Render(Model):
     # graph: On which graph should this model be built in.
-    def build(self, graph):
-        # configuration
-        self.patch_h = 2 * (STEP_SIZE + r) + 1
-        self.patch_w = 2 * (STEP_SIZE + r) + 1
+    @staticmethod
+    def build(graph):
+        patch_h = 2 * (STEP_SIZE + r) + 1
+        patch_w = 2 * (STEP_SIZE + r) + 1
         assert isinstance(graph, tf.Graph)
         with graph.as_default():
             # INPUTS
@@ -256,11 +257,11 @@ class Render(Model):
             t_observ = tf.placeholder(
                 name='observ',
                 dtype=tf.float32,
-                shape=[1, self.patch_h * self.patch_w])
+                shape=[1, patch_h * patch_w])
             t_next_observ = tf.placeholder(
                 name='next_observ',
                 dtype=tf.float32,
-                shape=[1, self.patch_h * self.patch_w])
+                shape=[1, patch_h * patch_w])
             # MODELS
             t_feat = tf.layers.dense(
                 t_action,
@@ -276,7 +277,7 @@ class Render(Model):
                 kernel_initializer=ini_fn())
             t_feat = tf.layers.dense(
                 t_feat,
-                self.patch_h * self.patch_w,
+                patch_h * patch_w,
                 act_fn(),
                 True,
                 kernel_initializer=ini_fn())
@@ -289,6 +290,8 @@ class Render(Model):
 
     def __init__(self):
         super().__init__()
+        self.patch_h = 2 * (STEP_SIZE + r) + 1
+        self.patch_w = 2 * (STEP_SIZE + r) + 1
         models = self.build(self.graph)
         self.t_action, self.t_observ, self.t_next_observ = models['inputs']
         self.t_pred_observ = models['outputs'][0]
@@ -451,8 +454,24 @@ def initialize_uninitialized(sess):
         sess.run(tf.variables_initializer(uninit_vars))
 
 
-class Solver:
+class Solver(Model):
+    @staticmethod
+    def build(graph):
+        patch_h = 2 * (STEP_SIZE + r) + 1
+        patch_w = 2 * (STEP_SIZE + r) + 1
+        assert isinstance(graph, tf.Graph)
+        interfaces = Render.build(graph)
+        t_action, t_observ, t_next_observ = interfaces['inputs']
+        t_pred_observ = interfaces['outputs'][0]
+        #################
+
+
     def __init__(self):
+        super().__init__()
+        models = self.build(self.graph)
+        self.t_action, self.t_observ, self.t_next_observ = models['inputs']
+        self.t_pred_observ = models['outputs'][0]
+        ############## below are previous code ########
         self.t_action_solved = tf.get_variable(
             "action_solved",
             dtype=tf.float32,
@@ -461,10 +480,6 @@ class Solver:
                 minval=0,
                 maxval=1.0,
                 dtype=tf.float32))
-        self.t_action = tf.placeholder(
-            dtype=self.t_action_solved.dtype,
-            shape=self.t_action_solved.shape
-        )
         self.patch_r = r + 1
         self.patch_h = 2 * self.patch_r + 1
         self.patch_w = 2 * self.patch_r + 1
@@ -857,5 +872,5 @@ if __name__ == '__main__':
     #render.test(['models/render.ckpt'], 'shots')
 
     slr = Solver()
-    slr.test('models/render.ckpt', 'models/guess.ckpt', 'shots')
+    slr.test(['models/render.ckpt', 'models/guess.ckpt'], 'shots')
 
