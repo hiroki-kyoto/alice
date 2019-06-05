@@ -20,9 +20,9 @@ num_moves = 128
 
 
 # define all the possible moves for robot
-STEP_SIZE = r
-_M_X = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / w
-_M_Y = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / h
+STEP_SIZE = 8
+_M_X = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / w * STEP_SIZE
+_M_Y = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) / h * STEP_SIZE
 _M_Z = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
 
@@ -206,12 +206,12 @@ def render_step(im_, pos_, move_):
     delta_x = _M_X[move_[0]]
     delta_y = _M_Y[move_[1]]
     z = _M_Z[move_[2]]
-    for _ in range(STEP_SIZE):
-        pos_[0] = pos_[0] + delta_x
-        pos_[1] = pos_[1] + delta_y
-        pos_[2] = z
-        pos_ = np.maximum(np.minimum(pos_, 1.0), 0.0)
-        dot(im_, pos_[0], pos_[1], pos_[2])
+    pos_[0] = pos_[0] + delta_x
+    pos_[1] = pos_[1] + delta_y
+    pos_[2] = z
+    # modify this to render a curve instead of a dot!!!!!!!!!!!!!!!!!!!!!!!!!!
+    pos_ = np.maximum(np.minimum(pos_, 1.0), 0.0)
+    dot(im_, pos_[0], pos_[1], pos_[2])
     return im_, pos_
 
 
@@ -224,90 +224,54 @@ def index_to_onehot(inds, dims):
     return onehot
 
 
-class Model:
+class Render:
     def __init__(self):
-        self.graph = tf.Graph()
-        with self.graph.as_default():
-            self.sess = tf.Session()
+        self.t_action = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
+        self.patch_r = r + 1
+        self.patch_h = 2 * self.patch_r + 1
+        self.patch_w = 2 * self.patch_r + 1
+        self.t_observ = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, self.patch_h * self.patch_w])
+        self.t_next_observ = tf.placeholder(
+            dtype=tf.float32,
+            shape=[1, self.patch_h * self.patch_w])
 
-    def build(self, graph):
-        pass
+        t_feat = tf.layers.dense(
+            self.t_action,
+            16,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            self.patch_h * self.patch_w,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
 
-    def train(self, ckpt_paths, dump_path):
-        pass
+        # addition required to be non-negative
+        t_feat = tf.maximum(t_feat, 0)
+        self.t_pred_observ = tf.minimum(t_feat + self.t_observ, 1.0)
 
-    def test(self, ckpt_paths, dump_path):
-        pass
+        self.t_loss = tf.reduce_mean(
+            tf.abs(self.t_pred_observ - self.t_next_observ))
+        self.t_opt = tf.train.AdamOptimizer(
+            learning_rate=1e-3).minimize(self.t_loss)
+        self.sess = tf.Session()
 
-
-class Render(Model):
-    # graph: On which graph should this model be built in.
-    def build(self, graph):
-        # configuration
-        self.patch_h = 2 * (STEP_SIZE + r) + 1
-        self.patch_w = 2 * (STEP_SIZE + r) + 1
-        assert isinstance(graph, tf.Graph)
-        with graph.as_default():
-            # INPUTS
-            t_action = tf.placeholder(
-                name='action',
-                dtype=tf.float32,
-                shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
-            t_observ = tf.placeholder(
-                name='observ',
-                dtype=tf.float32,
-                shape=[1, self.patch_h * self.patch_w])
-            t_next_observ = tf.placeholder(
-                name='next_observ',
-                dtype=tf.float32,
-                shape=[1, self.patch_h * self.patch_w])
-            # MODELS
-            t_feat = tf.layers.dense(
-                t_action,
-                16,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            t_feat = tf.layers.dense(
-                t_feat,
-                16,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            t_feat = tf.layers.dense(
-                t_feat,
-                self.patch_h * self.patch_w,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            # addition required to be non-negative
-            t_feat = tf.maximum(t_feat, 0)
-            # OUTPUTS
-            t_pred_observ = tf.minimum(t_feat + t_observ, 1.0)
-            return {'inputs': [t_action, t_observ, t_next_observ],
-                    'outputs': [t_pred_observ]}
-
-    def __init__(self):
-        super().__init__()
-        models = self.build(self.graph)
-        self.t_action, self.t_observ, self.t_next_observ = models['inputs']
-        self.t_pred_observ = models['outputs'][0]
-
-    def train(self, ckpt_paths, dump_path):
-        with self.graph.as_default():
-            self.t_loss = tf.reduce_mean(
-                tf.abs(self.t_pred_observ - self.t_next_observ))
-            self.t_opt = tf.train.AdamOptimizer(
-                learning_rate=1e-3).minimize(self.t_loss)
-            saver = tf.train.Saver()
-            if tf.train.checkpoint_exists(ckpt_paths[0]):
-                saver.restore(self.sess, ckpt_paths[0])
-            else:
-                self.sess.run(tf.global_variables_initializer())
+    def train(self, model_path, dump_path):
+        saver = tf.train.Saver()
+        if tf.train.checkpoint_exists(model_path):
+            saver.restore(self.sess, model_path)
+        else:
+            self.sess.run(tf.global_variables_initializer())
 
         train_sessions = 1000
         train_episodes = 100
-        train_steps = 8
+        train_steps = 30
         loss_cache = np.zeros([100])
         loss_means = []
         loss_varis = []
@@ -327,10 +291,10 @@ class Render(Model):
                 steps_ = int(train_steps * np.random.rand())
                 for _ in range(steps_):
                     ppos = [int(pos[0]*w), int(pos[1]*h)]
-                    pbeg = [ppos[0] - STEP_SIZE - r,
-                            ppos[1] - STEP_SIZE - r]
-                    pend = [ppos[0] + STEP_SIZE + r + 1,
-                            ppos[1] + STEP_SIZE + r + 1]
+                    pbeg = [ppos[0] - self.patch_r,
+                            ppos[1] - self.patch_r]
+                    pend = [ppos[0] + self.patch_r + 1,
+                            ppos[1] + self.patch_r + 1]
                     if pbeg[0] < 0 or pbeg[1] < 0\
                         or pend[0] > w or pend[1] > h:
                         hit_wall = True
@@ -368,32 +332,29 @@ class Render(Model):
                         plt.plot(
                             range(len(loss_means)),
                             loss_means,
-                            '--',
+                            '-*',
                             label='mean')
                         plt.plot(
                             range(len(loss_varis)),
                             loss_varis,
-                            '-*',
+                            '+-',
                             label='vari')
                         plt.legend()
                         plt.pause(0.01)
                     if (counter + 1) % 1000 == 0:
-                        saver.save(self.sess, ckpt_paths[0])
+                        saver.save(self.sess, model_path)
                     counter += 1
 
-    def test(self, ckpt_paths, dump_path):
-        with self.graph.as_default():
-            saver = tf.train.Saver()
-            if tf.train.checkpoint_exists(ckpt_paths[0]):
-                saver.restore(self.sess, ckpt_paths[0])
-            else:
-                print("========= NO VALID CHECK POINT FOUND !!! ========")
-                print("========= RUNNING TEST IN RANDOM INITIAL ========")
-                self.sess.run(tf.global_variables_initializer())
+    def test(self, model_path, dump_path):
+        saver = tf.train.Saver()
+        if tf.train.checkpoint_exists(model_path):
+            saver.restore(self.sess, model_path)
+        else:
+            assert False
 
         train_sessions = 1000
         train_episodes = 100
-        train_steps = 8
+        train_steps = 50
 
         plt.ion()
         plt.figure(1)
@@ -410,10 +371,10 @@ class Render(Model):
                 steps_ = int(train_steps * np.random.rand())
                 for _ in range(steps_):
                     ppos = [int(pos[0] * w), int(pos[1] * h)]
-                    pbeg = [ppos[0] - STEP_SIZE - r,
-                            ppos[1] - STEP_SIZE - r]
-                    pend = [ppos[0] + STEP_SIZE + r + 1,
-                            ppos[1] + STEP_SIZE + r + 1]
+                    pbeg = [ppos[0] - self.patch_r,
+                            ppos[1] - self.patch_r]
+                    pend = [ppos[0] + self.patch_r + 1,
+                            ppos[1] + self.patch_r + 1]
                     if pbeg[0] < 0 or pbeg[1] < 0 \
                             or pend[0] > w or pend[1] > h:
                         hit_wall = True
@@ -558,7 +519,7 @@ class Solver:
         self.t_loss_guess = tf.reduce_mean(
             tf.abs(self.t_guess_action - self.t_action))
         self.t_opt_guess = tf.train.AdamOptimizer(
-            learning_rate=1e-4).minimize(self.t_loss_guess)
+            learning_rate=1e-3).minimize(self.t_loss_guess)
 
         # building connections between the two model
         self.t_action_init_op = self.t_action_solved.assign(self.t_action)
@@ -699,8 +660,8 @@ class Solver:
                     print("============ SESSION DONE ==============")
                     session_over = True
                 # update internal state including position and virtual world
-                pos[0] += _M_X[np.argmax(action_gt[0][0:5])] * STEP_SIZE
-                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])] * STEP_SIZE
+                pos[0] += _M_X[np.argmax(action_gt[0][0:5])]
+                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])]
                 real_observ = self.sess.run(
                     self.t_pred_observ,
                     feed_dict={
@@ -817,8 +778,8 @@ class Solver:
                     print("============ SESSION DONE ==============")
                     session_over = True
                 # update internal state including position and virtual world
-                pos[0] += _M_X[np.argmax(action_gt[0][0:5])] * STEP_SIZE
-                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])] * STEP_SIZE
+                pos[0] += _M_X[np.argmax(action_gt[0][0:5])]
+                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])]
                 real_observ = self.sess.run(
                     self.t_pred_observ,
                     feed_dict={
@@ -852,10 +813,10 @@ def test_dynamic_disp():
 
 
 if __name__ == '__main__':
-    #render = Render()
-    #render.train(['models/render.ckpt'], 'shots')
-    #render.test(['models/render.ckpt'], 'shots')
+    render = Render()
+    render.train('models/render.ckpt', 'shots')
+    #render.test('models/render.ckpt', 'shots')
 
-    slr = Solver()
-    slr.test('models/render.ckpt', 'models/guess.ckpt', 'shots')
+    #slr = Solver()
+    #slr.test('models/render.ckpt', 'models/guess.ckpt', 'shots')
 
