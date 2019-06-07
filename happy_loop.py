@@ -224,14 +224,14 @@ def index_to_onehot(inds, dims):
     return onehot
 
 
-class Model:
+class Model(object):
     def __init__(self):
         self.graph = tf.Graph()
         with self.graph.as_default():
             self.sess = tf.Session()
 
     @staticmethod
-    def build(graph):
+    def build(inputs):
         pass
 
     def train(self, ckpt_paths, dump_path):
@@ -244,57 +244,50 @@ class Model:
 class Render(Model):
     # graph: On which graph should this model be built in.
     @staticmethod
-    def build(graph):
-        patch_h = 2 * (STEP_SIZE + r) + 1
-        patch_w = 2 * (STEP_SIZE + r) + 1
-        assert isinstance(graph, tf.Graph)
-        with graph.as_default():
-            # INPUTS
-            t_action = tf.placeholder(
-                name='action',
-                dtype=tf.float32,
-                shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
-            t_observ = tf.placeholder(
-                name='observ',
-                dtype=tf.float32,
-                shape=[1, patch_h * patch_w])
-            t_next_observ = tf.placeholder(
-                name='next_observ',
-                dtype=tf.float32,
-                shape=[1, patch_h * patch_w])
-            # MODELS
-            t_feat = tf.layers.dense(
-                t_action,
-                16,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            t_feat = tf.layers.dense(
-                t_feat,
-                16,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            t_feat = tf.layers.dense(
-                t_feat,
-                patch_h * patch_w,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            # addition required to be non-negative
-            t_feat = tf.maximum(t_feat, 0)
-            # OUTPUTS
-            t_pred_observ = tf.minimum(t_feat + t_observ, 1.0)
-            return {'inputs': [t_action, t_observ, t_next_observ],
-                    'outputs': [t_pred_observ]}
+    def build(inputs):
+        t_action, t_observ = inputs
+        # MODELS
+        t_feat = tf.layers.dense(
+            t_action,
+            16,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            16,
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        t_feat = tf.layers.dense(
+            t_feat,
+            t_observ.shape.as_list()[1],
+            act_fn(),
+            True,
+            kernel_initializer=ini_fn())
+        # addition required to be non-negative
+        t_feat = tf.maximum(t_feat, 0)
+        # OUTPUTS
+        t_pred_observ = tf.minimum(t_feat + t_observ, 1.0)
+        return t_pred_observ
 
     def __init__(self):
         super().__init__()
         self.patch_h = 2 * (STEP_SIZE + r) + 1
         self.patch_w = 2 * (STEP_SIZE + r) + 1
-        models = self.build(self.graph)
-        self.t_action, self.t_observ, self.t_next_observ = models['inputs']
-        self.t_pred_observ = models['outputs'][0]
+        # INPUTS
+        with self.graph.as_default():
+            self.t_action = tf.placeholder(
+                dtype=tf.float32,
+                shape=[1, len(_M_X) + len(_M_Y) + len(_M_Z)])
+            self.t_observ = tf.placeholder(
+                dtype=tf.float32,
+                shape=[1, self.patch_h * self.patch_w])
+            self.t_next_observ = tf.placeholder(
+                dtype=tf.float32,
+                shape=[1, self.patch_h * self.patch_w])
+            self.t_pred_observ = self.build([self.t_action,
+                                             self.t_observ])
 
     def train(self, ckpt_paths, dump_path):
         with self.graph.as_default():
@@ -445,7 +438,8 @@ class Render(Model):
 
 
 def initialize_uninitialized(sess):
-    global_vars = tf.global_variables()
+    with sess.graph.as_default():
+        global_vars = tf.global_variables()
     bool_inits = sess.run([tf.is_variable_initialized(var) for var in global_vars])
     uninit_vars = [v for (v, b) in zip(global_vars, bool_inits) if not b]
     for v in uninit_vars:
@@ -456,23 +450,9 @@ def initialize_uninitialized(sess):
 
 class Solver(Model):
     @staticmethod
-    def build(graph):
-        patch_h = 2 * (STEP_SIZE + r) + 1
-        patch_w = 2 * (STEP_SIZE + r) + 1
-        assert isinstance(graph, tf.Graph)
-        interfaces = Render.build(graph)
-        t_action, t_observ, t_next_observ = interfaces['inputs']
-        t_pred_observ = interfaces['outputs'][0]
-        #################
-
-
-    def __init__(self):
-        super().__init__()
-        models = self.build(self.graph)
-        self.t_action, self.t_observ, self.t_next_observ = models['inputs']
-        self.t_pred_observ = models['outputs'][0]
-        ############## below are previous code ########
-        self.t_action_solved = tf.get_variable(
+    def build(inputs):
+        t_observ, t_next_observ = inputs
+        t_action_solved = tf.get_variable(
             "action_solved",
             dtype=tf.float32,
             initializer=tf.random_uniform(
@@ -480,57 +460,20 @@ class Solver(Model):
                 minval=0,
                 maxval=1.0,
                 dtype=tf.float32))
-        self.patch_r = r + 1
-        self.patch_h = 2 * self.patch_r + 1
-        self.patch_w = 2 * self.patch_r + 1
-        self.t_observ = tf.placeholder(
-            dtype=tf.float32,
-            shape=[1, self.patch_h * self.patch_w])
-        self.t_next_observ = tf.placeholder(
-            dtype=tf.float32,
-            shape=[1, self.patch_h * self.patch_w])
-        with tf.variable_scope("render", reuse=tf.AUTO_REUSE):
-            t_feat = tf.layers.dense(
-                self.t_action_solved,
-                16,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            t_feat = tf.layers.dense(
-                t_feat,
-                self.patch_h * self.patch_w,
-                act_fn(),
-                True,
-                kernel_initializer=ini_fn())
-            self.t_pred_observ = tf.maximum(
-                tf.minimum(t_feat + self.t_observ, 1.0), 0)
-
-        #iou = tf.reduce_mean(self.t_pred_observ * self.t_next_observ, axis=-1)
-        #norm = tf.reduce_mean(self.t_next_observ, axis=-1) + 1e-5
-        #iod = tf.reduce_mean(self.t_pred_observ * (1 - self.t_next_observ), axis=-1)
-        #self.t_loss_render = 1 - iou / (norm * (1e1 * iod + 1))
-
-        # new loss
-        inter = tf.reduce_mean(tf.minimum(self.t_pred_observ, self.t_next_observ), axis=-1)
-        union = tf.reduce_mean(tf.maximum(self.t_pred_observ, self.t_next_observ), axis=-1)
-        self.t_loss_render = 1 - inter / (union + 1e-5)
-
-        self.t_opt_render = tf.train.GradientDescentOptimizer(
-            learning_rate=1e-3).minimize(
-            self.t_loss_render,
-            global_step=None,
-            var_list=[self.t_action_solved])
-
+        with tf.variable_scope('render', reuse=tf.AUTO_REUSE):
+            t_pred_observ = Render.build([
+                t_action_solved,
+                t_observ])
         # create model for solution initializer
-        with tf.variable_scope("guess", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope('guess', reuse=tf.AUTO_REUSE):
             t_feat_src = tf.layers.dense(
-                self.t_observ,
+                t_observ,
                 16,
                 act_fn(),
                 True,
                 kernel_initializer=ini_fn())
             t_feat_dst = tf.layers.dense(
-                self.t_next_observ,
+                t_next_observ,
                 16,
                 act_fn(),
                 True,
@@ -565,41 +508,82 @@ class Solver(Model):
             # t_guess_y = tf.nn.softmax(t_guess_y, axis=-1)
             # t_guess_z = tf.nn.softmax(t_guess_z, axis=-1)
 
-            self.t_guess_action = tf.concat(
+            t_action_guess = tf.concat(
                 [t_guess_x, t_guess_y, t_guess_z],
                 axis=-1)
-        # guess action is initial solution for action solver.
-        # however, solved action behaves as a supervisor for guess model.
-        self.t_loss_guess = tf.reduce_mean(
-            tf.abs(self.t_guess_action - self.t_action))
-        self.t_opt_guess = tf.train.AdamOptimizer(
-            learning_rate=1e-4).minimize(self.t_loss_guess)
+            # connection from Guess model to Solver model
+            t_action_init_op = t_action_solved.assign(t_action_guess)
 
-        # building connections between the two model
-        self.t_action_init_op = self.t_action_solved.assign(self.t_action)
+            return (t_action_solved,
+                    t_pred_observ,
+                    t_action_guess,
+                    t_action_init_op)
 
-        self.sess = tf.Session()
 
-    def train(self, ckpt_render, ckpt_guess, dump_path):
-        all_vars = tf.trainable_variables()
-        render_vars = dict()
-        guess_vars = dict()
-        for v in all_vars:
-            if v.name.startswith('render/'):
-                render_vars[v.name[len('render/'):-2]] = v
-            elif v.name.startswith('guess/'):
-                guess_vars[v.name[len('guess/'):-2]] = v
+    def __init__(self):
+        super().__init__()
+        self.patch_h = 2 * (STEP_SIZE + r) + 1
+        self.patch_w = 2 * (STEP_SIZE + r) + 1
+        # INPUTS
+        with self.graph.as_default():
+            self.t_observ = tf.placeholder(
+                dtype=tf.float32,
+                shape=[1, self.patch_h * self.patch_w])
+            self.t_next_observ = tf.placeholder(
+                dtype=tf.float32,
+                shape=[1, self.patch_h * self.patch_w])
+            (self.t_action_solved,
+             self.t_pred_observ,
+             self.t_action_guess,
+             self.t_action_init_op) = Solver.build([self.t_observ,
+                                                  self.t_next_observ])
 
-        # load the pre-trained render model with specified name-var list
+    def train(self, ckpt_paths, dump_path):
+        with self.graph.as_default():
+            # separate variables for two models
+            all_vars = tf.trainable_variables()
+            render_vars = dict()
+            guess_vars = dict()
+            for v in all_vars:
+                if v.name.startswith('render/'):
+                    render_vars[v.name[len('render/'):-2]] = v
+                elif v.name.startswith('guess/'):
+                    guess_vars[v.name[len('guess/'):-2]] = v
+
+            inter = tf.reduce_mean(
+                tf.minimum(
+                    self.t_pred_observ, self.t_next_observ),
+                axis=-1)
+            union = tf.reduce_mean(
+                tf.maximum(
+                    self.t_pred_observ, self.t_next_observ),
+                axis=-1)
+            self.t_loss_render = 1 - inter / (union + 1e-5)
+            self.t_opt_render = tf.train.GradientDescentOptimizer(
+                learning_rate=1e-4).minimize(
+                self.t_loss_render,
+                global_step=None,
+                var_list=[self.t_action_solved])
+            # guess action is an initial solution for action solver.
+            # however, solved action behaves as a supervisor for guess model.
+            self.t_loss_guess = tf.reduce_mean(
+                tf.abs(self.t_action_guess - self.t_action_solved))
+            self.t_opt_guess = tf.train.AdamOptimizer(
+                learning_rate=1e-4).minimize(
+                self.t_loss_guess,
+                global_step=None,
+                var_list=guess_vars)
+
+        ckpt_render, ckpt_guess = ckpt_paths
+        # load the trained render model with specified name-var list
         if tf.train.checkpoint_exists(ckpt_render):
             saver = tf.train.Saver(var_list=render_vars)
             saver.restore(self.sess, ckpt_render)
         else:
-            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT PATH: '
+            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT: '
                   + ckpt_render)
             assert False
 
-        # load the pre-trained render model with specified name-var list
         if tf.train.checkpoint_exists(ckpt_guess):
             saver = tf.train.Saver(var_list=guess_vars)
             saver.restore(self.sess, ckpt_guess)
@@ -632,33 +616,25 @@ class Solver(Model):
 
             while not session_over:
                 ppos = [int(pos[0]*w), int(pos[1]*h)]
-                pbeg = [ppos[0] - self.patch_r,
-                        ppos[1] - self.patch_r]
-                pend = [ppos[0] + self.patch_r + 1,
-                        ppos[1] + self.patch_r + 1]
+                pbeg = [ppos[0] - STEP_SIZE - r,
+                        ppos[1] - STEP_SIZE - r]
+                pend = [ppos[0] + STEP_SIZE + r + 1,
+                        ppos[1] + STEP_SIZE + r + 1]
                 if pbeg[0] < 0 or pbeg[1] < 0\
                     or pend[0] > w or pend[1] > h:
-                    session_over = True
-                    print("===== hit the wall, start new session =====")
+                    print("===== HIT WALL, START NEW SESSION =====")
                     break
                 curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
                 next = np.copy(target_draw[pbeg[1]:pend[1], pbeg[0]:pend[0]])
 
-                # run the guess model to comes up with an initial solution
+                # run the render model to optimize for the best action
+                # firstly, initialize the solution of action
                 action_guess = self.sess.run(
-                    self.t_guess_action,
+                    self.t_action_init_op,
                     feed_dict={
                         self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
                         self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
-                    }
-                )
-
-                # run the render model to optimize for the best action
-                # firstly, initialize the solution of action
-                self.sess.run(self.t_action_init_op,
-                              feed_dict={
-                                  self.t_action: action_guess
-                              })
+                    })
                 # next, train the render model with parameters but action fixed.
                 for _ in range(train_steps):
                     _, loss = self.sess.run(
@@ -670,22 +646,21 @@ class Solver(Model):
                     if loss < stop_error:
                         break
                 # use this solved action to train guess model
-                action_gt = self.sess.run(self.t_action_solved)
+                # log the first loss for convergence proof
+                first_loss_logged = False
                 for _ in range(train_steps):
                     _, loss = self.sess.run(
                         [self.t_opt_guess, self.t_loss_guess],
                         feed_dict={
                             self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
-                            self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list()),
-                            self.t_action: action_gt
+                            self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
                         })
+                    if not first_loss_logged:
+                        first_loss_logged = True
+                        loss_cache[counter % len(loss_cache)] = loss
                     if loss < stop_error:
                         break
-                # The real loss is: diff between solved and guess action
-                loss_cache[counter % len(loss_cache)] = np.mean(np.abs(
-                    action_gt - action_guess
-                ))
-
+                # update loss curve
                 if (counter + 1) % 100 == 0:
                     loss_means.append(np.mean(loss_cache))
                     loss_varis.append(np.sqrt(np.sum(
@@ -710,43 +685,63 @@ class Solver(Model):
                 counter += 1
 
                 # update the session state
+                action_solved = self.sess.run(self.t_action_solved)
                 if np.mean(np.abs(curr - next)) < stop_error:
                     print("============ SESSION DONE ==============")
                     session_over = True
                 # update internal state including position and virtual world
-                pos[0] += _M_X[np.argmax(action_gt[0][0:5])] * STEP_SIZE
-                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])] * STEP_SIZE
+                pos[0] += _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
+                pos[1] += _M_Y[np.argmax(action_solved[0][5:10])] * STEP_SIZE
                 real_observ = self.sess.run(
                     self.t_pred_observ,
                     feed_dict={
                         self.t_observ: np.reshape(
                             curr, self.t_observ.shape.as_list())})
-                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = real_observ
-                # im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
+                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = np.reshape(real_observ, next.shape)
+                #im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
 
-    def test(self, ckpt_render, ckpt_guess, dump_path):
-        all_vars = tf.trainable_variables()
-        render_vars = dict()
-        guess_vars = dict()
-        for v in all_vars:
-            if v.name.startswith('render/'):
-                render_vars[v.name[len('render/'):-2]] = v
-            elif v.name.startswith('guess/'):
-                guess_vars[v.name[len('guess/'):-2]] = v
+    def test(self, ckpt_paths, dump_path):
+        with self.graph.as_default():
+            # separate variables for two models
+            all_vars = tf.trainable_variables()
+            render_vars = dict()
+            guess_vars = dict()
+            for v in all_vars:
+                if v.name.startswith('render/'):
+                    render_vars[v.name[len('render/'):-2]] = v
+                elif v.name.startswith('guess/'):
+                    guess_vars[v.name[len('guess/'):-2]] = v
 
-        # load the pre-trained render model with specified name-var list
+            inter = tf.reduce_mean(
+                tf.minimum(
+                    self.t_pred_observ, self.t_next_observ),
+                axis=-1)
+            union = tf.reduce_mean(
+                tf.maximum(
+                    self.t_pred_observ, self.t_next_observ),
+                axis=-1)
+            self.t_loss_render = 1 - inter / (union + 1e-5)
+            self.t_opt_render = tf.train.GradientDescentOptimizer(
+                learning_rate=1e-4).minimize(
+                self.t_loss_render,
+                global_step=None,
+                var_list=[self.t_action_solved])
+
+        ckpt_render, ckpt_guess = ckpt_paths
+        # load the trained render model with specified name-var list
         if tf.train.checkpoint_exists(ckpt_render):
             saver = tf.train.Saver(var_list=render_vars)
             saver.restore(self.sess, ckpt_render)
         else:
-            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT PATH: '
+            print('ERROR: FAILED TO LOAD RENDER MODEL WITH CHECKPOINT: '
                   + ckpt_render)
             assert False
 
-        # load the pre-trained render model with specified name-var list
         if tf.train.checkpoint_exists(ckpt_guess):
             saver = tf.train.Saver(var_list=guess_vars)
             saver.restore(self.sess, ckpt_guess)
+        else:
+            print('WARNING: FAILED TO LOAD SOLVER MODEL, RUNNING WITH RANDOM MODEL!')
 
         # initialize the uninitialized variables
         initialize_uninitialized(self.sess)
@@ -771,76 +766,53 @@ class Solver(Model):
 
             while not session_over:
                 ppos = [int(pos[0] * w), int(pos[1] * h)]
-                pbeg = [ppos[0] - self.patch_r,
-                        ppos[1] - self.patch_r]
-                pend = [ppos[0] + self.patch_r + 1,
-                        ppos[1] + self.patch_r + 1]
+                pbeg = [ppos[0] - STEP_SIZE - r,
+                        ppos[1] - STEP_SIZE - r]
+                pend = [ppos[0] + STEP_SIZE + r + 1,
+                        ppos[1] + STEP_SIZE + r + 1]
                 if pbeg[0] < 0 or pbeg[1] < 0 \
                         or pend[0] > w or pend[1] > h:
-                    session_over = True
-                    print("===== hit the wall, start new session =====")
+                    print("===== HIT WALL, START NEW SESSION =====")
                     break
                 curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
                 next = np.copy(target_draw[pbeg[1]:pend[1], pbeg[0]:pend[0]])
 
-                # run the guess model to comes up with an initial solution
+                # run the render model to optimize for the best action
+                # firstly, initialize the solution of action
                 action_guess = self.sess.run(
-                    self.t_guess_action,
+                    self.t_action_init_op,
                     feed_dict={
                         self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
                         self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
                     })
-
-                # run the render model to optimize for the best action
-                # firstly, initialize the solution of action
-                self.sess.run(self.t_action_init_op,
-                              feed_dict={
-                                  self.t_action: action_guess
-                              })
                 # next, train the render model with parameters but action fixed.
                 for _ in range(train_steps):
-                    _, self.loss = self.sess.run(
+                    _, loss = self.sess.run(
                         [self.t_opt_render, self.t_loss_render],
                         feed_dict={
-                            self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
-                            self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
+                            self.t_observ:
+                                np.reshape(curr, self.t_observ.shape.as_list()),
+                            self.t_next_observ:
+                                np.reshape(next, self.t_observ.shape.as_list())
                         })
-                    print(self.loss)
-                    if self.loss < stop_error:
+                    if loss < stop_error:
                         break
-                if self.loss > stop_error:
-                    print('ACTION OPTIMIZATION BAD!')
-                    #assert False
-                # use this solved action to train guess model
-                action_gt = self.sess.run(self.t_action_solved)
-                for _ in range(train_steps):
-                    _, self.loss = self.sess.run(
-                        [self.t_opt_guess, self.t_loss_guess],
-                        feed_dict={
-                            self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
-                            self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list()),
-                            self.t_action: action_gt
-                        })
-                    if self.loss < stop_error:
-                        break
-                if self.loss > stop_error:
-                    print('ACTION GUESS BAD!')
-                   #assert False
-
                 # update the session state
+                action_solved = self.sess.run(self.t_action_solved)
                 if np.mean(np.abs(curr - next)) < stop_error:
                     print("============ SESSION DONE ==============")
                     session_over = True
                 # update internal state including position and virtual world
-                pos[0] += _M_X[np.argmax(action_gt[0][0:5])] * STEP_SIZE
-                pos[1] += _M_Y[np.argmax(action_gt[0][5:10])] * STEP_SIZE
+                pos[0] += _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
+                pos[1] += _M_Y[np.argmax(action_solved[0][5:10])] * STEP_SIZE
                 real_observ = self.sess.run(
                     self.t_pred_observ,
                     feed_dict={
                         self.t_observ: np.reshape(
                             curr, self.t_observ.shape.as_list())})
-                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = np.reshape(real_observ, next.shape)
-                #im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
+                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = \
+                    np.reshape(real_observ, next.shape)
+                # im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
 
                 # show the copy cat result
                 out = np.concatenate((target_draw, im), axis=1)
@@ -873,4 +845,3 @@ if __name__ == '__main__':
 
     slr = Solver()
     slr.test(['models/render.ckpt', 'models/guess.ckpt'], 'shots')
-
