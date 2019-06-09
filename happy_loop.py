@@ -4,8 +4,6 @@ import tensorflow as tf
 from PIL import Image
 
 import matplotlib.pyplot as plt
-import time
-import math
 import glob
 
 
@@ -519,7 +517,6 @@ class Solver(Model):
                     t_action_guess,
                     t_action_init_op)
 
-
     def __init__(self):
         super().__init__()
         self.patch_h = 2 * (STEP_SIZE + r) + 1
@@ -722,7 +719,7 @@ class Solver(Model):
                 axis=-1)
             self.t_loss_render = 1 - inter / (union + 1e-5)
             self.t_opt_render = tf.train.GradientDescentOptimizer(
-                learning_rate=1e-4).minimize(
+                learning_rate=1e-0).minimize(
                 self.t_loss_render,
                 global_step=None,
                 var_list=[self.t_action_solved])
@@ -750,7 +747,7 @@ class Solver(Model):
         train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
-        train_steps = 100
+        train_steps = 1000
         stop_error = 1e-2
 
         plt.ion()
@@ -763,6 +760,8 @@ class Solver(Model):
             session_over = False
             im = np.zeros([h, w], dtype=np.float32)
             pos = np.array([0.5, 0.5])
+            random_init_coins = 10
+            random_init_required = False
 
             while not session_over:
                 ppos = [int(pos[0] * w), int(pos[1] * h)]
@@ -777,15 +776,34 @@ class Solver(Model):
                 curr = np.copy(im[pbeg[1]:pend[1], pbeg[0]:pend[0]])
                 next = np.copy(target_draw[pbeg[1]:pend[1], pbeg[0]:pend[0]])
 
-                # run the render model to optimize for the best action
                 # firstly, initialize the solution of action
-                action_guess = self.sess.run(
+                self.sess.run(
                     self.t_action_init_op,
                     feed_dict={
-                        self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
-                        self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
+                        self.t_observ:
+                            np.reshape(curr, self.t_observ.shape.as_list()),
+                        self.t_next_observ:
+                            np.reshape(next, self.t_observ.shape.as_list())
                     })
+                # or, randomly initialize the solution of action
+                if random_init_required and random_init_coins > 0:
+                    self.sess.run(
+                        self.t_action_init_op,
+                        feed_dict={
+                            self.t_action_guess: expand_dims(
+                                index_to_onehot(
+                                    action_generator(1)[0],
+                                    [len(_M_X), len(_M_Y), len(_M_Z)]),
+                                axises=[0]),
+                        })
+                    random_init_coins -= 1
+                    random_init_required = False
+                elif random_init_required and random_init_coins == 0:
+                    print('RUNNING OUT OF REPEAT COINS! RESTART SESSION OVER AGAIN!')
+                    session_over = True
+                    continue
                 # next, train the render model with parameters but action fixed.
+                loss = 0
                 for _ in range(train_steps):
                     _, loss = self.sess.run(
                         [self.t_opt_render, self.t_loss_render],
@@ -797,21 +815,37 @@ class Solver(Model):
                         })
                     if loss < stop_error:
                         break
+                if loss > stop_error:
+                    print('====== BAD SOLUTION =====')
                 # update the session state
                 action_solved = self.sess.run(self.t_action_solved)
-                if np.mean(np.abs(curr - next)) < stop_error:
+                if np.mean(np.abs(curr - next)) < 0.05:
                     print("============ SESSION DONE ==============")
                     session_over = True
+
+                # if the solution get trapped in a local minima
+                # we should reinitialize the solution
+                real_observ = np.reshape(
+                    self.sess.run(
+                        self.t_pred_observ,
+                        feed_dict={
+                            self.t_observ: np.reshape(
+                                curr, self.t_observ.shape.as_list())}),
+                    next.shape)
+                # training stuck if no observation change occur
+                if np.mean(np.abs(real_observ - curr)) < 0.05:
+                    print("=== ROBOT STOPPED! REINITIALIAL REQUIRED ===")
+                    random_init_required = True
+                    continue
+
                 # update internal state including position and virtual world
-                pos[0] += _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
-                pos[1] += _M_Y[np.argmax(action_solved[0][5:10])] * STEP_SIZE
-                real_observ = self.sess.run(
-                    self.t_pred_observ,
-                    feed_dict={
-                        self.t_observ: np.reshape(
-                            curr, self.t_observ.shape.as_list())})
-                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = \
-                    np.reshape(real_observ, next.shape)
+                delta_x = _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
+                delta_y = _M_Y[np.argmax(action_solved[0][5:10])] * STEP_SIZE
+                level_z = _M_Z[np.argmax(action_solved[0][10:16])] * r
+                pos[0] += delta_x
+                pos[1] += delta_y
+
+                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = real_observ
                 # im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
 
                 # show the copy cat result
