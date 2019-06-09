@@ -565,7 +565,7 @@ class Solver(Model):
             # however, solved action behaves as a supervisor for guess model.
             self.t_loss_guess = tf.reduce_mean(
                 tf.abs(self.t_action_guess - self.t_action_solved))
-            self.t_opt_guess = tf.train.AdamOptimizer(
+            self.t_opt_guess = tf.train.GradientDescentOptimizer(
                 learning_rate=1e-4).minimize(
                 self.t_loss_guess,
                 global_step=None,
@@ -709,15 +709,16 @@ class Solver(Model):
                 elif v.name.startswith('guess/'):
                     guess_vars[v.name[len('guess/'):-2]] = v
 
-            inter = tf.reduce_mean(
-                tf.minimum(
-                    self.t_pred_observ, self.t_next_observ),
-                axis=-1)
-            union = tf.reduce_mean(
-                tf.maximum(
-                    self.t_pred_observ, self.t_next_observ),
-                axis=-1)
-            self.t_loss_render = 1 - inter / (union + 1e-5)
+            #inter = tf.reduce_sum(tf.minimum(self.t_pred_observ, self.t_next_observ))
+            #union = tf.reduce_sum(tf.maximum(self.t_pred_observ, self.t_next_observ))
+            #self.t_loss_render = 1 - inter / (union + 1e-5)
+
+            # gt_ = tf.reshape(self.t_next_observ, [self.patch_h, self.patch_w])[8:-8, 8:-8]
+            # re_ = tf.reshape(self.t_pred_observ, [self.patch_h, self.patch_w])[8:-8, 8:-8]
+            # self.t_loss_render = tf.reduce_mean(tf.abs(re_ - gt_))
+
+            self.t_loss_render = tf.reduce_mean(tf.abs(self.t_next_observ - self.t_pred_observ))
+
             self.t_opt_render = tf.train.GradientDescentOptimizer(
                 learning_rate=1e-0).minimize(
                 self.t_loss_render,
@@ -747,8 +748,9 @@ class Solver(Model):
         train_samples = glob.glob(train_data_dir + '*.jpg')
 
         train_sessions = 1000
-        train_steps = 1000
+        train_steps = 10000
         stop_error = 1e-2
+        repeat_coins = 1
 
         plt.ion()
         plt.figure(1)
@@ -760,7 +762,7 @@ class Solver(Model):
             session_over = False
             im = np.zeros([h, w], dtype=np.float32)
             pos = np.array([0.5, 0.5])
-            random_init_coins = 10
+            random_init_coins = repeat_coins
             random_init_required = False
 
             while not session_over:
@@ -833,7 +835,7 @@ class Solver(Model):
                                 curr, self.t_observ.shape.as_list())}),
                     next.shape)
                 # training stuck if no observation change occur
-                if np.mean(np.abs(real_observ - curr)) < 0.05:
+                if np.mean(np.abs(real_observ - curr)) < 0.01:
                     print("=== ROBOT STOPPED! REINITIALIAL REQUIRED ===")
                     random_init_required = True
                     continue
