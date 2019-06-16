@@ -856,6 +856,11 @@ class Solver(Model):
                 plt.imshow(1 - out, cmap="gray", vmin=0.0, vmax=1.0)
                 plt.pause(0.01)
 
+# the corrector model:
+# optimization target: arg min | f( g( |y - y0|, x ) + x ) - y0 |
+class Corrector(object):
+    pass
+
 
 def test_dynamic_disp():
     plt.ion()
