@@ -725,6 +725,16 @@ class Solver(Model):
                 global_step=None,
                 var_list=[self.t_action_solved])
 
+            # guess action is an initial solution for action solver.
+            # however, solved action behaves as a supervisor for guess model.
+            self.t_loss_guess = tf.reduce_mean(
+                tf.abs(self.t_action_guess - self.t_action_solved))
+            self.t_opt_guess = tf.train.GradientDescentOptimizer(
+                learning_rate=1e-4).minimize(
+                self.t_loss_guess,
+                global_step=None,
+                var_list=guess_vars)
+
         ckpt_render, ckpt_guess = ckpt_paths
         # load the trained render model with specified name-var list
         if tf.train.checkpoint_exists(ckpt_render):
@@ -749,7 +759,7 @@ class Solver(Model):
 
         train_sessions = 1000
         train_steps = 10000
-        stop_error = 1e-2
+        stop_error = 1e-1
         repeat_coins = 1
 
         plt.ion()
@@ -839,6 +849,18 @@ class Solver(Model):
                     print("=== ROBOT STOPPED! REINITIALIAL REQUIRED ===")
                     random_init_required = True
                     continue
+
+                # if this solution of action is good, then use it to train the
+                # action solver model
+                if loss <= stop_error:
+                    for _ in range(train_steps):
+                        _, loss = self.sess.run(
+                            [self.t_opt_guess, self.t_loss_guess],
+                            feed_dict={
+                                self.t_observ: np.reshape(curr, self.t_observ.shape.as_list()),
+                                self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
+                            })
+                        print("action solver loss:", loss)
 
                 # update internal state including position and virtual world
                 delta_x = _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
