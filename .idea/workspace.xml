@@ -8,6 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/happy_loop.py" beforeDir="false" afterPath="$PROJECT_DIR$/happy_loop.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,8 +24,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1033">
-              <caret line="861" column="8" selection-start-line="861" selection-start-column="8" selection-end-line="861" selection-end-column="8" />
+            <state relative-caret-position="522">
+              <caret line="862" column="53" selection-start-line="862" selection-start-column="53" selection-end-line="862" selection-end-column="53" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -103,8 +106,8 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="F:/Desktop/code" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Console Colors" />
+    <property name="last_opened_file_path" value="$USER_HOME$/AppData/Local/GitHubDesktop/app-2.1.0/resources/app/git/mingw64/bin/git.exe" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Color Scheme Font" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -265,14 +268,15 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1096" height="1896" extended-state="6" />
+    <frame x="-8" y="22" width="1096" height="1906" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" weight="0.13327032" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.34542313" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.8223062" visible="true" weight="0.34516314" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -368,17 +372,11 @@
     </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/matplotlib/pyplot.py" />
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/tensorflow/python/ops/gen_math_ops.py" />
-    <entry file="file://D:/Anaconda3/envs/py35/Lib/site-packages/tensorflow/python/ops/array_ops.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="579">
-          <caret line="1640" column="23" selection-start-line="1640" selection-start-column="23" selection-end-line="1640" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://D:/Anaconda3/envs/py35/Lib/site-packages/tensorflow/python/ops/array_ops.py" />
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1033">
-          <caret line="861" column="8" selection-start-line="861" selection-start-column="8" selection-end-line="861" selection-end-column="8" />
+        <state relative-caret-position="522">
+          <caret line="862" column="53" selection-start-line="862" selection-start-column="53" selection-end-line="862" selection-end-column="53" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>
