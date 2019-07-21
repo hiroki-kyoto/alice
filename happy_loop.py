@@ -720,7 +720,7 @@ class Solver(Model):
             self.t_loss_render = tf.reduce_mean(tf.abs(self.t_next_observ - self.t_pred_observ))
 
             self.t_opt_render = tf.train.GradientDescentOptimizer(
-                learning_rate=1e-0).minimize(
+                learning_rate=1e-3).minimize(
                 self.t_loss_render,
                 global_step=None,
                 var_list=[self.t_action_solved])
@@ -730,7 +730,7 @@ class Solver(Model):
             self.t_loss_guess = tf.reduce_mean(
                 tf.abs(self.t_action_guess - self.t_action_solved))
             self.t_opt_guess = tf.train.GradientDescentOptimizer(
-                learning_rate=1e-4).minimize(
+                learning_rate=1e-3).minimize(
                 self.t_loss_guess,
                 global_step=None,
                 var_list=guess_vars)
@@ -759,8 +759,11 @@ class Solver(Model):
 
         train_sessions = 1000
         train_steps = 10000
-        stop_error = 1e-1
-        repeat_coins = 1
+        render_stop_error = 0.15
+        render_accept_error = 0.15
+        guess_stop_error = 0.1
+        min_loss_delta = 1e-5
+        repeat_coins = 1000
 
         plt.ion()
         plt.figure(1)
@@ -815,8 +818,10 @@ class Solver(Model):
                     session_over = True
                     continue
                 # next, train the render model with parameters but action fixed.
-                loss = 0
-                for _ in range(train_steps):
+                loss = 1e5
+                last_loss = 2e5
+                #for _ in range(train_steps):
+                while loss > render_stop_error:
                     _, loss = self.sess.run(
                         [self.t_opt_render, self.t_loss_render],
                         feed_dict={
@@ -825,10 +830,12 @@ class Solver(Model):
                             self.t_next_observ:
                                 np.reshape(next, self.t_observ.shape.as_list())
                         })
-                    if loss < stop_error:
+                    print("render solver loss:", loss)
+                    if last_loss - loss < min_loss_delta:
+                        print('optimize too slow... stop the training!')
                         break
-                if loss > stop_error:
-                    print('====== BAD SOLUTION =====')
+                    last_loss = loss
+
                 # update the session state
                 action_solved = self.sess.run(self.t_action_solved)
                 if np.mean(np.abs(curr - next)) < 0.05:
@@ -844,16 +851,36 @@ class Solver(Model):
                             self.t_observ: np.reshape(
                                 curr, self.t_observ.shape.as_list())}),
                     next.shape)
-                # training stuck if no observation change occur
-                if np.mean(np.abs(real_observ - curr)) < 0.01:
-                    print("=== ROBOT STOPPED! REINITIALIAL REQUIRED ===")
+
+
+                if loss <= render_stop_error:
+                    # update internal state including position and virtual world
+                    delta_x = _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
+                    delta_y = _M_Y[np.argmax(action_solved[0][5:10])] * STEP_SIZE
+                    level_z = _M_Z[np.argmax(action_solved[0][10:16])] * r
+                    pos[0] += delta_x
+                    pos[1] += delta_y
+
+                    im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = real_observ
+                    # im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
+
+                    # show the copy cat result
+                    out = np.concatenate((target_draw, im), axis=1)
+                    plt.clf()
+                    plt.imshow(1 - out, cmap="gray", vmin=0.0, vmax=1.0)
+                    plt.pause(0.05)
+                else:
+                    print("=== REINITIALIZE THE SOLUTION ===")
                     random_init_required = True
                     continue
 
                 # if this solution of action is good, then use it to train the
                 # action solver model
-                if loss <= stop_error:
-                    for _ in range(train_steps):
+                if loss <= render_accept_error:
+                    loss = 1e5
+                    last_loss = 2e5
+                    #for _ in range(train_steps):
+                    while loss > guess_stop_error:
                         _, loss = self.sess.run(
                             [self.t_opt_guess, self.t_loss_guess],
                             feed_dict={
@@ -861,22 +888,10 @@ class Solver(Model):
                                 self.t_next_observ: np.reshape(next, self.t_observ.shape.as_list())
                             })
                         print("action solver loss:", loss)
-
-                # update internal state including position and virtual world
-                delta_x = _M_X[np.argmax(action_solved[0][0:5])] * STEP_SIZE
-                delta_y = _M_Y[np.argmax(action_solved[0][5:10])] * STEP_SIZE
-                level_z = _M_Z[np.argmax(action_solved[0][10:16])] * r
-                pos[0] += delta_x
-                pos[1] += delta_y
-
-                im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = real_observ
-                # im[pbeg[1]:pend[1], pbeg[0]:pend[0]] = next
-
-                # show the copy cat result
-                out = np.concatenate((target_draw, im), axis=1)
-                plt.clf()
-                plt.imshow(1 - out, cmap="gray", vmin=0.0, vmax=1.0)
-                plt.pause(0.01)
+                        if last_loss - loss < min_loss_delta:
+                            print('optimize too slow... stop the training!')
+                            break
+                        last_loss = loss
 
 # the corrector model:
 # optimization target: arg min | f( g( |y - y0|, x ) + x ) - y0 |
