@@ -20,6 +20,15 @@ if __name__ == '__main__':
         im_ = im_.resize(INPUT_SIZE)
         pass
     # build a classifier network
-    cf = classifier.Classifier(2)
+    json_conf = '{"classes": 2, \
+    "inputs": [1, 256, 256, 3], \
+    "filters": [8, 16, 16, 8], \
+    "ksizes": [3, 3, 3, 3], \
+    "strides": [2, 2, 2, 2], \
+    "relus": [0, 1, 0, 1], \
+    "links":[[], [], [], [0]],\
+    "fc": [8, 32, 8]}'
+    cf = classifier.Classifier(json_conf)
+    print(cf.layers)
 
 
