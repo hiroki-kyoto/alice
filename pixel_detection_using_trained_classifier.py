@@ -3,13 +3,19 @@ import tensorflow as tf
 from PIL import Image
 import glob
 
-from components import classifier
-
-INPUT_SIZE = (256, 256)
-BATCH_SIZE = 6
+from components import classifier, utils
 
 
 if __name__ == '__main__':
+    tf.reset_default_graph()
+    # build a classifier network
+    json_conf = open('net_hand_detect.json', 'rt').read()
+    input_ = utils.create_variable('input', shape=[1, 64, 64, 3], trainable=True)
+    cf = classifier.Classifier(json_conf, input_)
+    for layer in cf.layers:
+        print(layer.name + ": " + str(layer.shape))
+    batch_size, height, width, channel = cf.input_.shape.as_list()
+    # load the data
     path_ = "../Datasets/Hands"
     hands = glob.glob(path_ + "/with-hand/*.JPG")
     blank = glob.glob(path_ + "/without-hand/*.JPG")
@@ -17,18 +23,7 @@ if __name__ == '__main__':
     print("blank=" + str(len(blank)))
     for fn_ in blank:
         im_ = Image.open(fn_)
-        im_ = im_.resize(INPUT_SIZE)
-        pass
-    # build a classifier network
-    json_conf = '{"classes": 2, \
-    "inputs": [1, 256, 256, 3], \
-    "filters": [8, 16, 16, 8], \
-    "ksizes": [3, 3, 3, 3], \
-    "strides": [2, 2, 2, 2], \
-    "relus": [0, 1, 0, 1], \
-    "links":[[], [], [], [0]],\
-    "fc": [8, 32, 8]}'
-    cf = classifier.Classifier(json_conf)
-    print(cf.layers)
+        im_ = im_.resize((height, width))
+    cf.sess.close()
 
 
