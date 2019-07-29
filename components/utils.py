@@ -16,7 +16,7 @@ def create_variable(name, shape, trainable):
 
 
 def down_sample(x, down_scale):
-    ksize = 3*down_scale[0]//2, 3*down_scale[1]//2
+    ksize = int(3*down_scale[0]//2), int(3*down_scale[1]//2)
     return tf.layers.average_pooling2d(x, ksize, down_scale, 'same')
 
 

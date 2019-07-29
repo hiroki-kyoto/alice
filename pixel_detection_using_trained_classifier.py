@@ -10,8 +10,7 @@ if __name__ == '__main__':
     tf.reset_default_graph()
     # build a classifier network
     json_conf = open('net_hand_detect.json', 'rt').read()
-    input_ = utils.create_variable('input', shape=[1, 64, 64, 3], trainable=True)
-    cf = classifier.Classifier(json_conf, input_)
+    cf = classifier.Classifier(json_conf)
     for layer in cf.layers:
         print(layer.name + ": " + str(layer.shape))
     batch_size, height, width, channel = cf.input_.shape.as_list()
