@@ -10,19 +10,62 @@ if __name__ == '__main__':
     tf.reset_default_graph()
     # build a classifier network
     json_conf = open('net_hand_detect.json', 'rt').read()
-    cf = classifier.Classifier(json_conf)
+    cf = classifier.Classifier(json_conf, optimize_input=False)
     for layer in cf.layers:
         print(layer.name + ": " + str(layer.shape))
-    batch_size, height, width, channel = cf.input_.shape.as_list()
+    batch_size, height, width, channel = cf._input.shape.as_list()
+    _, classes = cf.output.shape.as_list()
+    assert channel == 3
     # load the data
     path_ = "../Datasets/Hands"
     hands = glob.glob(path_ + "/with-hand/*.JPG")
     blank = glob.glob(path_ + "/without-hand/*.JPG")
     print("hands=" + str(len(hands)))
     print("blank=" + str(len(blank)))
-    for fn_ in blank:
-        im_ = Image.open(fn_)
-        im_ = im_.resize((height, width))
-    cf.sess.close()
+
+    HAND_ID = 0
+    BLANK_ID = 1
+
+    train_splits = [20, 20]
+    valid_splits = [17, 17]
+
+    train_images = np.zeros([train_splits[0] + train_splits[1], height, width, channel])
+    train_labels = np.zeros([train_splits[0] + train_splits[1], classes])
+    valid_images = np.zeros([valid_splits[0] + valid_splits[1], height, width, channel])
+    valid_labels = np.zeros([valid_splits[0] + valid_splits[1], classes])
+
+    idx = 0
+    for i in range(train_splits[0]):
+        im_ = Image.open(hands[i])
+        train_images[idx, :, :, :] = im_.resize((height, width))
+        train_labels[idx, HAND_ID] = 1.0
+        idx += 1
+    for i in range(train_splits[1]):
+        im_ = Image.open(blank[i])
+        train_images[idx, :, :, :] = im_.resize((height, width))
+        train_labels[idx, BLANK_ID] = 1.0
+        idx += 1
+
+    idx = 0
+    for i in range(valid_splits[0]):
+        im_ = Image.open(hands[train_splits[0] + i])
+        valid_images[idx, :, :, :] = im_.resize((height, width))
+        valid_labels[idx, HAND_ID] = 1.0
+        idx += 1
+    for i in range(valid_splits[1]):
+        im_ = Image.open(blank[train_splits[1] + i])
+        valid_images[idx, :, :, :] = im_.resize((height, width))
+        valid_labels[idx, BLANK_ID] = 1.0
+        idx += 1
+
+    cf.init_blank_model()
+    cf.train(train_images, train_labels, 1e-2, 500, valid_images, valid_labels)
+    cf.save('./models/hand_classifier.ckpt')
+    cf.close()
+    input()
+
+
+
+
 
 
