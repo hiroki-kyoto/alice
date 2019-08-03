@@ -17,28 +17,6 @@ if __name__ == '__main__':
     _, classes = cf.output.shape.as_list()
     assert channel == 3
 
-    '''
-    # load the data
-    path_ = "../Datasets/Plants"
-    plant = glob.glob(path_ + "/plant/*.jpg")
-    blank = glob.glob(path_ + "/blank/*.jpg")
-    
-    rand_seq_plant = np.random.permutation(len(plant))
-    rand_seq_blank = np.random.permutation(len(blank))
-
-    f_plant_ids = open('../Datasets/Plants/rand_seq_plant.txt', 'wt')
-    f_blank_ids = open('../Datasets/Plants/rand_seq_blank.txt', 'wt')
-
-    for i in range(len(rand_seq_plant)):
-        f_plant_ids.write(plant[rand_seq_plant[i]] + '\n')
-    for i in range(len(rand_seq_blank)):
-        f_blank_ids.write(blank[rand_seq_blank[i]] + '\n')
-
-    f_plant_ids.close()
-    f_blank_ids.close()
-    exit(0)
-    '''
-
     f_plant_ids = open('../Datasets/Plants/rand_seq_plant.txt', 'rt')
     f_blank_ids = open('../Datasets/Plants/rand_seq_blank.txt', 'rt')
 

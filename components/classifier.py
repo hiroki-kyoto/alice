@@ -105,7 +105,7 @@ class Classifier(object):
             for v in all_vars:
                 if v.name != self._input.name:
                     vars.append(v)
-        self.cost_minimizer = tf.train.AdamOptimizer(learning_rate=self.lr).minimize(self.cost, var_list=vars)
+        self.cost_minimizer = tf.train.RMSPropOptimizer(learning_rate=self.lr).minimize(self.cost, var_list=vars)
 
         # set up the model saver except the training components
         all_vars = tf.trainable_variables()
@@ -167,18 +167,19 @@ class Classifier(object):
                 for i in range(batch_num):
                     batch_im = train_images[seq[i*batch_size:(i+1)*batch_size]]
                     batch_lb = train_labels[seq[i*batch_size:(i+1)*batch_size]]
-                    _, loss_hist[i] = self.sess.run([self.cost_minimizer, self.cost], feed_dict={
+                    _, output_ = self.sess.run([self.cost_minimizer, self.output], feed_dict={
                         self._input: batch_im,
                         self.feedback: batch_lb
                     })
-                # check the validation precision
+                    loss_hist[i] = np.mean(np.argmax(output_, axis=-1) != np.argmax(batch_lb, axis=-1))
+                # check the validation error, which is defined by 1-accuracy
                 for i in range(batch_num_valid):
                     batch_im = valid_images[i*batch_size:(i+1)*batch_size]
                     batch_lb = valid_labels[i*batch_size:(i+1)*batch_size]
-                    loss_hist_valid[i] = self.sess.run(self.cost, feed_dict={
-                        self._input: batch_im,
-                        self.feedback: batch_lb
+                    output_ = self.sess.run(self.output, feed_dict={
+                        self._input: batch_im
                     })
+                    loss_hist_valid[i] = np.mean(np.argmax(output_, axis=-1) != np.argmax(batch_lb, axis=-1))
                 loss_epoc[epoc] = np.mean(loss_hist)
                 loss_epoc_valid[epoc] = np.mean(loss_hist_valid)
                 print('EPOC#%d\tLOSS=%.5f/%.5f VALID=%.5f' % (epoc, loss_epoc[epoc], stop_precision, loss_epoc_valid[epoc]))
@@ -187,8 +188,8 @@ class Classifier(object):
                 plt.plot(loss_epoc[:epoc], 'r-')
                 plt.plot(loss_epoc_valid[:epoc], 'b--')
                 plt.xticks(np.arange(0, max_epoc, max_epoc / 10))
-                plt.yticks(np.arange(0, 2.0, 2.0 / 10))
-                plt.axis([0, max_epoc, 0, 2.0])
+                plt.yticks(np.arange(0, 1.0, 1.0 / 10))
+                plt.axis([0, max_epoc, 0, 1.0])
                 plt.legend(['train', 'valid'])
                 plt.pause(0.01)
         else:
