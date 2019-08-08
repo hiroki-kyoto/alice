@@ -5,42 +5,23 @@ import glob
 
 from components import classifier, utils
 
-
 if __name__ == '__main__':
     tf.reset_default_graph()
-    # build a classifier network
-    json_conf = open('classifier.json', 'rt').read()
-    cf = classifier.Classifier(json_conf, optimize_input=False)
-    for layer in cf.layers:
-        print(layer.name + ": " + str(layer.shape))
-    batch_size, height, width, channel = cf._input.shape.as_list()
-    _, classes = cf.output.shape.as_list()
-    assert channel == 3
+    graph_classifier = tf.Graph()
+    with graph_classifier.as_default():
+        # build a classifier network
+        json_conf = open('classifier.json', 'rt').read()
+        cf = classifier.Classifier(json_conf, optimize_input=False)
+        print(cf.info())
+        batch_size, height, width, channel = cf._input.shape.as_list()
+        _, classes = cf.output.shape.as_list()
+        assert channel == 3
 
-    '''
-    # load the data
-    path_ = "../Datasets/Plants"
-    plant = glob.glob(path_ + "/plant/*.jpg")
-    blank = glob.glob(path_ + "/blank/*.jpg")
-    
-    rand_seq_plant = np.random.permutation(len(plant))
-    rand_seq_blank = np.random.permutation(len(blank))
+    plant_id_file = '../Datasets/Plants/rand_seq_plant.txt'
+    blank_id_file = '../Datasets/Plants/rand_seq_blank.txt'
 
-    f_plant_ids = open('../Datasets/Plants/rand_seq_plant.txt', 'wt')
-    f_blank_ids = open('../Datasets/Plants/rand_seq_blank.txt', 'wt')
-
-    for i in range(len(rand_seq_plant)):
-        f_plant_ids.write(plant[rand_seq_plant[i]] + '\n')
-    for i in range(len(rand_seq_blank)):
-        f_blank_ids.write(blank[rand_seq_blank[i]] + '\n')
-
-    f_plant_ids.close()
-    f_blank_ids.close()
-    exit(0)
-    '''
-
-    f_plant_ids = open('../Datasets/Plants/rand_seq_plant.txt', 'rt')
-    f_blank_ids = open('../Datasets/Plants/rand_seq_blank.txt', 'rt')
+    f_plant_ids = open(plant_id_file, 'rt')
+    f_blank_ids = open(blank_id_file, 'rt')
 
     plant = f_plant_ids.readlines()
     blank = f_blank_ids.readlines()
@@ -58,10 +39,10 @@ if __name__ == '__main__':
     train_splits = [len(plant) // 2, len(blank) // 2]
     valid_splits = [len(plant) // 2, len(blank) // 2]
 
-    train_images = np.zeros([train_splits[0] + train_splits[1], height, width, channel])
-    train_labels = np.zeros([train_splits[0] + train_splits[1], classes])
-    valid_images = np.zeros([valid_splits[0] + valid_splits[1], height, width, channel])
-    valid_labels = np.zeros([valid_splits[0] + valid_splits[1], classes])
+    train_images = np.zeros([train_splits[0] + train_splits[1], height, width, channel], dtype=np.float32)
+    train_labels = np.zeros([train_splits[0] + train_splits[1], classes], dtype=np.float32)
+    valid_images = np.zeros([valid_splits[0] + valid_splits[1], height, width, channel], dtype=np.float32)
+    valid_labels = np.zeros([valid_splits[0] + valid_splits[1], classes], dtype=np.float32)
 
     idx = 0
     for i in range(train_splits[0]):
@@ -87,14 +68,27 @@ if __name__ == '__main__':
         valid_labels[idx, BLANK_ID] = 1.0
         idx += 1
 
-    cf.init_blank_model()
-    cf.train(train_images, train_labels, 1e-3, 300, valid_images, valid_labels)
-    cf.save('./models/plant_classifier.ckpt')
-    cf.close()
-    input()
-
-
-
-
-
+    n, h, w, c = train_images.shape
+    ksizes = h//2, w//2
+    stride = 3, 3
+    step_y = (h - ksizes[0]) // stride[0]
+    step_x = (w - ksizes[1]) // stride[1]
+    with graph_classifier.as_default():
+        cf.load('./models/plant_classifier.ckpt')
+        idx = 244
+        attention_map = np.zeros([h, w], np.float32)
+        for i in range(step_y):
+            for j in range(step_x):
+                mask_ = np.zeros([1, h, w, 1]) + 1.0
+                mask_[0, i*stride[0]:i*stride[0] + ksizes[0], j*stride[1]:j*stride[1] + ksizes[1], 0] = 0.0
+                im_ = mask_ * train_images[idx]
+                guess_label = cf.test(im_)[0]
+                if (np.argmax(guess_label) != np.argmax(train_labels[idx])):
+                    attention_map[i*stride[0]:i*stride[0] + ksizes[0], j*stride[1]:j*stride[1] + ksizes[1]] += 1.0
+                else:
+                    print(['++++', '----'][np.argmax(guess_label)])
+        # normalize the attention map
+        attention_map = np.minimum(utils.normalize(attention_map) + 0.35, 1.0)
+        attention_map = np.reshape(attention_map, [h, w, 1])
+        utils.show_rgb(attention_map * train_images[idx])
 

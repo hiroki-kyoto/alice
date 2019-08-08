@@ -1,2 +1,2 @@
-model_checkpoint_path: "plant_classifier.ckpt"
-all_model_checkpoint_paths: "plant_classifier.ckpt"
+model_checkpoint_path: "umbrella_classifier.ckpt"
+all_model_checkpoint_paths: "umbrella_classifier.ckpt"

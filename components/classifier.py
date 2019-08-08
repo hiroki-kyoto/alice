@@ -12,7 +12,7 @@ net_conf = dict(classes=2,
                 ksizes=[3, 3, 3, 3],
                 strides=[2, 2, 2, 2],
                 relus=[0, 1, 0, 1],
-                links=[[], [], [], [0]],
+                links=[[], [], [], [1]],
                 fc=[8, 32, 8],
                 tanh=[0, 1, 0])
 '''
@@ -73,6 +73,8 @@ class Classifier(object):
         # to reshape the convolution 4-D tensor into 2-D matrix
         _shape = _layer.shape.as_list()
         _layer = tf.reshape(_layer, shape=[_shape[0], int(_shape[1]*_shape[2]*_shape[3])])
+        self.layers.append(_layer)
+
         for _fc_id in range(len(conf['fc'])):
             _layer = tf.layers.dense(
                 inputs=_layer,
@@ -129,8 +131,7 @@ class Classifier(object):
         if tf.train.checkpoint_exists(path):
             self.saver_test.restore(self.sess, path)
             # initialize the rest uninitialized variables
-            vars = tf.report_uninitialized_variables()
-            self.sess.run(tf.variables_initializer(vars))
+            utils.initialize_uninitialized(self.sess)
         else:
             assert False
 
@@ -138,8 +139,7 @@ class Classifier(object):
         if tf.train.checkpoint_exists(path):
             self.saver_train.restore(self.sess, path)
             # initialize the rest uninitialized variables
-            vars = tf.report_uninitialized_variables()
-            self.sess.run(tf.variables_initializer(vars))
+            utils.initialize_uninitialized(self.sess)
         else:
             assert False
 
@@ -194,21 +194,44 @@ class Classifier(object):
                 plt.pause(0.01)
         else:
             assert batch_size == len(train_images)
-            iter = 0
-            loss = stop_precision + 1.0
+            epoc = 0
+            loss_epoc = np.zeros([max_epoc])
+            loss_ = stop_precision + 1.0
             self.sess.run(self.input_setter, feed_dict={
                 self.input_: train_images
             })
-            while loss > stop_precision:
-                _, loss = self.sess.run([self.cost_minimizer, self.cost], feed_dict={
+            while np.mean(loss_) > stop_precision and epoc < max_epoc:
+                _, loss_ = self.sess.run([self.cost_minimizer, self.cost], feed_dict={
                     self.feedback: train_labels
                 })
-                print('ITER#%d\tLOSS=%.5f/%.5f' % (iter, loss, stop_precision))
-                iter += 1
+                loss_epoc[epoc] = loss_
+                print('ITER#%d\tLOSS=%.5f/%.5f' % (epoc, loss_, stop_precision))
+                epoc += 1
+                plt.clf()
+                plt.plot(loss_epoc[:epoc], 'r-')
+                plt.xticks(np.arange(0, max_epoc, max_epoc / 10))
+                plt.yticks(np.arange(0, 1.0, 1.0 / 10))
+                plt.axis([0, max_epoc, 0, 1.0])
+                plt.legend(['train'])
+                plt.pause(0.01)
 
-    def test(self, data):
-        pass
+    def test(self, im):     # SINGLE INSTANCE INFERENCE IS SUPPORTED ONLY!
+        assert im.shape[0] == 1
+        assert self._input.shape.as_list()[0] == 1    # MODEL ESTABLISHED IN NO BATCH MODE
+        if self.optimize_input:
+            self.sess.run(self.input_setter, feed_dict={
+                self.input_: im
+            })
+            return self.sess.run(self.output)
+        else:
+            return self.sess.run(self.output, feed_dict={self._input: im})
 
     def close(self):
         self.sess.close()
         pass
+
+    def info(self):
+        _desc = ''
+        for layer in self.layers:
+            _desc += (layer.name + ": " + str(layer.shape) + '\n')
+        return _desc
