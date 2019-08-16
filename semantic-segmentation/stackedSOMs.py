@@ -163,6 +163,8 @@ class PatternLayer(object):
 
         extract_patches(self.patches, input_, self.kernel_size, self.stride)
         pattern_response(self.responses, self.winners, self.states, self.patches, self.patterns, self.learning_rate)
+        vectors = np.reshape(self.patterns, newshape=[self.pattern_num, self.kernel_size * self.kernel_size * self.channels])
+        normalize_patterns(vectors)
 
         return self.responses
 
