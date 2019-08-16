@@ -4,8 +4,6 @@
 
 ---
 
-<font color=#c00>
-
 Guided Learning is described in my [blog](https://www.cnblogs.com/thisisajoke/p/11336448.html)
 
 Mainly, I am using this new technique which is invented by my own,
@@ -29,4 +27,8 @@ pose of the object placed over every backgrounds.
 6. Combine the 3 networks together to enable a free-background 
 detecting and semantic segmentation functionality. 
 
-</font>
+Exploration:
+1. If a simply trained AutoEncoder with co-activation design will be able to filter out the background and keep the object.
+2. How to design a guideline for NN to learn by an easier way. When the task is hard, is it possible to automatically separate 
+such task into multiple and staged sub-tasks, making it easier
+to learn.

@@ -48,8 +48,10 @@ def gray2rgb(gray):
     return np.stack([gray, gray, gray], axis=-1)
 
 
-def show_gray(gray):
-    return show_rgb(gray2rgb(gray))
+def show_gray(gray, min=0, max=255):
+    assert max - min > 0
+    gray_std = np.minimum(np.maximum(gray, min), max) / (max - min)
+    return show_rgb(gray2rgb(gray_std))
 
 
 def normalize(x):
