@@ -128,6 +128,33 @@ def pattern_response(responses, winners, states, patches, patterns, learning_rat
     y_[np.arange(y_.shape[0]), z_[:]] = 1.0
 
 
+def allocate_imagination(output_shape, stride, channels, pattern_num):
+    assert len(output_shape) == 3
+    assert pattern_num == output_shape[2]
+    h_i = output_shape[0] * stride
+    w_i = output_shape[1] * stride
+    c_i = channels
+    return np.zeros([h_i, w_i, c_i], dtype=np.float32)
+
+
+def recall_from_output(imag_, output_, patterns, patches):
+    assert len(imag_.shape) == 3
+    assert len(output_.shape) == 3
+    assert len(patterns.shape) == 4
+    assert len(patches.shape) == 5
+    assert patterns.shape[0] == output_.shape[2]
+    ksize = patches.shape[2]
+    stride = imag_.shape[0] // patches.shape[0]
+    y_ = np.reshape(output_, newshape=[output_.shape[0] * output_.shape[1], output_.shape[2]])
+    w_ = np.reshape(patterns, newshape=[patterns.shape[0],
+                                        patterns.shape[1] * patterns.shape[2] * patterns.shape[3]])
+    x_ = np.reshape(patches, newshape=[patches.shape[0] * patches.shape[1],
+                                       patches.shape[2] * patches.shape[3] * patches.shape[4]])
+    x_[:, :] = np.dot(y_, w_)
+    # upscale the patches into higher resolution images
+    imag_[] # reverse the process as extract patches but caring about the overlapping problems.
+
+
 # padding type is full
 class PatternLayer(object):
     def __init__(self, pattern_num=8, kernel_size=3, stride=2, channels=3, learning_rate=1e-4):
@@ -142,6 +169,7 @@ class PatternLayer(object):
         self.responses = None
         self.winners = None
         self.states = None
+        self.imagination = None
         self.learning_rate = learning_rate
 
     def observe(self, input_):
@@ -165,11 +193,15 @@ class PatternLayer(object):
         pattern_response(self.responses, self.winners, self.states, self.patches, self.patterns, self.learning_rate)
         vectors = np.reshape(self.patterns, newshape=[self.pattern_num, self.kernel_size * self.kernel_size * self.channels])
         normalize_patterns(vectors)
-
         return self.responses
 
     def recall(self, output_):
-        pass
+        if self.imagination is None:
+            self.imagination = allocate_imagination(output_.shape, self.stride, self.channels, self.pattern_num)
+        if self.patches is None:
+            self.patches = allocate_patches(self.imagination.shape, self.kernel_size, self.stride)
+        recall_from_output(self.imagination, output_, self.patterns, self.patches)
+        return self.imagination
 
     def save(self, path):
         pass
@@ -190,7 +222,7 @@ if __name__ == '__main__':
     layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, learning_rate=1e0)
     res = layer.observe(input_)
     utils.show_gray(layer.winners, min=0, max=res.shape[2]-1)
-    ITER_TIMES = 1000
+    ITER_TIMES = 500
     losses = np.zeros(ITER_TIMES)
     for i in range(ITER_TIMES):
         res = layer.observe(input_)
@@ -198,5 +230,7 @@ if __name__ == '__main__':
     utils.show_gray(layer.winners, min=0, max=res.shape[2]-1)
     plt.plot(losses)
     plt.show()
+
+    layer.recall(res)
 
 
