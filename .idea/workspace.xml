@@ -9,7 +9,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -23,8 +22,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="317">
-              <caret line="146" column="23" lean-forward="true" selection-start-line="146" selection-start-column="23" selection-end-line="146" selection-end-column="23" />
+            <state relative-caret-position="415">
+              <caret line="286" column="39" lean-forward="true" selection-start-line="286" selection-start-column="39" selection-end-line="286" selection-end-column="39" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -35,8 +34,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="969">
-              <caret line="53" column="37" selection-start-line="53" selection-start-column="37" selection-end-line="53" selection-end-column="37" />
+            <state relative-caret-position="171">
+              <caret line="40" column="26" lean-forward="true" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -91,8 +90,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>update_sheet</find>
-      <find>save_bmp</find>
       <find>show</find>
       <find>dot</find>
       <find>leaky</find>
@@ -121,6 +118,8 @@
       <find>load(</find>
       <find>----</find>
       <find>utils.show</find>
+      <find>mask =</find>
+      <find>response</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -404,7 +403,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.15245202" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
@@ -418,7 +416,7 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3298791" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32977587" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.17769375" side_tool="true" weight="0.41950113" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" visible="true" weight="0.26894343" />
+      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.17929563" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49716446" weight="0.32855567" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -653,26 +651,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="317">
-          <caret line="146" column="23" lean-forward="true" selection-start-line="146" selection-start-column="23" selection-end-line="146" selection-end-column="23" />
-          <folding>
-            <element signature="e#72#90#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/components/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="969">
-          <caret line="53" column="37" selection-start-line="53" selection-start-column="37" selection-end-line="53" selection-end-column="37" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="494">
@@ -699,6 +677,26 @@
           <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
           <folding>
             <element signature="e#11#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="171">
+          <caret line="40" column="26" lean-forward="true" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="415">
+          <caret line="286" column="39" lean-forward="true" selection-start-line="286" selection-start-column="39" selection-end-line="286" selection-end-column="39" />
+          <folding>
+            <element signature="e#72#90#0" expanded="true" />
           </folding>
         </state>
       </provider>

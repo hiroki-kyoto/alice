@@ -6,6 +6,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 MIN_NORM = 1e-3
+MIN_RESPONSE = 1e-2
 
 ### input has to be bounded between 0 and 1 as a float32 tensor
 
@@ -68,6 +69,35 @@ def extract_patches(output_, input_, ksize, stride):
     return output_
 
 
+def merge_patches(imag_, patches):
+    assert len(imag_.shape) == 3
+    assert len(patches.shape) == 5
+
+    h_ = patches.shape[0]
+    w_ = patches.shape[1]
+    c_ = patches.shape[4]
+    ksize = patches.shape[2]
+    stride = imag_.shape[0] // h_
+
+    h_i = imag_.shape[0]
+    w_i = imag_.shape[1]
+    r_ = ksize // 2
+
+    mask = np.zeros(imag_.shape, dtype=np.float32)
+    for i in range(ksize):
+        y_coords = np.maximum(i - r_ + np.arange(0, h_i, stride), 0)
+        y_coords = np.minimum(y_coords, h_i - 1)
+        for j in range(ksize):
+            x_coords = np.maximum(j - r_ + np.arange(0, w_i, stride), 0)
+            x_coords = np.minimum(x_coords, w_i - 1)
+            x_ids, y_ids = np.meshgrid(x_coords, y_coords)
+            imag_[y_ids, x_ids] += patches[:, :, i, j]
+            mask[y_ids, x_ids] += 1
+    imag_[:, :, :] = imag_[:, :, :] / mask[:, :, :]
+
+    return imag_
+
+
 def normalize_patterns(x):
     for i in range(x.shape[0]):
         norm_ = np.sqrt(np.sum(np.square(x[i, :])))
@@ -109,9 +139,8 @@ def pattern_response(responses, winners, states, patches, patterns, learning_rat
     y_ = np.reshape(responses,
                     newshape=[responses.shape[0] * responses.shape[1], responses.shape[2]])
     z_ = np.reshape(winners, newshape=[winners.shape[0] * winners.shape[1]])
-    # normalize the input patches
-    x_[:, :] = np.maximum(x_[:, :], MIN_NORM)
-    x_[:, :] = x_[:, :] / np.sqrt(np.sum(np.square(x_[:, :]), axis=1, keepdims=True))
+    # normalize the input by its dimension
+    x_[:, :] = x_[:, :] / x_.shape[1]
     for i in range(patterns.shape[0]):
         y_[:, i] = np.sum(w_[i, :] * x_[:, :], axis=1)
     # winner takes all
@@ -124,8 +153,9 @@ def pattern_response(responses, winners, states, patches, patterns, learning_rat
         states[i] = 1.0 - np.sum(np.float32(z_ == i) * y_[:, i]) / count
         w_[i, :] = (1.0 - learning_rate * states[i]) *  w_[i, :] + learning_rate * states[i] * np.sum(mask * x_, axis=0) / count
     # return the responses as one-hot vectors
+    mask = np.max(y_, axis=1) > MIN_RESPONSE
     y_[:, :] = 0.0
-    y_[np.arange(y_.shape[0]), z_[:]] = 1.0
+    y_[np.arange(y_.shape[0]), z_[:]] = mask[:]
 
 
 def allocate_imagination(output_shape, stride, channels, pattern_num):
@@ -152,7 +182,8 @@ def recall_from_output(imag_, output_, patterns, patches):
                                        patches.shape[2] * patches.shape[3] * patches.shape[4]])
     x_[:, :] = np.dot(y_, w_)
     # upscale the patches into higher resolution images
-    imag_[] # reverse the process as extract patches but caring about the overlapping problems.
+    merge_patches(imag_, patches)
+    return imag_
 
 
 # padding type is full
@@ -162,9 +193,11 @@ class PatternLayer(object):
         self.stride = stride
         self.pattern_num = pattern_num
         self.channels = channels
+
         self.patterns = np.random.uniform(0.0, 1.0, [pattern_num, kernel_size, kernel_size, channels])
         vectors = np.reshape(self.patterns, newshape=[pattern_num, kernel_size * kernel_size * channels])
         normalize_patterns(vectors)
+
         self.patches = None
         self.responses = None
         self.winners = None
@@ -204,10 +237,13 @@ class PatternLayer(object):
         return self.imagination
 
     def save(self, path):
-        pass
+        np.save(path, self.patterns)
 
     def load(self, path):
-        pass
+        self.patterns = np.load(path)
+        self.pattern_num = self.patterns.shape[0]
+        self.kernel_size = self.patterns.shape[1]
+        self.channels = self.patterns.shape[3]
 
 
 if __name__ == '__main__':
@@ -216,10 +252,13 @@ if __name__ == '__main__':
     # train the stacked SOMs layer by layer
     layers = []
 
-    input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_0.jpg'))
-    utils.show_rgb(input_)
 
-    layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, learning_rate=1e0)
+    '''
+    input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_186.jpg'))
+    utils.show_rgb(input_)
+    input_ = np.float32(input_) / 255.0
+
+    layer = PatternLayer(pattern_num=16, kernel_size=3, stride=2, channels=3, learning_rate=1e0)
     res = layer.observe(input_)
     utils.show_gray(layer.winners, min=0, max=res.shape[2]-1)
     ITER_TIMES = 500
@@ -231,6 +270,35 @@ if __name__ == '__main__':
     plt.plot(losses)
     plt.show()
 
-    layer.recall(res)
+    imagination = layer.recall(res)
+    utils.show_rgb(imagination / np.max(imagination))
+
+    layer_path = '../../Models/PatternLayers/PL_1.npy'
+    layer.save(layer_path)
+    '''
+
+    # load this layer and train another example to see if it is ok?
+    layer = PatternLayer(stride=2, learning_rate=1e0)
+    layer_path = '../../Models/PatternLayers/PL_1.npy'
+    layer.load(layer_path)
+
+    input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_186.jpg'))
+    utils.show_rgb(input_)
+    input_ = np.float32(input_) / 255.0
+
+    res = layer.observe(input_)
+    utils.show_gray(layer.winners, min=0, max=res.shape[2] - 1)
+    ITER_TIMES = 500
+    losses = np.zeros(ITER_TIMES)
+    for i in range(ITER_TIMES):
+        res = layer.observe(input_)
+        losses[i] = np.mean(layer.states)
+    utils.show_gray(layer.winners, min=0, max=res.shape[2] - 1)
+    plt.plot(losses)
+    plt.show()
+
+    imagination = layer.recall(res)
+    utils.show_rgb(imagination / np.max(imagination))
+
 
 
