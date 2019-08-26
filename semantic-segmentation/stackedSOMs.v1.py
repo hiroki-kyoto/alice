@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 MIN_NORM = 1e-3
-MIN_RESPONSE = 2e-1
+MIN_RESPONSE = 1e-1
 MIN_SUPPORT = 50
 LEARNING_RATE = 1e0
 
@@ -170,8 +170,6 @@ def pattern_response(responses, winners, patches, patterns, immaturity, acceptan
     x_[:, :] = mask * x_
     # update response with constant input
     new_immaturity = np.copy(immaturity)
-    if logs is not None:
-        logs[0, :] = immaturity
     for iter_ in range(max_iter):
         for i in range(patterns.shape[0]):
             y_[:, i] = np.sum(w_[i, :] * x_[:, :], axis=1)
@@ -184,15 +182,15 @@ def pattern_response(responses, winners, patches, patterns, immaturity, acceptan
             pattern_mask = count >= MIN_SUPPORT
             count = np.maximum(count, MIN_SUPPORT)
             attractiveness = np.sum(input_mask * y_[:, i]) / count
-            if attractiveness >= 1 - immaturity[i] or True: # Energy is monotonically descending
+            if attractiveness >= 1 - immaturity[i]: # Energy is monotonically descending
                 input_mask = np.reshape(input_mask, newshape=[input_mask.shape[0], 1])
                 delta_w = pattern_mask * (np.sum(input_mask * x_, axis=0) / count)
-                w_[i] = w_[i] + LEARNING_RATE * delta_w
+                w_[i] = w_[i] + LEARNING_RATE * immaturity[i] * delta_w
             # update the global states of patterns
             new_immaturity[i] = 1 - attractiveness
             acceptance[i] = discount * acceptance[i] + (1 - discount) * count / z_.shape[0]
             if logs is not None:
-                logs[min(iter_ + 1, max_iter-1), i] = 1 - attractiveness
+                logs[iter_, i] = 1 - attractiveness
         # normalize the patterns
         normalize_patterns(patterns)
     # return the responses as one-hot vectors
@@ -312,61 +310,76 @@ class PatternLayer(object):
             self.channels = self.patterns.shape[3]
 
 
-class PatternNetwork(object):
-    def __init__(self, pattern_nums, kernels, strides, channels=3, discount=0.01):
-        self.layers = []
-        for i in range(len(pattern_nums)):
-            if i==0:
-                chns = channels
-            else:
-                chns = self.layers[i-1].pattern_num
-            self.layers.append(PatternLayer(pattern_nums[i], kernels[i], strides[i], chns, discount))
-
-    def observe(self,  input_, max_iter=300, logs=None):
-        res = self.layers[0].observe(input_, max_iter, logs[0])
-        for i in range(len(self.layers) - 1):
-            res = self.layers[i + 1].observe(res, max_iter, logs[i + 1])
-        return res
-
-    def recall(self, output_):
-        imag = self.layers[len(self.layers) - 1].recall(output_)
-        for i in range(len(self.layers) - 1):
-            imag = self.layers[len(self.layers) - 2 - i].recall(imag)
-        return imag
-
-    def save(self, path_): # the given path should be a directory that stores the parameters of all layers
-        for i in range(len(self.layers)):
-            self.layers[i].save(path_ + '/PL_%d.npy' % i)
-
-    def load(self, path_):
-        for i in range(len(self.layers)):
-            self.layers[i].load(path_ + '/PL_%d.npy' % i)
-
-
 if __name__ == '__main__':
-    patterns = [8, 4]
-    kernels = [3, 3]
-    strides = [2, 1]
+    pattens = [256, 16, 128, 16, 64, 16, 32, 16, 16, 8]
+    kernels = [3, 1, 3, 1, 3, 1, 3, 1, 1, 1]
+    strides = [2, 1, 2, 1, 2, 1, 2, 1, 1, 1]
+    # train the stacked SOMs layer by layer
+    layers = []
 
-    net = PatternNetwork(patterns, kernels, strides, channels=3, discount=0.01)
+    """
+    input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_1.jpg'))
+    utils.show_rgb(input_)
+    input_ = np.float32(input_) / 255.0
+
+    ITER_TIMES = 300
+    PATTERN_NUM = 8
+    layer = PatternLayer(pattern_num=PATTERN_NUM, kernel_size=3, stride=2, channels=3, discount=0.01)
+
+    losses = np.zeros([ITER_TIMES, 8])
+    res = layer.observe(input_, ITER_TIMES, losses)
+    utils.show_gray(layer.winners, min=0, max=res.shape[2]-1)
+    for i in range(losses.shape[1]):
+        plt.figure()
+        plt.plot(losses[:, i])
+    plt.show()
+
+    imagination = layer.recall(res)
+    utils.show_rgb(imagination / np.max(imagination))
+
+
+
+    layer_path = '../../Models/PatternLayers/PL_1.npy'
+    layer.save(layer_path)
+    exit(0)
+    """
+
+
+
+    # load this layer and train another example to see if it is ok?
+    layer = PatternLayer(stride=2, discount=0.01)
+    layer_path = '../../Models/PatternLayers/PL_1.npy'
+    layer.load(layer_path)
+
+    ITER_TIMES = 300
+    losses = np.zeros([ITER_TIMES, layer.pattern_num])
+
+    input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_1.jpg'))
+    utils.show_rgb(input_)
+    input_ = np.float32(input_) / 255.0
+    res = layer.observe(input_, 1, None)
+    imagination = layer.recall(res)
+    utils.show_rgb(imagination / np.max(imagination))
+
 
     input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_186.jpg'))
     utils.show_rgb(input_)
     input_ = np.float32(input_) / 255.0
 
-    ITER_TIMES = 100
-    PATTERN_NUM = 16
-
-    losses = []
-    for i in range(len(patterns)):
-        losses.append(np.zeros([ITER_TIMES, patterns[i]], np.float32))
-
-    res = net.observe(input_, ITER_TIMES, losses)
-    for i in range(len(losses)):
+    res = layer.observe(input_, ITER_TIMES, losses)
+    utils.show_gray(layer.winners, min=0, max=res.shape[2] - 1)
+    for i in range(losses.shape[1]):
         plt.figure()
-        plt.plot(losses[i])
+        plt.plot(losses[:, i])
     plt.show()
 
-    imag = net.recall(res)
-    utils.show_rgb(utils.normalize(imag))
+    imagination = layer.recall(res)
+    utils.show_rgb(imagination / np.max(imagination))
+
+    input_ = np.array(Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_1.jpg'))
+    utils.show_rgb(input_)
+    input_ = np.float32(input_) / 255.0
+    res = layer.observe(input_, 1, None)
+    imagination = layer.recall(res)
+    utils.show_rgb(imagination / np.max(imagination))
 

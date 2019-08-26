@@ -6,6 +6,7 @@
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="18" />
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="254" />
     <bookmark url="file://$PROJECT_DIR$/README.md" line="40" mnemonic="4" />
+    <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="186" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
@@ -22,8 +23,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="415">
-              <caret line="286" column="39" lean-forward="true" selection-start-line="286" selection-start-column="39" selection-end-line="286" selection-end-column="39" />
+            <state relative-caret-position="301">
+              <caret line="348" column="20" lean-forward="true" selection-start-line="348" selection-start-column="20" selection-end-line="348" selection-end-column="20" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -34,8 +35,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="171">
-              <caret line="40" column="26" lean-forward="true" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
+            <state relative-caret-position="309">
+              <caret line="56" column="13" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="13" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -46,8 +47,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="494">
-              <caret line="31" column="3" selection-start-line="31" selection-start-column="3" selection-end-line="31" selection-end-column="3" />
+            <state relative-caret-position="224">
+              <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -90,28 +91,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>show</find>
-      <find>dot</find>
-      <find>leaky</find>
-      <find>glob.glo</find>
-      <find>render</find>
-      <find>glo</find>
-      <find>softma</find>
-      <find>render_step</find>
-      <find>_M_X</find>
-      <find>STEP_SIZE</find>
-      <find>steps</find>
-      <find>STEP</find>
-      <find>2 * STEP</find>
-      <find>/</find>
-      <find>*</find>
-      <find>shape</find>
-      <find>self.input</find>
-      <find>self._input</find>
-      <find>trainable</find>
-      <find>batch_size</find>
-      <find>train</find>
-      <find>self.cost =</find>
       <find>valid</find>
       <find>adam</find>
       <find>train(</find>
@@ -120,6 +99,28 @@
       <find>utils.show</find>
       <find>mask =</find>
       <find>response</find>
+      <find>recall</find>
+      <find>normalize_pa</find>
+      <find>MIN_SUPPO</find>
+      <find>patternLa</find>
+      <find>learningra</find>
+      <find>Pattern_re</find>
+      <find>save</find>
+      <find>pattern_res</find>
+      <find>LEARNING</find>
+      <find>LEARNING_RATE</find>
+      <find>MIN_SUPPORT</find>
+      <find>pattern_re</find>
+      <find>observe(</find>
+      <find>allocate_st</find>
+      <find>states</find>
+      <find>observ</find>
+      <find>pattern_response</find>
+      <find>normalize_vectors</find>
+      <find>learning</find>
+      <find>losses</find>
+      <find>response(</find>
+      <find>discount</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -171,6 +172,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -192,7 +194,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -402,21 +403,21 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
+    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.15245202" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.21113561" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.37993598" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.3361793" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3991462" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3298791" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32977587" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.17769375" side_tool="true" weight="0.41950113" />
-      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.17929563" />
+      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.20384204" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49716446" weight="0.32855567" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -651,16 +652,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="494">
-          <caret line="31" column="3" selection-start-line="31" selection-start-column="3" selection-end-line="31" selection-end-column="3" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/components/model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="836">
@@ -681,10 +672,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/PIL/Image.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="233">
+          <caret line="2430" column="35" selection-start-line="2430" selection-start-column="29" selection-end-line="2430" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="40" column="26" lean-forward="true" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
+        <state relative-caret-position="309">
+          <caret line="56" column="13" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="13" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -693,8 +701,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="415">
-          <caret line="286" column="39" lean-forward="true" selection-start-line="286" selection-start-column="39" selection-end-line="286" selection-end-column="39" />
+        <state relative-caret-position="301">
+          <caret line="348" column="20" lean-forward="true" selection-start-line="348" selection-start-column="20" selection-end-line="348" selection-end-column="20" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>
