@@ -7,8 +7,24 @@ import matplotlib.pyplot as plt
 import pickle
 import glob
 
-MIN_SUPPORT = 100
-PATTERN_DENSITY = 0.1
+MIN_NORM = 1e-3
+MIN_RESPONSE = 2e-1
+MIN_SUPPORT = 50
+LEARNING_RATE = 1e-2
+
+# Growth of patterns is influenced by two factors:
+#   (1 - Immaturity) * (1 - Acceptance)
+# Immaturity is the minimum error of patterns who has won so far.
+# Acceptance is the maximum response of patterns to the observation.
+
+# Death of patterns is influenced by two factors:
+#   (1 - Immaturity) * (1 - Acceptance)
+
+# Winner patterns have to avoid huge modification to itself, thus
+# winner modification is determined by:
+#   Immaturity * Acceptance
+
+### input has to be bounded between 0 and 1 as a float32 tensor
 
 def allocate_winners(responses_shape):
     return np.zeros([responses_shape[0], responses_shape[1]], dtype=np.int32)
@@ -103,6 +119,17 @@ def merge_patches(imag_, patches):
     return imag_
 
 
+def normalize_patterns(x):
+    for i in range(x.shape[0]):
+        norm_ = np.sqrt(np.sum(np.square(x[i, :])))
+        while norm_ < MIN_NORM:
+            x[i, :] = np.random.uniform(0.0, 1.0, x.shape[1])
+            norm_ = np.sqrt(np.sum(np.square(x[i, :])))
+        x[i, :] = x[i, :] / norm_
+    return x
+
+
+# patterns are all normalized vectors of unit length
 def pattern_response(responses, winners, patches, patterns, immaturity, acceptance, discount, max_iter, logs):
     assert len(responses.shape) == 3
     assert len(patches.shape) == 5
@@ -136,12 +163,19 @@ def pattern_response(responses, winners, patches, patterns, immaturity, acceptan
     y_ = np.reshape(responses,
                     newshape=[responses.shape[0] * responses.shape[1], responses.shape[2]])
     z_ = np.reshape(winners, newshape=[winners.shape[0] * winners.shape[1]])
+    # normalize the input
+    norm_ = np.sqrt(np.sum(np.square(x_), axis=1, keepdims=True))
+    mask = norm_ > MIN_RESPONSE
+    norm_ = np.maximum(norm_, MIN_RESPONSE)
+    x_[:, :] = x_[:, :] / norm_[:, :]
+    x_[:, :] = mask * x_
     # update response with constant input
+    new_immaturity = np.copy(immaturity)
     if logs is not None:
         logs[0, :] = immaturity
     for iter_ in range(max_iter):
         for i in range(patterns.shape[0]):
-            y_[:, i] = 1.0 / (1 + np.sum(np.abs(x_[:, :] - w_[i, :]), axis=1))
+            y_[:, i] = np.sum(w_[i, :] * x_[:, :], axis=1)
         # winner takes all
         z_[:] = np.argmax(y_, axis=1)
         # update the patterns in memory
@@ -151,17 +185,23 @@ def pattern_response(responses, winners, patches, patterns, immaturity, acceptan
             pattern_mask = count >= MIN_SUPPORT
             count = np.maximum(count, MIN_SUPPORT)
             attractiveness = np.sum(input_mask * y_[:, i]) / count
-            input_mask = np.reshape(input_mask, newshape=[input_mask.shape[0], 1])
-            delta_w = pattern_mask * (np.sum(input_mask * x_, axis=0) / count)
-            w_[i] = (1 - immaturity[i]) * w_[i] + immaturity[i] * delta_w
+            if attractiveness >= 1 - immaturity[i] or True: # Energy is monotonically descending
+                input_mask = np.reshape(input_mask, newshape=[input_mask.shape[0], 1])
+                delta_w = pattern_mask * (np.sum(input_mask * x_, axis=0) / count)
+                w_[i] = w_[i] + immaturity[i] * delta_w
+                #w_[i] = w_[i] + LEARNING_RATE * delta_w
             # update the global states of patterns
-            immaturity[i] = 1 - attractiveness
+            new_immaturity[i] = 1 - attractiveness
             acceptance[i] = discount * acceptance[i] + (1 - discount) * count / z_.shape[0]
             if logs is not None:
                 logs[min(iter_ + 1, max_iter-1), i] = 1 - attractiveness
+        # normalize the patterns
+        normalize_patterns(patterns)
     # return the responses as one-hot vectors
+    mask = np.max(y_, axis=1) > MIN_RESPONSE
     y_[:, :] = 0.0
-    y_[np.arange(y_.shape[0]), z_[:]] = 1
+    y_[np.arange(y_.shape[0]), z_[:]] = mask[:]
+    immaturity[:] = new_immaturity[:]
 
 
 def allocate_imagination(output_shape, stride, channels, pattern_num):
@@ -176,6 +216,7 @@ def allocate_imagination(output_shape, stride, channels, pattern_num):
 def allocate_patterns(pattern_num, kernel_size, channels):
     patterns = np.random.uniform(0.0, 1.0, [pattern_num, kernel_size, kernel_size, channels])
     vectors = np.reshape(patterns, newshape=[pattern_num, kernel_size * kernel_size * channels])
+    normalize_patterns(vectors)
     return patterns
 
 
@@ -307,35 +348,64 @@ class PatternNetwork(object):
 
 
 if __name__ == '__main__':
+    patterns = [8, 8, 8]
+    kernels = [3, 3, 3]
+    strides = [2, 1, 2]
+
+    #N_LAYER = len(patterns)
+    N_LAYER = 1
+    net = PatternNetwork(patterns[:N_LAYER], kernels[:N_LAYER], strides[:N_LAYER], channels=3, discount=0.01)
+
     # train the network with unlabeled examples, actually, the label is also a kind of input
-    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[:100]
-    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[:100]
+
+    # im_ = Image.open('E:/Gits/Datasets/Umbrella/seq-in/I_1.jpg')
+    # input_ = np.array(im_, np.float32)
+    # utils.show_rgb(input_)
+    # input_ = np.float32(input_) / 255.0
+    # ITER_TIMES = 100
+    # losses = []
+    # for i in range(N_LAYER):
+    #     losses.append(np.zeros([ITER_TIMES, patterns[i]], np.float32))
+    #
+    # res = net.observe(input_, ITER_TIMES, losses)
+    # for i in range(len(losses)):
+    #     plt.figure()
+    #     plt.plot(losses[i])
+    # plt.show()
+    #
+    # print(res.shape)
+    # imag = net.recall(res)
+    # utils.show_rgb(utils.normalize(imag))
+
+    # load the images into memory
+    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[:1]
+    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[:1]
     images = [None] * len(files)
     for i in range(len(files)):
         images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
     print('Dataset Loaded!')
 
-    sample_id = 0
+    ITER_TIMES = 1
+    EPOCH = 100
+    losses = []
+    for i in range(N_LAYER):
+        losses.append(np.zeros([len(images) * EPOCH, patterns[i]], np.float32))
 
-    layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, discount=0.01)
-    ITER_TIMES = 500
-    logs = np.zeros([ITER_TIMES, layer.pattern_num], np.float32)
-    res = layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=logs)
-    plt.plot(logs)
+    for i in range(len(images) * EPOCH):
+        idx = np.random.randint(0, len(images))
+        res = net.observe(images[idx], ITER_TIMES, None)
+        for k in range(len(net.layers)):
+            losses[k][i, :] = net.layers[k].immaturity[:]
+
+    for i in range(len(losses)):
+        plt.figure()
+        plt.plot(losses[i])
     plt.show()
 
-    imag = layer.recall(res)
-    utils.show_rgb(images[sample_id])
-    utils.show_rgb(imag)
+    print(res.shape)
+    imag = net.recall(res)
+    utils.show_rgb(images[idx])
+    utils.show_rgb(utils.normalize(imag))
 
-    # train with the next sample
-    sample_id += 100
-    res = layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=logs)
-    plt.plot(logs)
-    plt.show()
-
-    imag = layer.recall(res)
-    utils.show_rgb(images[sample_id])
-    utils.show_rgb(imag)
-
+    net.save('../../Models/PatternLayers/')
 

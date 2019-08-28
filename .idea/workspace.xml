@@ -6,10 +6,11 @@
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="18" />
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="254" />
     <bookmark url="file://$PROJECT_DIR$/README.md" line="40" mnemonic="4" />
-    <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="186" />
+    <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="152" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -23,8 +24,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="301">
-              <caret line="348" column="20" lean-forward="true" selection-start-line="348" selection-start-column="20" selection-end-line="348" selection-end-column="20" />
+            <state relative-caret-position="426">
+              <caret line="325" lean-forward="true" selection-start-line="325" selection-end-line="325" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -35,7 +36,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="309">
+            <state>
               <caret line="56" column="13" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="13" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -47,7 +48,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="224">
+            <state>
               <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -59,7 +60,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="836">
+            <state>
               <caret line="50" column="54" selection-start-line="50" selection-start-column="54" selection-end-line="50" selection-end-column="54" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -71,7 +72,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="665">
+            <state>
               <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
               <folding>
                 <element signature="e#11#29#0" expanded="true" />
@@ -91,11 +92,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>valid</find>
-      <find>adam</find>
-      <find>train(</find>
-      <find>load(</find>
-      <find>----</find>
       <find>utils.show</find>
       <find>mask =</find>
       <find>response</find>
@@ -107,20 +103,25 @@
       <find>Pattern_re</find>
       <find>save</find>
       <find>pattern_res</find>
-      <find>LEARNING</find>
-      <find>LEARNING_RATE</find>
-      <find>MIN_SUPPORT</find>
       <find>pattern_re</find>
       <find>observe(</find>
       <find>allocate_st</find>
       <find>states</find>
       <find>observ</find>
-      <find>pattern_response</find>
       <find>normalize_vectors</find>
       <find>learning</find>
       <find>losses</find>
       <find>response(</find>
       <find>discount</find>
+      <find>patternlayer</find>
+      <find>observe</find>
+      <find>LEARNING</find>
+      <find>LEARNING_RATE</find>
+      <find>acceptance</find>
+      <find>MIN_NORM</find>
+      <find>MIN_SUPPORT</find>
+      <find>pattern_response</find>
+      <find>immatu</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -172,7 +173,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -194,12 +194,13 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="F:/Desktop/code" />
-    <property name="settings.editor.selected.configurable" value="Errors" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Color Scheme Font" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -405,12 +406,12 @@
   <component name="ToolWindowManager">
     <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.21113561" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.21995589" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.3361793" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.34898612" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3991462" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -652,9 +653,46 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/PIL/Image.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="233">
+          <caret line="2430" column="35" selection-start-line="2430" selection-start-column="29" selection-end-line="2430" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="426">
+          <caret line="325" lean-forward="true" selection-start-line="325" selection-end-line="325" />
+          <folding>
+            <element signature="e#72#90#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="56" column="13" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="13" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/components/model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="836">
+        <state>
           <caret line="50" column="54" selection-start-line="50" selection-start-column="54" selection-end-line="50" selection-end-column="54" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -664,47 +702,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="665">
+        <state>
           <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
           <folding>
             <element signature="e#11#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="224">
-          <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/PIL/Image.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="233">
-          <caret line="2430" column="35" selection-start-line="2430" selection-start-column="29" selection-end-line="2430" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/components/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="309">
-          <caret line="56" column="13" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="301">
-          <caret line="348" column="20" lean-forward="true" selection-start-line="348" selection-start-column="20" selection-end-line="348" selection-end-column="20" />
-          <folding>
-            <element signature="e#72#90#0" expanded="true" />
           </folding>
         </state>
       </provider>
