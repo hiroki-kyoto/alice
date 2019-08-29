@@ -6,11 +6,10 @@
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="18" />
     <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="254" />
     <bookmark url="file://$PROJECT_DIR$/README.md" line="40" mnemonic="4" />
-    <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="152" />
+    <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="154" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -24,8 +23,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="426">
-              <caret line="325" lean-forward="true" selection-start-line="325" selection-end-line="325" />
+            <state relative-caret-position="742">
+              <caret line="418" lean-forward="true" selection-start-line="418" selection-end-line="418" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -92,17 +91,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>utils.show</find>
-      <find>mask =</find>
-      <find>response</find>
-      <find>recall</find>
-      <find>normalize_pa</find>
-      <find>MIN_SUPPO</find>
-      <find>patternLa</find>
-      <find>learningra</find>
-      <find>Pattern_re</find>
-      <find>save</find>
-      <find>pattern_res</find>
       <find>pattern_re</find>
       <find>observe(</find>
       <find>allocate_st</find>
@@ -114,14 +102,25 @@
       <find>response(</find>
       <find>discount</find>
       <find>patternlayer</find>
-      <find>observe</find>
       <find>LEARNING</find>
       <find>LEARNING_RATE</find>
       <find>acceptance</find>
       <find>MIN_NORM</find>
       <find>MIN_SUPPORT</find>
-      <find>pattern_response</find>
       <find>immatu</find>
+      <find>observe</find>
+      <find>instant_response</find>
+      <find>pattern_rep</find>
+      <find>distanc</find>
+      <find>new_immaturity</find>
+      <find>density</find>
+      <find>IMMATURITY</find>
+      <find>immaturity</find>
+      <find>immaturity[i]</find>
+      <find>update_memory</find>
+      <find>update</find>
+      <find>pattern_response</find>
+      <find>min(</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -173,6 +172,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -194,7 +194,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -406,12 +405,12 @@
   <component name="ToolWindowManager">
     <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.21995589" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.22216097" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.34898612" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.41728923" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3991462" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -662,8 +661,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="426">
-          <caret line="325" lean-forward="true" selection-start-line="325" selection-end-line="325" />
+        <state relative-caret-position="742">
+          <caret line="418" lean-forward="true" selection-start-line="418" selection-end-line="418" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>

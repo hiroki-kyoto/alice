@@ -8,7 +8,8 @@ import pickle
 import glob
 
 MIN_SUPPORT = 100
-PATTERN_DENSITY = 0.1
+PATTERN_DENSITY = 0.05
+MAX_IMMATURITY = 0.8
 
 def allocate_winners(responses_shape):
     return np.zeros([responses_shape[0], responses_shape[1]], dtype=np.int32)
@@ -126,6 +127,8 @@ def pattern_response(responses, winners, patches, patterns, immaturity, acceptan
         assert logs.shape[0] == max_iter
         assert logs.shape[1] == patterns.shape[0]
 
+    instant_response = None
+
     # reshape tensors into vectors
     x_ = np.reshape(patches,
                     newshape=[patches.shape[0] * patches.shape[1],
@@ -149,19 +152,21 @@ def pattern_response(responses, winners, patches, patterns, immaturity, acceptan
             input_mask = np.float32(z_ == i)
             count = np.sum(input_mask)
             pattern_mask = count >= MIN_SUPPORT
-            count = np.maximum(count, MIN_SUPPORT)
-            attractiveness = np.sum(input_mask * y_[:, i]) / count
+            attractiveness = pattern_mask * np.sum(input_mask * y_[:, i]) / np.maximum(count, MIN_SUPPORT)
             input_mask = np.reshape(input_mask, newshape=[input_mask.shape[0], 1])
-            delta_w = pattern_mask * (np.sum(input_mask * x_, axis=0) / count)
+            delta_w = pattern_mask * (np.sum(input_mask * x_, axis=0) / np.maximum(count, MIN_SUPPORT))
             w_[i] = (1 - immaturity[i]) * w_[i] + immaturity[i] * delta_w
             # update the global states of patterns
             immaturity[i] = 1 - attractiveness
             acceptance[i] = discount * acceptance[i] + (1 - discount) * count / z_.shape[0]
             if logs is not None:
-                logs[min(iter_ + 1, max_iter-1), i] = 1 - attractiveness
-    # return the responses as one-hot vectors
-    y_[:, :] = 0.0
-    y_[np.arange(y_.shape[0]), z_[:]] = 1
+                logs[min(iter_ + 1, max_iter-1), i] = immaturity[i]
+            if iter_ == 0: # response at the first shot
+                y_[:, :] = 0.0
+                y_[np.arange(y_.shape[0]), z_[:]] = 1
+                instant_response = np.copy(responses)
+
+    return instant_response
 
 
 def allocate_imagination(output_shape, stride, channels, pattern_num):
@@ -196,6 +201,10 @@ def recall_from_output(imag_, output_, patterns, patches):
     # upscale the patches into higher resolution images
     merge_patches(imag_, patches)
     return imag_
+
+
+def pattern_distance(x, y):
+    return np.mean(np.abs(x - y))
 
 
 # padding type is full
@@ -238,10 +247,63 @@ class PatternLayer(object):
         if self.acceptance is None:
             self.acceptance = allocate_acceptance(self.pattern_num)
 
+        # handle the situation when the input dimension changed
+        if self.channels > input_.shape[2]:
+            print("Pattern Pruning is not supported yet!")
+            assert False
+        elif self.channels < input_.shape[2]:
+            self.channels = input_.shape[2]
+            new_patterns = allocate_patterns(self.pattern_num, self.kernel_size, self.channels)
+            new_patterns[:, :, :, :self.patterns.shape[3]] = self.patterns[:, :, :, :]
+            new_patterns[:, :, :, self.patterns.shape[3]:] = 0.5 # to keep the old memory equal to new ones
+            del(self.patterns)
+            self.patterns = new_patterns
+
+            # update the working memory
+            del(self.patches)
+            self.patches = allocate_patches(input_.shape, self.kernel_size, self.stride)
+
+        # NOW RUNNING THE OBSERVATION CORE PROCEDURE
         extract_patches(self.patches, input_, self.kernel_size, self.stride)
-        pattern_response(self.responses, self.winners, self.patches, self.patterns,
+        # long term memory should not be directly affected, only short term memory is mutable
+        self.patterns_ = np.copy(self.patterns)
+        instant_response = pattern_response(self.responses, self.winners, self.patches, self.patterns_,
                          self.immaturity, self.acceptance, self.discount, max_iter, logs)
-        return self.responses
+
+        return instant_response
+
+    def update(self):
+        # check if new patterns found
+        new_found = []
+        for i in range(len(self.patterns)):
+            if self.immaturity[i] < MAX_IMMATURITY and pattern_distance(self.patterns[i], self.patterns_[i]) > PATTERN_DENSITY:
+                new_found.append(i)
+        print('====== New pattern found: %d =======' % len(new_found))
+        # append new pattern to long term memory
+        new_patterns = np.zeros([len(self.patterns) + len(new_found), self.kernel_size, self.kernel_size, self.channels])
+        new_patterns[:len(self.patterns)] = self.patterns[:]
+        for i in range(len(new_found)):
+            new_patterns[len(self.patterns) + i] = self.patterns_[new_found[i]]
+        del(self.patterns)
+        self.patterns = new_patterns
+
+        # update the working memory
+        self.pattern_num = len(self.patterns)
+        del(self.responses)
+        self.responses = allocate_responses(self.patches.shape, self.patterns.shape)
+        del(self.winners)
+        self.winners = allocate_winners(self.responses.shape)
+        # the two states are a little bit different, they are not temporary but long lasting
+        new_immaturity = allocate_immaturity(self.pattern_num)
+        new_immaturity[:len(self.immaturity)] = self.immaturity[:]
+        new_immaturity[len(self.immaturity):] = self.immaturity[new_found]
+        del(self.immaturity)
+        self.immaturity = new_immaturity
+        new_acceptance = allocate_acceptance(self.pattern_num)
+        new_acceptance[:len(self.acceptance)] = self.acceptance[:]
+        new_acceptance[len(self.acceptance):] = self.acceptance[new_found]
+        del(self.acceptance)
+        self.acceptance = new_acceptance
 
     def recall(self, output_):
         if self.imagination is None:
@@ -315,27 +377,42 @@ if __name__ == '__main__':
         images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
     print('Dataset Loaded!')
 
-    sample_id = 0
 
     layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, discount=0.01)
-    ITER_TIMES = 500
+    ITER_TIMES = 300
+
+    sample_id = 100
     logs = np.zeros([ITER_TIMES, layer.pattern_num], np.float32)
     res = layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=logs)
     plt.plot(logs)
     plt.show()
 
+    # test the trained model
     imag = layer.recall(res)
-    utils.show_rgb(images[sample_id])
     utils.show_rgb(imag)
 
-    # train with the next sample
-    sample_id += 100
+    layer.update()
+    res = layer.observe(images[sample_id], max_iter=1, logs=None)
+    imag = layer.recall(res)
+    utils.show_rgb(imag)
+
+    # testing another example
+    sample_id = 0
+    logs = np.zeros([ITER_TIMES, layer.pattern_num], np.float32)
     res = layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=logs)
     plt.plot(logs)
     plt.show()
 
+    # test the trained model
     imag = layer.recall(res)
-    utils.show_rgb(images[sample_id])
     utils.show_rgb(imag)
 
+    layer.update()
+    res = layer.observe(images[sample_id], max_iter=1, logs=None)
+    imag = layer.recall(res)
+    utils.show_rgb(imag)
 
+    # check if old memory is kept
+    res = layer.observe(images[100], max_iter=1, logs=None)
+    imag = layer.recall(res)
+    utils.show_rgb(imag)
