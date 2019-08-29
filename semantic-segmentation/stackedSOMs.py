@@ -8,7 +8,7 @@ import pickle
 import glob
 
 MIN_SUPPORT = 100
-PATTERN_DENSITY = 0.05
+PATTERN_DENSITY = 0.02
 MAX_IMMATURITY = 0.8
 
 def allocate_winners(responses_shape):
@@ -305,6 +305,9 @@ class PatternLayer(object):
         del(self.acceptance)
         self.acceptance = new_acceptance
 
+    def update_force(self):
+        self.patterns = self.patterns_
+
     def recall(self, output_):
         if self.imagination is None:
             self.imagination = allocate_imagination(output_.shape, self.stride, self.channels, self.pattern_num)
@@ -391,7 +394,7 @@ if __name__ == '__main__':
     imag = layer.recall(res)
     utils.show_rgb(imag)
 
-    layer.update()
+    layer.update_force()
     res = layer.observe(images[sample_id], max_iter=1, logs=None)
     imag = layer.recall(res)
     utils.show_rgb(imag)
