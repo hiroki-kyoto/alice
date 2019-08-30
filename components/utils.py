@@ -37,7 +37,7 @@ def initialize_uninitialized(sess):
         sess.run(tf.variables_initializer(not_initialized_vars))
 
 
-def show_rgb(rgb):
+def show_rgb(rgb: np.ndarray) -> None:
     if np.max(rgb) <= 1.0:
         Image.fromarray(np.uint8(rgb * 255)).show()
     else:
