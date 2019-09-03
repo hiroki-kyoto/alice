@@ -9,8 +9,8 @@ import glob
 
 MIN_SUPPORT = 100
 PATTERN_DENSITY = 0.1 # control the net volume of long term memory
-MAX_IMMATURITY = 0.7 # control the minimum activation requirement of absorbing patterns into long term memory
-ITER_TIMES = 20 # control the absorbing cycles per instance
+MAX_IMMATURITY = 1.0 # control the minimum activation requirement of absorbing patterns into long term memory
+ITER_TIMES = 300 # control the absorbing cycles per instance
 
 def allocate_winners(responses_shape):
     return np.zeros([responses_shape[0], responses_shape[1]], dtype=np.int32)
@@ -194,6 +194,10 @@ def recall_from_output(imag_, output_, patterns, patches):
     ksize = patches.shape[2]
     stride = imag_.shape[0] // patches.shape[0]
     y_ = np.reshape(output_, newshape=[output_.shape[0] * output_.shape[1], output_.shape[2]])
+    # convert the imag_ to an one-hot vector based array
+    max_ids = np.argmax(y_, axis=1)
+    y_[:, :] = 0
+    y_[np.arange(y_.shape[0]), max_ids] = 1
     w_ = np.reshape(patterns, newshape=[patterns.shape[0],
                                         patterns.shape[1] * patterns.shape[2] * patterns.shape[3]])
     x_ = np.reshape(patches, newshape=[patches.shape[0] * patches.shape[1],
@@ -381,39 +385,40 @@ class PatternNetwork(object):
 
 if __name__ == '__main__':
     # train the network with unlabeled examples, actually, the label is also a kind of input
-    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:100:10]
-    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:100:10]
+    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:30:10]
+    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:30:10]
     images = [None] * len(files)
     for i in range(len(files)):
         images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
     print('Dataset Loaded!')
 
-
+    '''
     # make a test to check if the extension of dimension of the last layer will cause black out effect
     layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, discount=0.98)
     layer_1 = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=8, discount=0.98)
     # training first layer
-    layer.observe(images[0], max_iter=300, logs=None)
+    logs = np.zeros([300, layer.pattern_num])
+    layer.observe(images[0], max_iter=300, logs=logs)
+    plt.plot(logs)
+    plt.show()
     layer.update_force()
     # test first layer
-    layer.observe(images[0], max_iter=1, logs=None)
+    instant_res = layer.observe(images[0], max_iter=1, logs=None)
     # train second layer
     logs = np.zeros([300, layer_1.pattern_num])
-    layer_1.observe(layer.responses, max_iter=300, logs=logs)
+    layer_1.observe(instant_res, max_iter=300, logs=logs)
     plt.plot(logs)
     plt.show()
     layer_1.update_force()
     # test second layer
-    layer_1.observe(layer.responses, max_iter=1, logs=None)
-    # recall samples
-    imag = layer_1.recall(layer_1.responses)
+    instant_res = layer_1.observe(instant_res, max_iter=1, logs=None)
+    imag = layer_1.recall(instant_res)
     imag = layer.recall(imag)
     utils.show_rgb(imag)
     exit(0)
+    '''
 
-
-    net = PatternNetwork(pattern_nums=[8, 4], kernels=[3, 3], strides=[2, 1], channels=3, discount=0.5)
-    #layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, discount=0.5)
+    net = PatternNetwork(pattern_nums=[8], kernels=[3], strides=[2], channels=3, discount=0.98)
 
     for sample_id in range(len(images)):
         #logs = np.zeros([ITER_TIMES, layer.pattern_num], np.float32)
@@ -424,7 +429,7 @@ if __name__ == '__main__':
             net.update()
 
     # check if old memory is kept
-    for sample_id in range(1):
+    for sample_id in range(len(images)):
         utils.show_rgb(images[sample_id])
         res = net.observe(images[sample_id], max_iter=1, logs=None)
         print(np.mean(res, axis=(0, 1)))
