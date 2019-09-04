@@ -9,7 +9,7 @@ import glob
 
 MIN_SUPPORT = 100
 PATTERN_DENSITY = 0.1 # control the net volume of long term memory
-MAX_IMMATURITY = 1.0 # control the minimum activation requirement of absorbing patterns into long term memory
+MAX_IMMATURITY = 0.7 # control the minimum activation requirement of absorbing patterns into long term memory
 ITER_TIMES = 300 # control the absorbing cycles per instance
 
 def allocate_winners(responses_shape):
@@ -352,12 +352,28 @@ class PatternNetwork(object):
                 chns = self.layers[i-1].pattern_num
             self.layers.append(PatternLayer(pattern_nums[i], kernels[i], strides[i], chns, discount))
 
-    def observe(self, input_, max_iter=300, logs=None):
+    def glance(self, input_):
+        res = self.layers[0].observe(input_, 1, None)
+        for i in range(len(self.layers) - 1):
+            res = self.layers[i + 1].observe(res, 1, None)
+        return res
+
+    def observe(self, input_, max_iter=300, logs=None, force_update=False):
         if logs is None:
             logs = [None] * len(self.layers)
-        res = self.layers[0].observe(input_, max_iter, logs[0])
+        self.layers[0].observe(input_, max_iter, logs[0])
+        if force_update:
+            self.layers[0].update_force()
+        else:
+            self.layers[0].update()
+        res = self.layers[0].observe(input_, 1, None)
         for i in range(len(self.layers) - 1):
-            res = self.layers[i + 1].observe(res, max_iter, logs[i + 1])
+            self.layers[i + 1].observe(res, max_iter, logs[i + 1])
+            if force_update:
+                self.layers[i + 1].update_force()
+            else:
+                self.layers[i + 1].update()
+            res = self.layers[i + 1].observe(res, 1, None)
         return res
 
     def update(self):
@@ -393,7 +409,7 @@ if __name__ == '__main__':
     print('Dataset Loaded!')
 
     '''
-    # make a test to check if the extension of dimension of the last layer will cause black out effect
+    # Force updating test
     layer = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=3, discount=0.98)
     layer_1 = PatternLayer(pattern_num=8, kernel_size=3, stride=2, channels=8, discount=0.98)
     # training first layer
@@ -418,22 +434,51 @@ if __name__ == '__main__':
     exit(0)
     '''
 
-    net = PatternNetwork(pattern_nums=[8], kernels=[3], strides=[2], channels=3, discount=0.98)
+    ''' train together failed!
+    net = PatternNetwork(pattern_nums=[8, 8], kernels=[3, 3], strides=[2, 2], channels=3, discount=0.98)
 
     for sample_id in range(len(images)):
-        #logs = np.zeros([ITER_TIMES, layer.pattern_num], np.float32)
-        net.observe(images[sample_id], max_iter=ITER_TIMES, logs=None)
-        if sample_id == 0:
-            net.update_force()
-        else:
-            net.update()
+        net.observe(images[sample_id], max_iter=ITER_TIMES, logs=None, force_update=sample_id==0)
 
     # check if old memory is kept
     for sample_id in range(len(images)):
         utils.show_rgb(images[sample_id])
         res = net.observe(images[sample_id], max_iter=1, logs=None)
-        print(np.mean(res, axis=(0, 1)))
         imag = net.recall(res)
         utils.show_rgb(imag)
-
+    
     net.save('../../Models/PatternLayers/')
+    '''
+
+    # train layer by layer
+    net = PatternNetwork(pattern_nums=[8, 8], kernels=[3, 3], strides=[2, 2], channels=3, discount=0.98)
+
+    # train the first layer
+    layer = net.layers[0]
+    for sample_id in range(len(images)):
+        layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=None)
+        if sample_id == 0:
+            layer.update_force()
+        else:
+            layer.update()
+    # test first layer
+    for sample_id in range(len(images)):
+        instant_res = layer.observe(images[sample_id], max_iter=1, logs=None)
+        imag = layer.recall(instant_res)
+        utils.show_rgb(imag)
+
+    # train the second layer
+    layer = net.layers[0]
+    for sample_id in range(len(images)):
+        layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=None)
+        if sample_id == 0:
+            layer.update_force()
+        else:
+            layer.update()
+    # test second layer
+    for sample_id in range(len(images)):
+        instant_res = layer.observe(images[sample_id], max_iter=1, logs=None)
+        imag = layer.recall(instant_res)
+        utils.show_rgb(imag)
+
+
