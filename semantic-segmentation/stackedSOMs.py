@@ -9,7 +9,7 @@ import glob
 
 MIN_SUPPORT = 100
 PATTERN_DENSITY = 0.1 # control the net volume of long term memory
-MAX_IMMATURITY = 0.7 # control the minimum activation requirement of absorbing patterns into long term memory
+MAX_IMMATURITY = 0.8 # control the minimum activation requirement of absorbing patterns into long term memory
 ITER_TIMES = 300 # control the absorbing cycles per instance
 
 def allocate_winners(responses_shape):
@@ -209,7 +209,7 @@ def recall_from_output(imag_, output_, patterns, patches):
 
 
 def pattern_distance(x, y):
-    return np.mean(np.abs(x - y))
+    return np.max(np.abs(x - y))
 
 
 # padding type is full
@@ -280,8 +280,9 @@ class PatternLayer(object):
         # check if new patterns found
         new_found = []
         for i in range(len(self.patterns)):
-            if self.immaturity[i] < MAX_IMMATURITY and pattern_distance(self.patterns[i], self.patterns_[i]) > PATTERN_DENSITY:
-                new_found.append(i)
+            if self.immaturity[i] < MAX_IMMATURITY:
+                if pattern_distance(self.patterns[i], self.patterns_[i]) > PATTERN_DENSITY:
+                    new_found.append(i)
         print('====== New pattern found: %d =======' % len(new_found))
         # append new pattern to long term memory
         new_patterns = np.zeros([len(self.patterns) + len(new_found), self.kernel_size, self.kernel_size, self.channels])
@@ -343,7 +344,7 @@ class PatternLayer(object):
 
 
 class PatternNetwork(object):
-    def __init__(self, pattern_nums, kernels, strides, channels=3, discount=0.01):
+    def __init__(self, pattern_nums=[], kernels=[], strides=[], channels=3, discount=0.01):
         self.layers = []
         for i in range(len(pattern_nums)):
             if i==0:
@@ -395,6 +396,8 @@ class PatternNetwork(object):
             self.layers[i].save(path_ + '/PL_%d.npy' % i)
 
     def load(self, path_):
+        files = glob.glob(path_ + '/PL_*.npy')
+        self.layers = [PatternLayer() for i in range(len(files))]
         for i in range(len(self.layers)):
             self.layers[i].load(path_ + '/PL_%d.npy' % i)
 
@@ -450,8 +453,9 @@ if __name__ == '__main__':
     net.save('../../Models/PatternLayers/')
     '''
 
+    '''
     # train layer by layer
-    net = PatternNetwork(pattern_nums=[8, 8], kernels=[3, 3], strides=[2, 2], channels=3, discount=0.98)
+    net = PatternNetwork(pattern_nums=[8], kernels=[3], strides=[2], channels=3, discount=0.98)
 
     # train the first layer
     layer = net.layers[0]
@@ -467,18 +471,39 @@ if __name__ == '__main__':
         imag = layer.recall(instant_res)
         utils.show_rgb(imag)
 
+    net.save('../../Models/PatternLayers/')
+    exit(0)
+    '''
+
     # train the second layer
-    layer = net.layers[0]
-    for sample_id in range(len(images)):
-        layer.observe(images[sample_id], max_iter=ITER_TIMES, logs=None)
+    net = PatternNetwork()
+    net.load('../../Models/PatternLayers/')
+    print(net.layers[0].pattern_num)
+    layer = PatternLayer(
+        pattern_num=8,
+        kernel_size=3,
+        stride=2,
+        channels=net.layers[len(net.layers)-1].pattern_num,
+        discount=0.98)
+    for sample_id in range(1):
+        instant_res = net.glance(images[sample_id])
+        logs = np.zeros([ITER_TIMES, layer.pattern_num])
+        layer.observe(instant_res, max_iter=ITER_TIMES, logs=logs)
+        plt.plot(logs)
+        plt.show()
         if sample_id == 0:
             layer.update_force()
         else:
             layer.update()
-    # test second layer
-    for sample_id in range(len(images)):
-        instant_res = layer.observe(images[sample_id], max_iter=1, logs=None)
-        imag = layer.recall(instant_res)
-        utils.show_rgb(imag)
 
+    # test second layer
+    for sample_id in range(1):
+        instant_res = net.glance(images[sample_id])
+        instant_res = layer.observe(instant_res, max_iter=1, logs=None)
+        print(np.argmax(instant_res, axis=-1))
+        imag = layer.recall(instant_res)
+        print(imag)
+        imag = net.recall(imag)
+        utils.show_rgb(images[sample_id])
+        utils.show_rgb(imag)
 

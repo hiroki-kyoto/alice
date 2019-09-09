@@ -11,6 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -22,10 +23,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
+        <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="337">
-              <caret line="471" column="40" selection-start-line="471" selection-start-column="40" selection-end-line="471" selection-end-column="40" />
+            <state relative-caret-position="370">
+              <caret line="66" column="44" lean-forward="true" selection-start-line="66" selection-start-column="44" selection-end-line="66" selection-end-column="44" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -36,7 +37,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="777">
               <caret line="39" column="38" selection-start-line="39" selection-start-column="38" selection-end-line="39" selection-end-column="38" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -48,7 +49,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="1911">
               <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -60,7 +61,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="924">
               <caret line="50" column="54" selection-start-line="50" selection-start-column="54" selection-end-line="50" selection-end-column="54" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -72,7 +73,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="735">
               <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
               <folding>
                 <element signature="e#11#29#0" expanded="true" />
@@ -92,7 +93,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>MIN_NORM</find>
       <find>MIN_SUPPORT</find>
       <find>immatu</find>
       <find>instant_response</find>
@@ -113,7 +113,6 @@
       <find>observe</find>
       <find>def recall(</find>
       <find>response</find>
-      <find>recall</find>
       <find># upscale the patches into high</find>
       <find>recall_from_output</find>
       <find>observe(</find>
@@ -122,6 +121,8 @@
       <find>MAX_IMMATURITY</find>
       <find>ITER_TIMES</find>
       <find>net.obser</find>
+      <find>pattern_distance</find>
+      <find>recall</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -156,13 +157,13 @@
         <option value="$PROJECT_DIR$/components/__init__.py" />
         <option value="$PROJECT_DIR$/components/model.py" />
         <option value="$PROJECT_DIR$/components/auto_encoder.py" />
-        <option value="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" />
         <option value="$PROJECT_DIR$/components/utils.py" />
         <option value="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" />
+        <option value="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-8" />
     <option name="y" value="22" />
     <option name="width" value="1936" />
@@ -200,7 +201,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="F:/Desktop/code" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Color Scheme Font" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Console Font" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -222,7 +223,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.stackedSOMs">
+  <component name="RunManager" selected="Python.guided_learning">
     <configuration name="classifier" type="PythonConfigurationType" factoryName="Python">
       <module name="Alice" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -244,7 +245,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="fit_curve" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="guided_learning" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Alice" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -252,11 +253,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/semantic-segmentation" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/fit_curve.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -372,11 +373,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.guided_learning" />
         <item itemvalue="Python.stackedSOMs" />
         <item itemvalue="Python.self_feedback_classifier" />
         <item itemvalue="Python.slice_video_into_seq (1)" />
         <item itemvalue="Python.slice_video_into_seq" />
-        <item itemvalue="Python.fit_curve" />
       </list>
     </recent_temporary>
   </component>
@@ -404,15 +405,14 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.23980154" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.23720682" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.8223062" visible="true" weight="0.32657418" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.44503736" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3991462" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -644,16 +644,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/PIL/Image.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="233">
@@ -661,19 +651,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="337">
-          <caret line="471" column="40" selection-start-line="471" selection-start-column="40" selection-end-line="471" selection-end-column="40" />
-          <folding>
-            <element signature="e#72#90#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="777">
           <caret line="39" column="38" selection-start-line="39" selection-start-column="38" selection-end-line="39" selection-end-column="38" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -683,7 +663,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/auto_encoder.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="1911">
           <caret line="96" column="69" selection-start-line="96" selection-start-column="56" selection-end-line="96" selection-end-column="69" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -693,7 +673,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="924">
           <caret line="50" column="54" selection-start-line="50" selection-start-column="54" selection-end-line="50" selection-end-column="54" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -703,10 +683,30 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="735">
           <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
           <folding>
             <element signature="e#11#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="411" column="28" lean-forward="true" selection-start-line="405" selection-start-column="4" selection-end-line="411" selection-end-column="28" />
+          <folding>
+            <element signature="e#72#90#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="370">
+          <caret line="66" column="44" lean-forward="true" selection-start-line="66" selection-start-column="44" selection-end-line="66" selection-end-column="44" />
+          <folding>
+            <element signature="e#72#90#0" expanded="true" />
           </folding>
         </state>
       </provider>
