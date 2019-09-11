@@ -101,15 +101,9 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
         # start training thread
         max_epoc = 1000
         stop_avg_loss = 1e-3
-        loss_ = np.zeros([len(images)], np.float32) + stop_avg_loss * 1000
+        loss_ = np.zeros([len(images)], np.float32)
         loss_acc = np.zeros([max_epoc], np.float32)
         for epoc in range(max_epoc):
-            if np.mean(loss_) < stop_avg_loss:
-                print('training success.')
-                break
-            else:
-                loss_acc[epoc] = np.mean(loss_)
-                print('Average Loss for epoc#%d: %.5f' % (epoc, loss_acc[epoc]))
             # forward the tensor stream
             ids = np.random.permutation(len(images))
             for id_ in ids:
@@ -130,11 +124,18 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
             # visualize the training process
             plt.clf()
             plt.plot(loss_acc[:epoc], 'r-')
-            plt.xticks(np.arange(0, max_epoc, max_epoc / 10))
-            plt.yticks(np.arange(0, 1.0, 1.0 / 10))
-            plt.axis([0, max_epoc, 0, 1.0])
+            plt.xticks(np.arange(0, max_epoc + max_epoc / 10, max_epoc / 10))
+            #plt.yticks(np.arange(0, 1.0, 1.0 / 10))
+            plt.axis(xmin=0, xmax=max_epoc)
             plt.legend(['train'])
             plt.pause(0.01)
+
+            if np.mean(loss_) < stop_avg_loss:
+                print('training success.')
+                break
+            else:
+                loss_acc[epoc] = np.mean(loss_)
+                print('Average Loss for epoc#%d: %.5f' % (epoc, loss_acc[epoc]))
         # save the model into files
         saver.save(sess, path)
         print('model saved.')
@@ -180,17 +181,17 @@ def TestModel(model, path, images, labels):
 
 if __name__ == '__main__':
     # train the network with unlabeled examples, actually, the label is also a kind of input
-    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:300]
-    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:300]
+    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:300:60]
+    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:300:60]
     images = [None] * len(files)
     labels = [None] * len(files)
     assert len(images) % 2 == 0
     for i in range(len(files)):
         images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
-        # if i < len(images) / 2:
-        #     labels[i] = 1
-        # else:
-        #     labels[i] = 0
+        if i < len(images) / 2:
+            labels[i] = 1
+        else:
+            labels[i] = 0
     print('Dataset Loaded!')
 
     # create a AutoEncoder
@@ -208,7 +209,7 @@ if __name__ == '__main__':
     #     images=images,
     #     labels=labels,
     #     opt='Adam',
-    #     lr=1e-4)
+    #     lr=1e-5)
 
     TestModel(
         model=auto_encoder,
