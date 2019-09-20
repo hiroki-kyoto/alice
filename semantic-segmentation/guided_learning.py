@@ -71,6 +71,7 @@ class AutoEncoder(Model):
 
 
 def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
+    LAMBDA = 0.1
     with tf.Session() as sess:
         in_ = model.getInputPlaceHolder()
         out_ = model.getOutputOp()
@@ -78,10 +79,22 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
             shape=out_.shape.as_list(),
             dtype=out_.dtype)
         h, w, c = images[0].shape[0:3]
-        unsupervised_loss = tf.reduce_mean(tf.square(
-            tf.reduce_mean(tf.abs(out_[:, :, :, :c] - in_), axis=-1)))
-        supervised_loss = tf.reduce_mean(tf.square(
-            tf.reduce_mean(tf.abs(out_ - feed), axis=-1)))
+        unsupervised_loss = tf.reduce_mean(
+            tf.square(
+                tf.reduce_mean(
+                    tf.abs(out_[:, :, :, :c] - in_),
+                    axis=-1
+                )
+            )
+        )
+        supervised_loss = LAMBDA * tf.reduce_mean(
+            tf.square(
+                tf.reduce_mean(
+                    tf.abs(out_[:, :, :, c:] - feed[:, :, :, c:]),
+                    axis=-1
+                )
+            )
+        ) + (1 - LAMBDA) * unsupervised_loss
         optimizer = None
         if opt == 'SGD':
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
@@ -126,6 +139,7 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
             plt.plot(loss_acc[:epoc], 'r-')
             plt.xticks(np.arange(0, max_epoc + max_epoc / 10, max_epoc / 10))
             #plt.yticks(np.arange(0, 1.0, 1.0 / 10))
+            #plt.axis(xmin=0, xmax=max_epoc, ymin=0, ymax=1.0)
             plt.axis(xmin=0, xmax=max_epoc)
             plt.legend(['train'])
             plt.pause(0.01)
@@ -177,23 +191,80 @@ def TestModel(model, path, images, labels):
 
 
 
+# Valid convolution
+def extract_patches(output_ = None, input_=None, ksize=3):
+    h, w, c = input_.shape[0], input_.shape[1], input_.shape[2]
+    assert h > ksize and w > ksize
+    if output_ is None:
+        output_ = np.zeros(shape=[h - (ksize - 1), w - (ksize - 1), ksize*ksize, c])
+    for i in range(ksize):
+        for j in range(ksize):
+            output_[:, :, i*ksize + j, :] = input_[i:h - (ksize - 1 - i), j:w - (ksize - 1 - j), :]
+    return output_
 
 
 if __name__ == '__main__':
+    # abstract object from white wall
+    files_fg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/*.jpg')
+    files_bg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/bg/*.jpg')
+    new_size = (400, 300)
+    images_bg = [None] * len(files_bg)
+    #for i in range(len(files_bg)):
+    for i in range(1):
+        im_ = Image.open(files_bg[i])
+        im_ = im_.resize(new_size)
+        images_bg[i] = np.array(im_, np.float32) / 255.0
+
+    images_fg = [None] * len(files_fg)
+    masks_fg = [None] * len(files_fg)
+    patches = None
+    mask_patches = None
+
+    for i in range(len(images_fg)):
+        im_ = Image.open(files_fg[i])
+        im_ = im_.resize(new_size)
+        images_fg[i] = np.array(im_, np.float32) / 255.0
+        #utils.show_rgb(images_fg[i])
+
+        # using robust technique to separate object
+        patches = extract_patches(output_=patches, input_=images_fg[i], ksize=3)
+        miu = np.mean(patches, axis=(2, 3), keepdims=True)
+        sigma = np.mean(np.abs(patches - miu), axis=(2, 3)) / miu[:,:,0,0]
+        utils.show_gray(sigma, min=0, max=1)
+        h, w = sigma.shape[0], sigma.shape[1]
+        masks_fg[i] = np.zeros([images_fg[i].shape[0], images_fg[i].shape[1]], np.float32)
+        masks_fg[i][1:h+1, 1:w+1] = sigma > 0.08
+        # erode the mask a little bit
+        mask = np.expand_dims(masks_fg[i], axis=-1)
+        mask_patches = extract_patches(output_=mask_patches, input_=mask, ksize=3)
+        mask = np.min(mask_patches, axis=2)
+        masks_fg[i][1:h + 1, 1:w + 1] = mask[:, :, 0]
+        mask = np.expand_dims(masks_fg[i], axis=-1)
+        merg = mask * images_fg[i] + (1 - mask) * images_bg[0]
+        utils.show_rgb(merg)
+
+
+    exit(0)
     # train the network with unlabeled examples, actually, the label is also a kind of input
-    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:300:60]
-    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:300:60]
+    # files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:300:10]
+    # files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:300:10]
+    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/I_800.jpg')
+    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/O_800.jpg')
+    print(files)
     images = [None] * len(files)
     labels = [None] * len(files)
     assert len(images) % 2 == 0
     for i in range(len(files)):
-        images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
+        #images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
+        im_ = Image.open(files[i])
+        im_ = im_.resize((144, 144))
+        images[i] = np.array(im_, np.float32) / 255.0
+        #utils.show_rgb(images[i])
         if i < len(images) / 2:
             labels[i] = 1
         else:
             labels[i] = 0
     print('Dataset Loaded!')
-
     # create a AutoEncoder
     auto_encoder = AutoEncoder(
         nchannels=3,
@@ -209,7 +280,7 @@ if __name__ == '__main__':
     #     images=images,
     #     labels=labels,
     #     opt='Adam',
-    #     lr=1e-5)
+    #     lr=1e-4)
 
     TestModel(
         model=auto_encoder,
