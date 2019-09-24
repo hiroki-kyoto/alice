@@ -70,6 +70,10 @@ class AutoEncoder(Model):
         return self.layers[-1]
 
 
+def print_error(str_):
+    print('\033[1;31m' + str_ + '\033[0m')
+
+
 def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
     LAMBDA = 0.1
     with tf.Session() as sess:
@@ -100,6 +104,9 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
         elif opt == 'Adam':
             optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+        else:
+            print_error('Unsupported Optimizer!')
+            assert False
         supervised_minimizer = optimizer.minimize(supervised_loss)
         unsupervised_minimizer = optimizer.minimize(unsupervised_loss)
         # establish the training context
@@ -203,9 +210,41 @@ def extract_patches(output_ = None, input_=None, ksize=3):
     return output_
 
 
+# occlusion simulation
+def occlude_mask(im_, bbox):
+    pass
+
+# Full size is not changed but the size and position on the image are changed
+# new size has to be smaller than the original one
+def resize_foreground(im_, mask, down_scale):
+    assert down_scale < 1.0
+    assert im_.shape[0] == mask.shape[0] and im_.shape[1] == mask.shape[1]
+    h, w = im_.shape[0], im_.shape[1]
+    h_ = int(h * down_scale)
+    w_ = int(w * down_scale)
+    y = h // 2 - h_ // 2
+    x = w // 2 - w_ // 2
+    im_rgb = Image.fromarray(im_)
+    im_rgb = im_rgb.resize((w_, h_), Image.LINEAR)
+    im_rgb = np.array(im_rgb)
+    im_grey = Image.fromarray(mask)
+    im_grey = im_grey.resize((w_, h_), Image.NEAREST)
+    im_grey = np.array(im_grey)
+    im_[y:y+h_, x:x+w_, :] = im_rgb[:, :, :]
+    mask[:, :, :] = 0
+    mask[y:y+h_, x:x+w_] = im_grey[:, :]
+    return im_, mask
+
+
+def move_foreground(im_, mask, offset):
+    assert offset[0] < w // 3
+    assert offset[1] < h // 3
+    pass
+
+
 if __name__ == '__main__':
     # abstract object from white wall
-    files_fg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/*.jpg')
+    files_fg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/fg/*.jpg')
     files_bg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/bg/*.jpg')
     new_size = (400, 300)
     images_bg = [None] * len(files_bg)
@@ -242,9 +281,9 @@ if __name__ == '__main__':
         mask = np.expand_dims(masks_fg[i], axis=-1)
         merg = mask * images_fg[i] + (1 - mask) * images_bg[0]
         utils.show_rgb(merg)
-
-
+        input()
     exit(0)
+
     # train the network with unlabeled examples, actually, the label is also a kind of input
     # files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:300:10]
     # files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:300:10]
@@ -274,13 +313,13 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    # TrainModel(
-    #     model=auto_encoder,
-    #     path='../../Models/SemanticSegmentation/umbrella.ckpt',
-    #     images=images,
-    #     labels=labels,
-    #     opt='Adam',
-    #     lr=1e-4)
+    TrainModel(
+        model=auto_encoder,
+        path='../../Models/SemanticSegmentation/umbrella.ckpt',
+        images=images,
+        labels=labels,
+        opt='Adam',
+        lr=1e-4)
 
     TestModel(
         model=auto_encoder,
