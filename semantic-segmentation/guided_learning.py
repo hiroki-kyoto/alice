@@ -224,22 +224,64 @@ def resize_foreground(im_, mask, down_scale):
     w_ = int(w * down_scale)
     y = h // 2 - h_ // 2
     x = w // 2 - w_ // 2
-    im_rgb = Image.fromarray(im_)
+    im_rgb = Image.fromarray(np.uint8(im_*255))
     im_rgb = im_rgb.resize((w_, h_), Image.LINEAR)
     im_rgb = np.array(im_rgb)
-    im_grey = Image.fromarray(mask)
+    im_grey = Image.fromarray(np.uint8(mask*255))
     im_grey = im_grey.resize((w_, h_), Image.NEAREST)
     im_grey = np.array(im_grey)
-    im_[y:y+h_, x:x+w_, :] = im_rgb[:, :, :]
-    mask[:, :, :] = 0
-    mask[y:y+h_, x:x+w_] = im_grey[:, :]
+    im_[y:y+h_, x:x+w_, :] = im_rgb[:, :, :] / 255.0
+    mask[:, :] = 0
+    mask[y:y+h_, x:x+w_] = im_grey[:, :] / 255.0
     return im_, mask
 
 
 def move_foreground(im_, mask, offset):
     assert offset[0] < w // 3
     assert offset[1] < h // 3
-    pass
+    x_min = max(0, offset[0])
+    x_max = min(h, h + offset[0])
+    y_min = max(0, offset[1])
+    y_max = min(w, w + offset[1])
+    #x_ind = np.arange(x_min, x_max, 1)
+    #y_ind = np.arange(y_min, y_max, 1)
+    pad_mask = np.zeros([x_max - x_min, y_max - y_min], np.float32)
+    pad_rgb = np.zeros([x_max - x_min, y_max - y_min, 3], np.float32)
+    pad_mask[:, :] = mask[0:x_max-x_min, 0:y_max-y_min]
+    pad_rgb[:, :, :] = im_[0:x_max-x_min, 0:y_max-y_min, :]
+    im_[:, :, :] = 0
+    mask[:, :] = 0
+    im_[x_min:x_max, y_min:y_max, :] = pad_rgb
+    mask[x_min:x_max, y_min:y_max] = pad_mask
+    return im_, mask
+
+
+# rotate around a point in 2D plane with equation:
+# r <- sqrt(x^2+y^2)
+# x <- r * cos(theta)
+# y <- r * sin(theta)
+# Using remap theory: mapping form a to b,
+# to update each pixel in new coordinates,
+# one has to inverse this process,
+# I.E. to calcalate the source of which has rotated.
+def rotate_foreground(im_, mask, theta):
+    theta = -theta
+    h, w = im_.shape[0], im_.shape[1]
+    x = np.arange(0, w, 1) - w / 2
+    y = h / 2 - np.arange(0, h, 1)
+    xx, yy = np.meshgrid(x, y)
+    xx_new = xx * np.cos(theta) - yy * np.sin(theta)
+    yy_new = yy * np.cos(theta) + xx * np.sin(theta)
+    xx_new = np.int32(np.minimum(np.maximum(xx_new + w / 2, 0), w - 1))
+    yy_new = np.int32(np.minimum(np.maximum(h / 2 - yy_new, 0), h - 1))
+    tmp_rgb = np.zeros(im_.shape, im_.dtype)
+    tmp_mask = np.zeros(mask.shape, mask.dtype)
+    tmp_rgb[:, :, :] = im_[:, :, :]
+    tmp_mask[:, :] = mask[:, :]
+    im_[:, :, :] = tmp_rgb[yy_new, xx_new, :]
+    mask[:, :] = tmp_mask[yy_new, xx_new]
+    return im_, mask
+
 
 
 if __name__ == '__main__':
@@ -273,11 +315,18 @@ if __name__ == '__main__':
         h, w = sigma.shape[0], sigma.shape[1]
         masks_fg[i] = np.zeros([images_fg[i].shape[0], images_fg[i].shape[1]], np.float32)
         masks_fg[i][1:h+1, 1:w+1] = sigma > 0.08
-        # erode the mask a little bit
+
+        # erode the mask a little bit to fit the edge of object
         mask = np.expand_dims(masks_fg[i], axis=-1)
         mask_patches = extract_patches(output_=mask_patches, input_=mask, ksize=3)
         mask = np.min(mask_patches, axis=2)
         masks_fg[i][1:h + 1, 1:w + 1] = mask[:, :, 0]
+
+        # apply a few data augumentation ops to the mask and the foreground
+        images_fg[i], masks_fg[i] = resize_foreground(images_fg[i], masks_fg[i], 0.5)
+        images_fg[i], masks_fg[i] = move_foreground(images_fg[i], masks_fg[i], [50, 20])
+        images_fg[i], masks_fg[i] = rotate_foreground(images_fg[i], masks_fg[i], np.pi / 6)
+
         mask = np.expand_dims(masks_fg[i], axis=-1)
         merg = mask * images_fg[i] + (1 - mask) * images_bg[0]
         utils.show_rgb(merg)
