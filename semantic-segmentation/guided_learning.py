@@ -284,16 +284,24 @@ def rotate_foreground(im_, mask, theta):
 
 
 
+def preprocess_dataset(input_prefix, output_prefix, output_size):
+    files = glob.glob(input_prefix + '/*.jpg')
+    for i in range(len(files)):
+        im_ = Image.open(files[i])
+        im_ = im_.resize(output_size)
+        files[i] = files[i].replace(input_prefix, output_prefix)
+        im_.save(files[i])
+
+
+
 if __name__ == '__main__':
     # abstract object from white wall
     files_fg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/fg/*.jpg')
     files_bg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/bg/*.jpg')
-    new_size = (400, 300)
     images_bg = [None] * len(files_bg)
     #for i in range(len(files_bg)):
     for i in range(1):
         im_ = Image.open(files_bg[i])
-        im_ = im_.resize(new_size)
         images_bg[i] = np.array(im_, np.float32) / 255.0
 
     images_fg = [None] * len(files_fg)
@@ -303,7 +311,6 @@ if __name__ == '__main__':
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
-        im_ = im_.resize(new_size)
         images_fg[i] = np.array(im_, np.float32) / 255.0
         #utils.show_rgb(images_fg[i])
 
