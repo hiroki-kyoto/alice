@@ -211,8 +211,11 @@ def extract_patches(output_ = None, input_=None, ksize=3):
 
 
 # occlusion simulation
-def occlude_mask(im_, bbox):
-    pass
+# bbox : [begin_x, begin_y, width, height]
+def occlude_mask(mask, bbox):
+    mask[bbox[1]:bbox[1]+bbox[3], bbox[0]:bbox[0]+bbox[2]] = 0
+    return mask
+
 
 # Full size is not changed but the size and position on the image are changed
 # new size has to be smaller than the original one
@@ -243,8 +246,6 @@ def move_foreground(im_, mask, offset):
     x_max = min(h, h + offset[0])
     y_min = max(0, offset[1])
     y_max = min(w, w + offset[1])
-    #x_ind = np.arange(x_min, x_max, 1)
-    #y_ind = np.arange(y_min, y_max, 1)
     pad_mask = np.zeros([x_max - x_min, y_max - y_min], np.float32)
     pad_rgb = np.zeros([x_max - x_min, y_max - y_min, 3], np.float32)
     pad_mask[:, :] = mask[0:x_max-x_min, 0:y_max-y_min]
@@ -257,9 +258,8 @@ def move_foreground(im_, mask, offset):
 
 
 # rotate around a point in 2D plane with equation:
-# r <- sqrt(x^2+y^2)
-# x <- r * cos(theta)
-# y <- r * sin(theta)
+# x <- cos(theta) * x - sin(theta) * y
+# y <- sin(theta) * x + cos(theta) * y
 # Using remap theory: mapping form a to b,
 # to update each pixel in new coordinates,
 # one has to inverse this process,
@@ -283,7 +283,6 @@ def rotate_foreground(im_, mask, theta):
     return im_, mask
 
 
-
 def preprocess_dataset(input_prefix, output_prefix, output_size):
     files = glob.glob(input_prefix + '/*.jpg')
     for i in range(len(files)):
@@ -296,8 +295,8 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
 
 if __name__ == '__main__':
     # abstract object from white wall
-    files_fg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/fg/*.jpg')
-    files_bg = glob.glob('E:/Gits/Datasets/Umbrella/WhiteWall/bg/*.jpg')
+    files_fg = glob.glob('../../Datasets/Umbrella/WhiteWall/fg/*.jpg')
+    files_bg = glob.glob('../../Datasets/Umbrella/WhiteWall/bg/*.jpg')
     images_bg = [None] * len(files_bg)
     #for i in range(len(files_bg)):
     for i in range(1):
@@ -318,10 +317,10 @@ if __name__ == '__main__':
         patches = extract_patches(output_=patches, input_=images_fg[i], ksize=3)
         miu = np.mean(patches, axis=(2, 3), keepdims=True)
         sigma = np.mean(np.abs(patches - miu), axis=(2, 3)) / miu[:,:,0,0]
-        utils.show_gray(sigma, min=0, max=1)
+
         h, w = sigma.shape[0], sigma.shape[1]
         masks_fg[i] = np.zeros([images_fg[i].shape[0], images_fg[i].shape[1]], np.float32)
-        masks_fg[i][1:h+1, 1:w+1] = sigma > 0.08
+        masks_fg[i][1:h+1, 1:w+1] = sigma > 0.05
 
         # erode the mask a little bit to fit the edge of object
         mask = np.expand_dims(masks_fg[i], axis=-1)
@@ -330,6 +329,8 @@ if __name__ == '__main__':
         masks_fg[i][1:h + 1, 1:w + 1] = mask[:, :, 0]
 
         # apply a few data augumentation ops to the mask and the foreground
+        masks_fg[i] = occlude_mask(masks_fg[i], [180, 120, 80, 60])
+        utils.show_gray(masks_fg[i], min=0, max=1)
         images_fg[i], masks_fg[i] = resize_foreground(images_fg[i], masks_fg[i], 0.5)
         images_fg[i], masks_fg[i] = move_foreground(images_fg[i], masks_fg[i], [50, 20])
         images_fg[i], masks_fg[i] = rotate_foreground(images_fg[i], masks_fg[i], np.pi / 6)
