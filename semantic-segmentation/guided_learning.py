@@ -242,17 +242,17 @@ def resize_foreground(im_, mask, down_scale):
 def move_foreground(im_, mask, offset):
     h, w = im_.shape[0], im_.shape[1]
     x_min = max(0, offset[0])
-    x_max = min(h, h + offset[0])
+    x_max = min(w, w + offset[0])
     y_min = max(0, offset[1])
-    y_max = min(w, w + offset[1])
-    pad_mask = np.zeros([x_max - x_min, y_max - y_min], np.float32)
-    pad_rgb = np.zeros([x_max - x_min, y_max - y_min, 3], np.float32)
-    pad_mask[:, :] = mask[0:x_max-x_min, 0:y_max-y_min]
-    pad_rgb[:, :, :] = im_[0:x_max-x_min, 0:y_max-y_min, :]
+    y_max = min(h, h + offset[1])
+    pad_mask = np.zeros([y_max - y_min, x_max - x_min], np.float32)
+    pad_rgb = np.zeros([y_max - y_min, x_max - x_min, 3], np.float32)
+    pad_mask[:, :] = mask[0:y_max-y_min, 0:x_max-x_min]
+    pad_rgb[:, :, :] = im_[0:y_max-y_min, 0:x_max-x_min, :]
     im_[:, :, :] = 0
     mask[:, :] = 0
-    im_[x_min:x_max, y_min:y_max, :] = pad_rgb
-    mask[x_min:x_max, y_min:y_max] = pad_mask
+    im_[y_min:y_max, x_min:x_max, :] = pad_rgb
+    mask[y_min:y_max, x_min:x_max] = pad_mask
     return im_, mask
 
 
@@ -345,14 +345,26 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
         mask[:, :] = masks_fg[id][:, :]
         bg[:, :, :] = images_bg[id][:, :, :]
 
-        fg, mask = resize_foreground(fg, mask, 0.5)
-        fg, mask = move_foreground(fg, mask, [50, 20])
-        fg, mask = rotate_foreground(fg, mask, np.pi / 6)
+        # data augumentation method 1: resize
+        min_ratio = 0.3
+        resize_ratio = min_ratio + np.random.rand() * (1 - min_ratio)
+        fg, mask = resize_foreground(fg, mask, resize_ratio)
+
+        # data augumentaiton method 2: move
+        max_move = 0.5
+        move_x = int(((2 * np.random.rand() - 1.0) * max_move) * w)
+        move_y = int(((2 * np.random.rand() - 1.0) * max_move) * h)
+        fg, mask = move_foreground(fg, mask, [move_x, move_y])
+
+        # data augumentation method 3: rotate
+        theta = np.random.rand() * 2 * np.pi
+        fg, mask = rotate_foreground(fg, mask, theta)
 
         mask = np.reshape(mask, [h, w, 1])
         merg = mask * fg + (1 - mask) * bg
         mask = np.reshape(mask, [h, w])
 
+        # data augumentation method 4: crop
         crop_box = [None] * 4
         crop_box[2] = np.random.randint(80, 160)
         crop_box[3] = np.random.randint(60, 120)
@@ -371,6 +383,7 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
 
 if __name__ == '__main__':
     fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
+    print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
     for mask, im, mask_occ, im_occ in sample_generator:
         utils.show_gray(mask, min=0, max=1)
