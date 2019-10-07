@@ -240,8 +240,7 @@ def resize_foreground(im_, mask, down_scale):
 
 
 def move_foreground(im_, mask, offset):
-    assert offset[0] < w // 3
-    assert offset[1] < h // 3
+    h, w = im_.shape[0], im_.shape[1]
     x_min = max(0, offset[0])
     x_max = min(h, h + offset[0])
     y_min = max(0, offset[1])
@@ -292,35 +291,32 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
         im_.save(files[i])
 
 
-
-if __name__ == '__main__':
-    # abstract object from white wall
-    files_fg = glob.glob('../../Datasets/Umbrella/WhiteWall/fg/*.jpg')
-    files_bg = glob.glob('../../Datasets/Umbrella/WhiteWall/bg/*.jpg')
+def load_dataset(path):
+    files_fg = glob.glob(path + '/fg/*.jpg')
+    files_bg = glob.glob(path + '/bg/*.jpg')
     images_bg = [None] * len(files_bg)
-    #for i in range(len(files_bg)):
-    for i in range(1):
-        im_ = Image.open(files_bg[i])
-        images_bg[i] = np.array(im_, np.float32) / 255.0
-
     images_fg = [None] * len(files_fg)
     masks_fg = [None] * len(files_fg)
     patches = None
     mask_patches = None
 
+    for i in range(len(files_bg)):
+        im_ = Image.open(files_bg[i])
+        images_bg[i] = np.array(im_, np.float32) / 255.0
+
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
         images_fg[i] = np.array(im_, np.float32) / 255.0
-        #utils.show_rgb(images_fg[i])
+        # utils.show_rgb(images_fg[i])
 
         # using robust technique to separate object
         patches = extract_patches(output_=patches, input_=images_fg[i], ksize=3)
         miu = np.mean(patches, axis=(2, 3), keepdims=True)
-        sigma = np.mean(np.abs(patches - miu), axis=(2, 3)) / miu[:,:,0,0]
+        sigma = np.mean(np.abs(patches - miu), axis=(2, 3)) / miu[:, :, 0, 0]
 
         h, w = sigma.shape[0], sigma.shape[1]
         masks_fg[i] = np.zeros([images_fg[i].shape[0], images_fg[i].shape[1]], np.float32)
-        masks_fg[i][1:h+1, 1:w+1] = sigma > 0.05
+        masks_fg[i][1:h + 1, 1:w + 1] = sigma > 0.05
 
         # erode the mask a little bit to fit the edge of object
         mask = np.expand_dims(masks_fg[i], axis=-1)
@@ -328,17 +324,61 @@ if __name__ == '__main__':
         mask = np.min(mask_patches, axis=2)
         masks_fg[i][1:h + 1, 1:w + 1] = mask[:, :, 0]
 
-        # apply a few data augumentation ops to the mask and the foreground
-        masks_fg[i] = occlude_mask(masks_fg[i], [180, 120, 80, 60])
-        utils.show_gray(masks_fg[i], min=0, max=1)
-        images_fg[i], masks_fg[i] = resize_foreground(images_fg[i], masks_fg[i], 0.5)
-        images_fg[i], masks_fg[i] = move_foreground(images_fg[i], masks_fg[i], [50, 20])
-        images_fg[i], masks_fg[i] = rotate_foreground(images_fg[i], masks_fg[i], np.pi / 6)
+    return images_fg, masks_fg, images_bg
 
-        mask = np.expand_dims(masks_fg[i], axis=-1)
-        merg = mask * images_fg[i] + (1 - mask) * images_bg[0]
-        utils.show_rgb(merg)
+
+def generate_random_sample(images_fg, masks_fg, images_bg):
+    assert len(images_fg) > 0
+    fg = np.copy(images_fg[0])
+    mask = np.copy(masks_fg[0])
+    mask_occ = np.copy(mask)
+    bg = np.copy(images_bg[0])
+    merg = np.copy(images_fg[0])
+    merg_occ = np.copy(merg)
+
+    n = len(images_fg)
+    h, w = mask.shape[0], mask.shape[1]
+
+    while True:
+        id = np.random.randint(n)
+        fg[:, :, :] = images_fg[id][:, :, :]
+        mask[:, :] = masks_fg[id][:, :]
+        bg[:, :, :] = images_bg[id][:, :, :]
+
+        fg, mask = resize_foreground(fg, mask, 0.5)
+        fg, mask = move_foreground(fg, mask, [50, 20])
+        fg, mask = rotate_foreground(fg, mask, np.pi / 6)
+
+        mask = np.reshape(mask, [h, w, 1])
+        merg = mask * fg + (1 - mask) * bg
+        mask = np.reshape(mask, [h, w])
+
+        crop_box = [None] * 4
+        crop_box[2] = np.random.randint(80, 160)
+        crop_box[3] = np.random.randint(60, 120)
+        crop_box[0] = np.random.randint(0, w - crop_box[2])
+        crop_box[1] = np.random.randint(0, h - crop_box[3])
+
+        mask_occ[:, :] = mask[:, :]
+        mask_occ = occlude_mask(mask_occ, crop_box)
+
+        mask_occ = np.reshape(mask_occ, [h, w, 1])
+        merg_occ = mask_occ * fg + (1 - mask_occ) * bg
+        mask_occ = np.reshape(mask_occ, [h, w])
+
+        yield (mask, merg, mask_occ, merg_occ)
+
+
+if __name__ == '__main__':
+    fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
+    sample_generator = generate_random_sample(fg, mask, bg)
+    for mask, im, mask_occ, im_occ in sample_generator:
+        utils.show_gray(mask, min=0, max=1)
+        utils.show_rgb(im)
+        utils.show_gray(mask_occ, min=0, max=1)
+        utils.show_rgb(im_occ)
         input()
+
     exit(0)
 
     # train the network with unlabeled examples, actually, the label is also a kind of input
