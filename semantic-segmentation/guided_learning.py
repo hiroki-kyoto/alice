@@ -239,20 +239,31 @@ def resize_foreground(im_, mask, down_scale):
     return im_, mask
 
 
+# move by offset: (dx, dy) -> dx is horizontal, dy is vertical.
 def move_foreground(im_, mask, offset):
     h, w = im_.shape[0], im_.shape[1]
     x_min = max(0, offset[0])
     x_max = min(w, w + offset[0])
     y_min = max(0, offset[1])
     y_max = min(h, h + offset[1])
-    pad_mask = np.zeros([y_max - y_min, x_max - x_min], np.float32)
-    pad_rgb = np.zeros([y_max - y_min, x_max - x_min, 3], np.float32)
-    pad_mask[:, :] = mask[0:y_max-y_min, 0:x_max-x_min]
-    pad_rgb[:, :, :] = im_[0:y_max-y_min, 0:x_max-x_min, :]
-    im_[:, :, :] = 0
-    mask[:, :] = 0
-    im_[y_min:y_max, x_min:x_max, :] = pad_rgb
-    mask[y_min:y_max, x_min:x_max] = pad_mask
+    pad_mask = np.zeros(mask.shape, mask.dtype)
+    pad_rgb = np.zeros(im_.shape, im_.dtype)
+    if offset[0] >= 0:
+        if offset[1] >= 0:
+            pad_mask[y_min:y_max, x_min:x_max] = mask[0:y_max - y_min, 0:x_max - x_min]
+            pad_rgb[y_min:y_max, x_min:x_max, :] = im_[0:y_max - y_min, 0:x_max - x_min, :]
+        else:
+            pad_mask[y_min:y_max, x_min:x_max] = mask[-offset[1]:h, 0:x_max-x_min]
+            pad_rgb[y_min:y_max, x_min:x_max, :] = im_[-offset[1]:h, 0:x_max - x_min, :]
+    else:
+        if offset[1] >= 0:
+            pad_mask[y_min:y_max, x_min:x_max] = mask[0:y_max - y_min, -offset[0]:w]
+            pad_rgb[y_min:y_max, x_min:x_max, :] = im_[0:y_max - y_min, -offset[0]:w, :]
+        else:
+            pad_mask[y_min:y_max, x_min:x_max] = mask[-offset[1]:h, -offset[0]:w]
+            pad_rgb[y_min:y_max, x_min:x_max, :] = im_[-offset[1]:h, -offset[0]:w, :]
+    im_[:, :, :] = pad_rgb[:, :, :]
+    mask[:, :] = pad_mask[:, :]
     return im_, mask
 
 
