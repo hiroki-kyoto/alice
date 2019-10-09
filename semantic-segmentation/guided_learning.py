@@ -233,6 +233,7 @@ def resize_foreground(im_, mask, down_scale):
     im_grey = Image.fromarray(np.uint8(mask*255))
     im_grey = im_grey.resize((w_, h_), Image.NEAREST)
     im_grey = np.array(im_grey)
+    im_[:, :, :] = 0
     im_[y:y+h_, x:x+w_, :] = im_rgb[:, :, :] / 255.0
     mask[:, :] = 0
     mask[y:y+h_, x:x+w_] = im_grey[:, :] / 255.0
@@ -275,21 +276,12 @@ def move_foreground(im_, mask, offset):
 # one has to inverse this process,
 # I.E. to calcalate the source of which has rotated.
 def rotate_foreground(im_, mask, theta):
-    theta = -theta
-    h, w = im_.shape[0], im_.shape[1]
-    x = np.arange(0, w, 1) - w / 2
-    y = h / 2 - np.arange(0, h, 1)
-    xx, yy = np.meshgrid(x, y)
-    xx_new = xx * np.cos(theta) - yy * np.sin(theta)
-    yy_new = yy * np.cos(theta) + xx * np.sin(theta)
-    xx_new = np.int32(np.minimum(np.maximum(xx_new + w / 2, 0), w - 1))
-    yy_new = np.int32(np.minimum(np.maximum(h / 2 - yy_new, 0), h - 1))
-    tmp_rgb = np.zeros(im_.shape, im_.dtype)
-    tmp_mask = np.zeros(mask.shape, mask.dtype)
-    tmp_rgb[:, :, :] = im_[:, :, :]
-    tmp_mask[:, :] = mask[:, :]
-    im_[:, :, :] = tmp_rgb[yy_new, xx_new, :]
-    mask[:, :] = tmp_mask[yy_new, xx_new]
+    im_rgb = Image.fromarray(np.uint8(im_ * 255))
+    im_gray = Image.fromarray(np.uint8(mask * 255))
+    im_rgb = im_rgb.rotate(theta)
+    im_gray = im_gray.rotate(theta)
+    im_ = np.array(im_rgb, np.float32) / 255.0
+    mask = np.array(im_gray, np.float32) / 255.0
     return im_, mask
 
 
