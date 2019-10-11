@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import pickle
 import glob
+import time
 from abc import abstractmethod, ABCMeta
 
 
@@ -294,7 +295,7 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
         im_.save(files[i])
 
 
-def load_dataset(path):
+def load_dataset(path, target_size=(320, 320)):
     files_fg = glob.glob(path + '/fg/*.jpg')
     files_bg = glob.glob(path + '/bg/*.jpg')
     images_bg = [None] * len(files_bg)
@@ -305,10 +306,12 @@ def load_dataset(path):
 
     for i in range(len(files_bg)):
         im_ = Image.open(files_bg[i])
+        im_ = im_.resize(target_size)
         images_bg[i] = np.array(im_, np.float32) / 255.0
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
+        im_ = im_.resize(target_size)
         images_fg[i] = np.array(im_, np.float32) / 255.0
         # utils.show_rgb(images_fg[i])
 
@@ -353,15 +356,15 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
         resize_ratio = min_ratio + np.random.rand() * (1 - min_ratio)
         fg, mask = resize_foreground(fg, mask, resize_ratio)
 
-        # data augumentaiton method 2: move
+        # data augumentation method 2: rotate
+        theta = 360 * np.random.rand()
+        fg, mask = rotate_foreground(fg, mask, theta)
+
+        # data augumentaiton method 3: move
         max_move = 0.5
         move_x = int(((2 * np.random.rand() - 1.0) * max_move) * w)
         move_y = int(((2 * np.random.rand() - 1.0) * max_move) * h)
         fg, mask = move_foreground(fg, mask, [move_x, move_y])
-
-        # data augumentation method 3: rotate
-        theta = np.random.rand() * 2 * np.pi
-        fg, mask = rotate_foreground(fg, mask, theta)
 
         mask = np.reshape(mask, [h, w, 1])
         merg = mask * fg + (1 - mask) * bg
@@ -369,7 +372,7 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
 
         # data augumentation method 4: crop
         crop_box = [None] * 4
-        crop_box[2] = np.random.randint(80, 160)
+        crop_box[2] = np.random.randint(60, 120)
         crop_box[3] = np.random.randint(60, 120)
         crop_box[0] = np.random.randint(0, w - crop_box[2])
         crop_box[1] = np.random.randint(0, h - crop_box[3])
@@ -388,12 +391,12 @@ if __name__ == '__main__':
     fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
-    for mask, im, mask_occ, im_occ in sample_generator:
-        utils.show_gray(mask, min=0, max=1)
-        utils.show_rgb(im)
-        utils.show_gray(mask_occ, min=0, max=1)
-        utils.show_rgb(im_occ)
-        input()
+    TRAIN_VOLUME = 100
+    for i in range(TRAIN_VOLUME):
+        mask, im, mask_occ, im_occ = next(sample_generator)
+        plt.clf()
+        plt.imshow(im)
+        plt.pause(1)
 
     exit(0)
 
