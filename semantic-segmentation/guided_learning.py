@@ -23,9 +23,9 @@ class AutoEncoder(Model):
         # building blocks
         self.layers = []
         layer = tf.placeholder(
-            shape=[None, None, None, nchannels],
+            shape=[None, None, None, nchannels + nclasses],
             dtype=tf.float32)
-        self.layers.append(layer)
+        self.layers.append(layer) # the input layer
         # encoder
         for i in range(len(kernels)):
             layer = tf.layers.conv2d(
@@ -73,33 +73,24 @@ class AutoEncoder(Model):
 
 def print_error(str_):
     print('\033[1;31m' + str_ + '\033[0m')
+    assert False
 
 
-def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
-    LAMBDA = 0.1
+def TrainModel(model, path, samples, opt='SGD', lr=1e-4):
     with tf.Session() as sess:
         in_ = model.getInputPlaceHolder()
         out_ = model.getOutputOp()
         feed = tf.placeholder(
             shape=out_.shape.as_list(),
             dtype=out_.dtype)
-        h, w, c = images[0].shape[0:3]
-        unsupervised_loss = tf.reduce_mean(
+        loss = tf.reduce_mean(
             tf.square(
                 tf.reduce_mean(
-                    tf.abs(out_[:, :, :, :c] - in_),
+                    tf.abs(out_ - feed),
                     axis=-1
                 )
             )
         )
-        supervised_loss = LAMBDA * tf.reduce_mean(
-            tf.square(
-                tf.reduce_mean(
-                    tf.abs(out_[:, :, :, c:] - feed[:, :, :, c:]),
-                    axis=-1
-                )
-            )
-        ) + (1 - LAMBDA) * unsupervised_loss
         optimizer = None
         if opt == 'SGD':
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
@@ -107,9 +98,7 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
             optimizer = tf.train.AdamOptimizer(learning_rate=lr)
         else:
             print_error('Unsupported Optimizer!')
-            assert False
-        supervised_minimizer = optimizer.minimize(supervised_loss)
-        unsupervised_minimizer = optimizer.minimize(unsupervised_loss)
+        minimizer = optimizer.minimize(loss)
         # establish the training context
         vars = tf.trainable_variables()
         saver = tf.train.Saver(var_list=vars)
@@ -120,28 +109,53 @@ def TrainModel(model, path, images, labels, opt='SGD', lr=1e-4):
         else:
             sess.run(tf.global_variables_initializer())
         # start training thread
+        batch_size = 32
         max_epoc = 1000
         stop_avg_loss = 1e-3
-        loss_ = np.zeros([len(images)], np.float32)
+        loss_ = np.zeros([batch_size], np.float32)
         loss_acc = np.zeros([max_epoc], np.float32)
+        mask, im, mask_occ, im_occ = next(samples)
+        h, w, c = im.shape[0:3]
+        nclasses = feed.shape.as_list()[-1] - 3
+        x = np.zeros([1, h, w, c + nclasses], dtype=np.float32)
+        y = np.copy(x)
+
         for epoc in range(max_epoc):
-            # forward the tensor stream
-            ids = np.random.permutation(len(images))
-            for id_ in ids:
-                x = np.reshape(images[id_], [1, h, w, c])
-                y = labels[id_]
-                if y is None: # unsupervised learning
-                    loss_[id_], _ = sess.run(
-                        [unsupervised_loss, unsupervised_minimizer],
-                        feed_dict={in_: x})
+            for id_ in range(batch_size):
+                # occlusion cases are 3 for inputs:
+                # case 0. mask full, im occluded;
+                # case 1. mask occluded, im full;
+                # case 2. both full.
+                # output should be always both full
+                mask, im, mask_occ, im_occ = next(samples)
+                occ_case = np.random.randint(3)
+                if occ_case == 0:
+                    x[0, :, :, :c] = im_occ[:, :, :]
+                    for cid_ in range(nclasses):
+                        x[0, :, :, c + cid_] = (mask == cid_)
+                    y[0, :, :, :c] = im[:, :, :]
+                    for cid_ in range(nclasses):
+                        y[0, :, :, c + cid_] = (mask == cid_)
+                elif occ_case == 1:
+                    x[0, :, :, :c] = im[:, :, :]
+                    for cid_ in range(nclasses):
+                        x[0, :, :, c + cid_] = (mask_occ == cid_)
+                    y[0, :, :, :c] = im[:, :, :]
+                    for cid_ in range(nclasses):
+                        y[0, :, :, c + cid_] = (mask == cid_)
+                elif occ_case == 2:
+                    x[0, :, :, :c] = im[:, :, :]
+                    for cid_ in range(nclasses):
+                        x[0, :, :, c + cid_] = (mask == cid_)
+                    y[0, :, :, :c] = im[:, :, :]
+                    for cid_ in range(nclasses):
+                        y[0, :, :, c + cid_] = (mask == cid_)
                 else:
-                    feed_ = np.zeros([1, h, w, feed.shape.as_list()[-1]], np.float32)
-                    feed_[0, :, :, :c] = x
-                    if y > 0: # class 0 stands for no object, object ID starts from #1.
-                        feed_[0, :, :, c + (y - 1)] = 1.0
-                    loss_[id_], _ = sess.run(
-                        [supervised_loss, supervised_minimizer],
-                        feed_dict={in_: x, feed: feed_})
+                    print_error('occlusion case id invalid!')
+                loss_[id_], _ = sess.run(
+                    [loss, minimizer],
+                    feed_dict={in_: x, feed: y})
+                print('Epoc:%5d\tBatch:%5d\tLoss:%8.5f' % (epoc, id_, loss_[id_]))
             # visualize the training process
             plt.clf()
             plt.plot(loss_acc[:epoc], 'r-')
@@ -230,14 +244,14 @@ def resize_foreground(im_, mask, down_scale):
     x = w // 2 - w_ // 2
     im_rgb = Image.fromarray(np.uint8(im_*255))
     im_rgb = im_rgb.resize((w_, h_), Image.LINEAR)
-    im_rgb = np.array(im_rgb)
-    im_grey = Image.fromarray(np.uint8(mask*255))
+    im_rgb = np.array(im_rgb, np.float32)
+    im_grey = Image.fromarray(mask)
     im_grey = im_grey.resize((w_, h_), Image.NEAREST)
-    im_grey = np.array(im_grey)
+    im_grey = np.array(im_grey, np.uint8)
     im_[:, :, :] = 0
     im_[y:y+h_, x:x+w_, :] = im_rgb[:, :, :] / 255.0
     mask[:, :] = 0
-    mask[y:y+h_, x:x+w_] = im_grey[:, :] / 255.0
+    mask[y:y+h_, x:x+w_] = im_grey[:, :]
     return im_, mask
 
 
@@ -278,11 +292,11 @@ def move_foreground(im_, mask, offset):
 # I.E. to calcalate the source of which has rotated.
 def rotate_foreground(im_, mask, theta):
     im_rgb = Image.fromarray(np.uint8(im_ * 255))
-    im_gray = Image.fromarray(np.uint8(mask * 255))
+    im_gray = Image.fromarray(mask)
     im_rgb = im_rgb.rotate(theta)
     im_gray = im_gray.rotate(theta)
     im_ = np.array(im_rgb, np.float32) / 255.0
-    mask = np.array(im_gray, np.float32) / 255.0
+    mask = np.array(im_gray, np.uint8)
     return im_, mask
 
 
@@ -295,7 +309,7 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
         im_.save(files[i])
 
 
-def load_dataset(path, target_size=(320, 320)):
+def load_dataset(path, target_size=(512, 384)):
     files_fg = glob.glob(path + '/fg/*.jpg')
     files_bg = glob.glob(path + '/bg/*.jpg')
     images_bg = [None] * len(files_bg)
@@ -321,7 +335,7 @@ def load_dataset(path, target_size=(320, 320)):
         sigma = np.mean(np.abs(patches - miu), axis=(2, 3)) / miu[:, :, 0, 0]
 
         h, w = sigma.shape[0], sigma.shape[1]
-        masks_fg[i] = np.zeros([images_fg[i].shape[0], images_fg[i].shape[1]], np.float32)
+        masks_fg[i] = np.zeros([images_fg[i].shape[0], images_fg[i].shape[1]], np.uint8)
         masks_fg[i][1:h + 1, 1:w + 1] = sigma > 0.05
 
         # erode the mask a little bit to fit the edge of object
@@ -335,11 +349,12 @@ def load_dataset(path, target_size=(320, 320)):
 
 def generate_random_sample(images_fg, masks_fg, images_bg):
     assert len(images_fg) > 0
+    h, w = masks_fg[0].shape[0:2]
     fg = np.copy(images_fg[0])
-    mask = np.copy(masks_fg[0])
+    mask = np.zeros([h, w], dtype=np.uint8)
     mask_occ = np.copy(mask)
     bg = np.copy(images_bg[0])
-    merg = np.copy(images_fg[0])
+    merg = np.copy(images_bg[0])
     merg_occ = np.copy(merg)
 
     n = len(images_fg)
@@ -366,9 +381,7 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
         move_y = int(((2 * np.random.rand() - 1.0) * max_move) * h)
         fg, mask = move_foreground(fg, mask, [move_x, move_y])
 
-        mask = np.reshape(mask, [h, w, 1])
-        merg = mask * fg + (1 - mask) * bg
-        mask = np.reshape(mask, [h, w])
+        merg = np.expand_dims(mask==1, axis=-1) * fg + np.expand_dims(mask==0, axis=-1) * bg
 
         # data augumentation method 4: crop
         crop_box = [None] * 4
@@ -379,47 +392,31 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
 
         mask_occ[:, :] = mask[:, :]
         mask_occ = occlude_mask(mask_occ, crop_box)
-
-        mask_occ = np.reshape(mask_occ, [h, w, 1])
-        merg_occ = mask_occ * fg + (1 - mask_occ) * bg
-        mask_occ = np.reshape(mask_occ, [h, w])
+        merg_occ = np.expand_dims(mask_occ==1, axis=-1) * fg + np.expand_dims(mask_occ==0, axis=-1) * bg
 
         yield (mask, merg, mask_occ, merg_occ)
 
 
-if __name__ == '__main__':
+def InspectDataset(TRAIN_VOLUME):
     fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
-    TRAIN_VOLUME = 100
     for i in range(TRAIN_VOLUME):
         mask, im, mask_occ, im_occ = next(sample_generator)
         plt.clf()
         plt.imshow(im)
         plt.pause(1)
 
-    exit(0)
 
+if __name__ == '__main__':
+
+    #InspectDataset(100)
+    #exit(0)
+
+    fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
+    print('Dataset loaded!')
+    sample_generator = generate_random_sample(fg, mask, bg)
     # train the network with unlabeled examples, actually, the label is also a kind of input
-    # files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/*.jpg')[0:300:10]
-    # files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/*.jpg')[0:300:10]
-    files = glob.glob('E:/Gits/Datasets/Umbrella/seq-in/I_800.jpg')
-    files += glob.glob('E:/Gits/Datasets/Umbrella/seq-out/O_800.jpg')
-    print(files)
-    images = [None] * len(files)
-    labels = [None] * len(files)
-    assert len(images) % 2 == 0
-    for i in range(len(files)):
-        #images[i] = np.array(Image.open(files[i]), np.float32) / 255.0
-        im_ = Image.open(files[i])
-        im_ = im_.resize((144, 144))
-        images[i] = np.array(im_, np.float32) / 255.0
-        #utils.show_rgb(images[i])
-        if i < len(images) / 2:
-            labels[i] = 1
-        else:
-            labels[i] = 0
-    print('Dataset Loaded!')
     # create a AutoEncoder
     auto_encoder = AutoEncoder(
         nchannels=3,
@@ -432,11 +429,10 @@ if __name__ == '__main__':
     TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
-        images=images,
-        labels=labels,
+        samples=sample_generator,
         opt='Adam',
         lr=1e-4)
-
+    exit(0)
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',

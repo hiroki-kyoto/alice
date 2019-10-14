@@ -23,7 +23,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="412">
+            <state relative-caret-position="819">
               <caret line="41" column="51" selection-start-line="41" selection-start-column="51" selection-end-line="41" selection-end-column="51" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -35,8 +35,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/happy_loop.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="665" column="29" lean-forward="true" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="29" />
+            <state relative-caret-position="13860">
+              <caret line="665" column="29" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="29" />
               <folding>
                 <element signature="e#15#33#0" expanded="true" />
               </folding>
@@ -47,8 +47,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="467">
-              <caret line="336" column="29" lean-forward="true" selection-start-line="336" selection-start-column="29" selection-end-line="336" selection-end-column="29" />
+            <state relative-caret-position="364">
+              <caret line="123" column="41" lean-forward="true" selection-start-line="123" selection-start-column="41" selection-end-line="123" selection-end-column="41" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -67,8 +67,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>pattern_rep</find>
-      <find>distanc</find>
       <find>new_immaturity</find>
       <find>density</find>
       <find>IMMATURITY</find>
@@ -97,6 +95,8 @@
       <find>supervised</find>
       <find>wait</find>
       <find>load_data</find>
+      <find>target_size</find>
+      <find>train(</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -355,14 +355,14 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1936" height="1066" extended-state="6" />
+    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" weight="0.3264642" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.29106945" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.32017076" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39911798" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -613,7 +613,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="412">
+        <state relative-caret-position="819">
           <caret line="41" column="51" selection-start-line="41" selection-start-column="51" selection-end-line="41" selection-end-column="51" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -623,8 +623,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/happy_loop.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="665" column="29" lean-forward="true" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="29" />
+        <state relative-caret-position="13860">
+          <caret line="665" column="29" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="29" />
           <folding>
             <element signature="e#15#33#0" expanded="true" />
           </folding>
@@ -633,8 +633,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="467">
-          <caret line="336" column="29" lean-forward="true" selection-start-line="336" selection-start-column="29" selection-end-line="336" selection-end-column="29" />
+        <state relative-caret-position="364">
+          <caret line="123" column="41" lean-forward="true" selection-start-line="123" selection-start-column="41" selection-end-line="123" selection-end-column="41" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>
