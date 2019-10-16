@@ -177,11 +177,10 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4):
         print('model saved.')
 
 
-def TestModel(model, path, images, labels):
+def TestModel(model, path, samples, test_num):
     with tf.Session() as sess:
         in_ = model.getInputPlaceHolder()
         out_ = model.getOutputOp()
-        h, w, c = images[0].shape[0:3]
         # establish the training context
         vars = tf.trainable_variables()
         saver = tf.train.Saver(var_list=vars)
@@ -192,24 +191,54 @@ def TestModel(model, path, images, labels):
         else:
             print('Model not found at : %s' % path)
             assert False
-        # start testing
-        # forward the tensor stream
-        ids = np.arange(len(images))
-        for id_ in ids:
-            x = np.reshape(images[id_], [1, h, w, c])
-            y = sess.run(out_, feed_dict={in_: x})
-            y = np.maximum(np.minimum(y, 1.0), 0)
-            if labels[id_] is None:
-                # check if the construction is okay
-                utils.show_rgb(x[0, :, :, :])
-                utils.show_rgb(y[0, :, :, :c])
+        mask, im, mask_occ, im_occ = next(samples)
+        h, w, c = im.shape[0:3]
+        nclasses = out_.shape.as_list()[-1] - 3
+        x = np.zeros([1, h, w, c + nclasses], dtype=np.float32)
+        y = np.copy(x)
+        test_num = 10
+
+        for i in range(test_num):
+            mask, im, mask_occ, im_occ = next(samples)
+            occ_case = np.random.randint(2)
+            if occ_case == 0:
+                x[0, :, :, :c] = im_occ[:, :, :]
+                for cid_ in range(nclasses):
+                    x[0, :, :, c + cid_] = (mask == cid_)
+                y[0, :, :, :c] = im[:, :, :]
+                for cid_ in range(nclasses):
+                    y[0, :, :, c + cid_] = (mask == cid_)
+            elif occ_case == 1:
+                x[0, :, :, :c] = im[:, :, :]
+                for cid_ in range(nclasses):
+                    x[0, :, :, c + cid_] = (mask_occ == cid_)
+                y[0, :, :, :c] = im[:, :, :]
+                for cid_ in range(nclasses):
+                    y[0, :, :, c + cid_] = (mask == cid_)
             else:
-                # check if the semantic segmentation is okay
-                utils.show_rgb(x[0, :, :, :])
-                utils.show_rgb(y[0, :, :, :c])
-                for cid in range(y.shape[-1] - c):
-                    #utils.show_rgb(y[0, :, :, :c] * y[0, :, :, c + cid:c+cid+1])
-                    utils.show_gray(y[0, :, :, c + cid], min=0, max=1.0)
+                print_error('occlusion case id invalid!')
+            y_out = sess.run(out_, feed_dict={in_: x})
+            print(np.max(np.max(y_out[0], axis=0), axis=0))
+            y_out = np.maximum(np.minimum(y_out, 1.0), 0)
+            plt.clf()
+            plt.title(str(occ_case))
+            if occ_case == 0:
+                fig0 = plt.figure(0)
+                plt.imshow(x[0, :, :, :c])
+                fig1 = plt.figure(1)
+                plt.imshow(y_out[0, :, :, :c])
+                fig2 = plt.figure(2)
+                plt.imshow(y[0, :, :, :c])
+            else:
+                fig0 = plt.figure(0)
+                plt.imshow(x[0, :, :, c])
+                fig1 = plt.figure(1)
+                plt.imshow(y_out[0, :, :, c])
+                fig2 = plt.figure(2)
+                plt.imshow(y[0, :, :, c])
+            plt.pause(10)
+
+
 
 
 
@@ -426,15 +455,15 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    TrainModel(
+    '''TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4)
-    exit(0)
+    exit(0)'''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
-        images=images,
-        labels=labels)
+        samples=sample_generator,
+        test_num=10)

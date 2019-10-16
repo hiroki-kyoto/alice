@@ -10,6 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -47,8 +48,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="364">
-              <caret line="123" column="41" lean-forward="true" selection-start-line="123" selection-start-column="41" selection-end-line="123" selection-end-column="41" />
+            <state relative-caret-position="86">
+              <caret line="202" column="12" selection-start-line="202" selection-start-column="12" selection-end-line="202" selection-end-column="12" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -67,7 +68,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>new_immaturity</find>
       <find>density</find>
       <find>IMMATURITY</find>
       <find>immaturity</find>
@@ -97,6 +97,7 @@
       <find>load_data</find>
       <find>target_size</find>
       <find>train(</find>
+      <find>trainmo</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -369,7 +370,7 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3296582" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.25137818" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.17769375" side_tool="true" weight="0.41950113" />
-      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.40516275" />
+      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.27534685" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49716446" weight="0.32855567" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -633,8 +634,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="123" column="41" lean-forward="true" selection-start-line="123" selection-start-column="41" selection-end-line="123" selection-end-column="41" />
+        <state relative-caret-position="86">
+          <caret line="202" column="12" selection-start-line="202" selection-start-column="12" selection-end-line="202" selection-end-column="12" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>
