@@ -128,7 +128,8 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4):
                 # case 2. both full.
                 # output should be always both full
                 mask, im, mask_occ, im_occ = next(samples)
-                occ_case = np.random.randint(3)
+                #occ_case = np.random.randint(0, 2)
+                occ_case = 0
                 if occ_case == 0:
                     x[0, :, :, :c] = im_occ[:, :, :]
                     for cid_ in range(nclasses):
@@ -200,7 +201,8 @@ def TestModel(model, path, samples, test_num):
 
         for i in range(test_num):
             mask, im, mask_occ, im_occ = next(samples)
-            occ_case = np.random.randint(2)
+            #occ_case = np.random.randint(2)
+            occ_case = 0
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -386,14 +388,19 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
     merg = np.copy(images_bg[0])
     merg_occ = np.copy(merg)
 
-    n = len(images_fg)
+    num_fg = len(images_fg)
+    num_bg = len(images_bg)
     h, w = mask.shape[0], mask.shape[1]
 
+    print('foreground units: %d.' % num_fg)
+    print('background units: %d.' % num_bg)
+
     while True:
-        id = np.random.randint(n)
-        fg[:, :, :] = images_fg[id][:, :, :]
-        mask[:, :] = masks_fg[id][:, :]
-        bg[:, :, :] = images_bg[id][:, :, :]
+        id_fg = np.random.randint(num_fg)
+        id_bg = np.random.randint(num_bg)
+        fg[:, :, :] = images_fg[id_fg][:, :, :]
+        mask[:, :] = masks_fg[id_fg][:, :]
+        bg[:, :, :] = images_bg[id_bg][:, :, :]
 
         # data augumentation method 1: resize
         min_ratio = 0.3
@@ -413,9 +420,11 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
         merg = np.expand_dims(mask==1, axis=-1) * fg + np.expand_dims(mask==0, axis=-1) * bg
 
         # data augumentation method 4: crop
+        crop_min = 0.5
+        crop_max = 1.0
         crop_box = [None] * 4
-        crop_box[2] = np.random.randint(60, 120)
-        crop_box[3] = np.random.randint(60, 120)
+        crop_box[2] = np.random.randint(int(w*crop_min), int(w*crop_max))
+        crop_box[3] = np.random.randint(int(h*crop_min), int(h*crop_max))
         crop_box[0] = np.random.randint(0, w - crop_box[2])
         crop_box[1] = np.random.randint(0, h - crop_box[3])
 
@@ -433,6 +442,9 @@ def InspectDataset(TRAIN_VOLUME):
     for i in range(TRAIN_VOLUME):
         mask, im, mask_occ, im_occ = next(sample_generator)
         plt.clf()
+        plt.figure(0)
+        plt.imshow(im_occ)
+        plt.figure(1)
         plt.imshow(im)
         plt.pause(1)
 
