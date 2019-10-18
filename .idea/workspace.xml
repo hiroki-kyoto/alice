@@ -47,8 +47,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="305">
-              <caret line="204" column="24" selection-start-line="204" selection-start-column="24" selection-end-line="204" selection-end-column="24" />
+            <state relative-caret-position="138">
+              <caret line="213" column="24" selection-start-line="213" selection-start-column="24" selection-end-line="213" selection-end-column="24" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -67,9 +67,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>update_memory</find>
-      <find>update</find>
-      <find>min(</find>
       <find>update(</find>
       <find>immaturity[i]</find>
       <find>delta_w</find>
@@ -97,6 +94,9 @@
       <find>occlude_mask</find>
       <find>occlude</find>
       <find>train</find>
+      <find>loss</find>
+      <find>encoder</find>
+      <find>test</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -633,8 +633,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="204" column="24" selection-start-line="204" selection-start-column="24" selection-end-line="204" selection-end-column="24" />
+        <state relative-caret-position="138">
+          <caret line="213" column="24" selection-start-line="213" selection-start-column="24" selection-end-line="213" selection-end-column="24" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>

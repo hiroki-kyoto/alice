@@ -76,21 +76,30 @@ def print_error(str_):
     assert False
 
 
-def TrainModel(model, path, samples, opt='SGD', lr=1e-4):
+# define the training targets
+TARGET_VISUAL_LOSS = 0
+TARGET_SEMANTIC_LOSS = 1
+TARGET_OVERALL_LOSS = 2
+
+
+
+
+def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_LOSS):
     with tf.Session() as sess:
         in_ = model.getInputPlaceHolder()
         out_ = model.getOutputOp()
         feed = tf.placeholder(
             shape=out_.shape.as_list(),
             dtype=out_.dtype)
-        loss = tf.reduce_mean(
-            tf.square(
-                tf.reduce_mean(
-                    tf.abs(out_ - feed),
-                    axis=-1
-                )
-            )
-        )
+        c = 3
+        if target==TARGET_OVERALL_LOSS:
+            loss = tf.reduce_mean(tf.abs(out_ - feed))
+        elif target==TARGET_VISUAL_LOSS:
+            loss = tf.reduce_mean(tf.abs(out_[:, :, :, :c] - feed[:, :, :, :c]))
+        elif target==TARGET_SEMANTIC_LOSS:
+            loss = tf.reduce_mean(tf.abs(out_[:, :, :, c:] - feed[:, :, :, c:]))
+        else:
+            print_error('Unrecognized target for training!')
         optimizer = None
         if opt == 'SGD':
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
@@ -115,8 +124,9 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4):
         loss_ = np.zeros([batch_size], np.float32)
         loss_acc = np.zeros([max_epoc], np.float32)
         mask, im, mask_occ, im_occ = next(samples)
-        h, w, c = im.shape[0:3]
-        nclasses = feed.shape.as_list()[-1] - 3
+        h, w, c_= im.shape[0:3]
+        assert c_ == c
+        nclasses = feed.shape.as_list()[-1] - c
         x = np.zeros([1, h, w, c + nclasses], dtype=np.float32)
         y = np.copy(x)
 
@@ -128,8 +138,7 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4):
                 # case 2. both full.
                 # output should be always both full
                 mask, im, mask_occ, im_occ = next(samples)
-                #occ_case = np.random.randint(0, 2)
-                occ_case = 0
+                occ_case = np.random.randint(0, 2)
                 if occ_case == 0:
                     x[0, :, :, :c] = im_occ[:, :, :]
                     for cid_ in range(nclasses):
@@ -202,7 +211,7 @@ def TestModel(model, path, samples, test_num):
         for i in range(test_num):
             mask, im, mask_occ, im_occ = next(samples)
             #occ_case = np.random.randint(2)
-            occ_case = 0
+            occ_case = 1
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -472,7 +481,8 @@ if __name__ == '__main__':
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
-        lr=1e-4)
+        lr=1e-4,
+        target=TARGET_VISUAL_LOSS)
     exit(0)'''
     TestModel(
         model=auto_encoder,
