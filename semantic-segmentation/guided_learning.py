@@ -213,9 +213,9 @@ def TestModel(model, path, samples, test_num):
         test_num = 10
 
         for i in range(test_num):
-            mask, im, mask_occ, im_occ = next(samples)
+            mask, im, mask_occ, im_occ = samples.send(0.0)
             #occ_case = np.random.randint(2)
-            occ_case = 1
+            occ_case = 0
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -481,14 +481,14 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    TrainModel(
+    '''TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
         target=TARGET_VISUAL_LOSS)
-    exit(0)
+    exit(0)'''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
