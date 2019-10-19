@@ -82,8 +82,6 @@ TARGET_SEMANTIC_LOSS = 1
 TARGET_OVERALL_LOSS = 2
 
 
-
-
 def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_LOSS):
     with tf.Session() as sess:
         in_ = model.getInputPlaceHolder()
@@ -130,6 +128,9 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
         x = np.zeros([1, h, w, c + nclasses], dtype=np.float32)
         y = np.copy(x)
 
+        # control the training difficulty
+        difficulty = 0.0
+
         for epoc in range(max_epoc):
             for id_ in range(batch_size):
                 # occlusion cases are 3 for inputs:
@@ -137,7 +138,7 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
                 # case 1. mask occluded, im full;
                 # case 2. both full.
                 # output should be always both full
-                mask, im, mask_occ, im_occ = next(samples)
+                mask, im, mask_occ, im_occ = samples.send(difficulty)
                 occ_case = np.random.randint(0, 2)
                 if occ_case == 0:
                     x[0, :, :, :c] = im_occ[:, :, :]
@@ -176,12 +177,15 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
             plt.legend(['train'])
             plt.pause(0.01)
 
-            if np.mean(loss_) < stop_avg_loss:
-                print('training success.')
-                break
-            else:
-                loss_acc[epoc] = np.mean(loss_)
-                print('Average Loss for epoc#%d: %.5f' % (epoc, loss_acc[epoc]))
+            loss_acc[epoc] = np.mean(loss_)
+            print('Average Loss for epoc#%d: %.5f' % (epoc, loss_acc[epoc]))
+
+            if loss_acc[epoc] < stop_avg_loss:
+                saver.save(sess, path)
+                print('tmp model saved.')
+                difficulty += 0.1
+                print('training goes harder...')
+
         # save the model into files
         saver.save(sess, path)
         print('model saved.')
@@ -404,6 +408,9 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
     print('foreground units: %d.' % num_fg)
     print('background units: %d.' % num_bg)
 
+    # the global setting controled outside this coroutine
+    occ_ratio = 0.0
+
     while True:
         id_fg = np.random.randint(num_fg)
         id_bg = np.random.randint(num_bg)
@@ -429,11 +436,9 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
         merg = np.expand_dims(mask==1, axis=-1) * fg + np.expand_dims(mask==0, axis=-1) * bg
 
         # data augumentation method 4: crop
-        crop_min = 0.5
-        crop_max = 1.0
         crop_box = [None] * 4
-        crop_box[2] = np.random.randint(int(w*crop_min), int(w*crop_max))
-        crop_box[3] = np.random.randint(int(h*crop_min), int(h*crop_max))
+        crop_box[2] = int(w*occ_ratio)
+        crop_box[3] = int(h*occ_ratio)
         crop_box[0] = np.random.randint(0, w - crop_box[2])
         crop_box[1] = np.random.randint(0, h - crop_box[3])
 
@@ -441,15 +446,16 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
         mask_occ = occlude_mask(mask_occ, crop_box)
         merg_occ = np.expand_dims(mask_occ==1, axis=-1) * fg + np.expand_dims(mask_occ==0, axis=-1) * bg
 
-        yield (mask, merg, mask_occ, merg_occ)
+        occ_ratio = yield (mask, merg, mask_occ, merg_occ)
 
 
 def InspectDataset(TRAIN_VOLUME):
-    fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
+    fg, mask, bg = load_dataset('../../Datasets/Umbrella/')
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
+    next(sample_generator)
     for i in range(TRAIN_VOLUME):
-        mask, im, mask_occ, im_occ = next(sample_generator)
+        mask, im, mask_occ, im_occ = sample_generator.send(np.random.rand())
         plt.clf()
         plt.figure(0)
         plt.imshow(im_occ)
@@ -459,11 +465,10 @@ def InspectDataset(TRAIN_VOLUME):
 
 
 if __name__ == '__main__':
-
     #InspectDataset(100)
     #exit(0)
 
-    fg, mask, bg = load_dataset('../../Datasets/Umbrella/WhiteWall/')
+    fg, mask, bg = load_dataset('../../Datasets/Umbrella/')
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
     # train the network with unlabeled examples, actually, the label is also a kind of input
@@ -476,14 +481,14 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    '''TrainModel(
+    TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
         target=TARGET_VISUAL_LOSS)
-    exit(0)'''
+    exit(0)
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
