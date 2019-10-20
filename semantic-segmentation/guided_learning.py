@@ -213,9 +213,9 @@ def TestModel(model, path, samples, test_num):
         test_num = 10
 
         for i in range(test_num):
-            mask, im, mask_occ, im_occ = samples.send(0.0)
+            mask, im, mask_occ, im_occ = samples.send(0.5)
             #occ_case = np.random.randint(2)
-            occ_case = 0
+            occ_case = 1
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -481,16 +481,20 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    '''TrainModel(
+    TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
-        target=TARGET_VISUAL_LOSS)
-    exit(0)'''
+        target=TARGET_SEMANTIC_LOSS)
+    exit(0)
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         test_num=10)
+
+# to do list:
+# 1. train with semantic loss
+# 2. visual loss changed to the difference of foreground
