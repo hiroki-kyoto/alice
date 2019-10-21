@@ -118,7 +118,7 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
         # start training thread
         batch_size = 32
         max_epoc = 1000
-        stop_avg_loss = 1e-3
+        stop_avg_loss = 1e-2
         loss_ = np.zeros([batch_size], np.float32)
         loss_acc = np.zeros([max_epoc], np.float32)
         mask, im, mask_occ, im_occ = next(samples)
@@ -215,7 +215,7 @@ def TestModel(model, path, samples, test_num):
         for i in range(test_num):
             mask, im, mask_occ, im_occ = samples.send(0.5)
             #occ_case = np.random.randint(2)
-            occ_case = 1
+            occ_case = 0
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -481,14 +481,14 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    TrainModel(
+    '''TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
         target=TARGET_SEMANTIC_LOSS)
-    exit(0)
+    exit(0)'''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
