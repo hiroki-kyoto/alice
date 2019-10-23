@@ -10,7 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -24,7 +23,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="819">
+            <state relative-caret-position="741">
               <caret line="41" column="51" selection-start-line="41" selection-start-column="51" selection-end-line="41" selection-end-column="51" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -36,8 +35,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="215" column="57" selection-start-line="215" selection-start-column="57" selection-end-line="215" selection-end-column="57" />
+            <state relative-caret-position="492">
+              <caret line="492" column="19" lean-forward="true" selection-start-line="492" selection-start-column="19" selection-end-line="492" selection-end-column="19" />
             </state>
           </provider>
         </entry>
@@ -188,7 +187,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\Administrator\AppData\Local\Programs\Python\Python36\python.exe" />
+      <option name="SDK_HOME" value="D:\Anaconda3\envs\py35\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/semantic-segmentation" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -307,6 +306,15 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.classifier" />
+      <item itemvalue="Python.pixel_detection_using_trained_classifier" />
+      <item itemvalue="Python.guided_learning" />
+      <item itemvalue="Python.self_feedback_classifier" />
+      <item itemvalue="Python.slice_video_into_seq" />
+      <item itemvalue="Python.slice_video_into_seq (1)" />
+      <item itemvalue="Python.stackedSOMs" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.guided_learning" />
@@ -341,21 +349,21 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" weight="0.3264642" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.41728923" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.29654405" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39807898" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" weight="0.3296582" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32887402" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.25137818" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.17769375" side_tool="true" weight="0.41950113" />
-      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.27534685" />
+      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.2742475" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49716446" weight="0.32855567" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -609,7 +617,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="819">
+        <state relative-caret-position="741">
           <caret line="41" column="51" selection-start-line="41" selection-start-column="51" selection-end-line="41" selection-end-column="51" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -619,8 +627,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="215" column="57" selection-start-line="215" selection-start-column="57" selection-end-line="215" selection-end-column="57" />
+        <state relative-caret-position="492">
+          <caret line="492" column="19" lean-forward="true" selection-start-line="492" selection-start-column="19" selection-end-line="492" selection-end-column="19" />
         </state>
       </provider>
     </entry>

@@ -80,6 +80,7 @@ def print_error(str_):
 TARGET_VISUAL_LOSS = 0
 TARGET_SEMANTIC_LOSS = 1
 TARGET_OVERALL_LOSS = 2
+TARGET_FOREGND_LOSS = 3
 
 
 def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_LOSS):
@@ -96,6 +97,10 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
             loss = tf.reduce_mean(tf.abs(out_[:, :, :, :c] - feed[:, :, :, :c]))
         elif target==TARGET_SEMANTIC_LOSS:
             loss = tf.reduce_mean(tf.abs(out_[:, :, :, c:] - feed[:, :, :, c:]))
+        elif target==TARGET_FOREGND_LOSS:
+            loss = tf.reduce_mean(tf.abs(out_[:, :, :, :c] - feed[:, :, :, :c]), axis=-1) * feed[:, :, :, c]
+            loss = tf.reduce_mean(loss)
+            loss = loss + tf.reduce_mean(tf.abs(out_[:, :, :, c] - feed[:, :, :, c]))
         else:
             print_error('Unrecognized target for training!')
         optimizer = None
@@ -238,18 +243,18 @@ def TestModel(model, path, samples, test_num):
             plt.clf()
             plt.title(str(occ_case))
             if occ_case == 0:
-                fig0 = plt.figure(0)
+                plt.figure(0)
                 plt.imshow(x[0, :, :, :c])
-                fig1 = plt.figure(1)
+                plt.figure(1)
                 plt.imshow(y_out[0, :, :, :c])
-                fig2 = plt.figure(2)
+                plt.figure(2)
                 plt.imshow(y[0, :, :, :c])
             else:
-                fig0 = plt.figure(0)
+                plt.figure(0)
                 plt.imshow(x[0, :, :, c])
-                fig1 = plt.figure(1)
+                plt.figure(1)
                 plt.imshow(y_out[0, :, :, c])
-                fig2 = plt.figure(2)
+                plt.figure(2)
                 plt.imshow(y[0, :, :, c])
             plt.pause(10)
 
@@ -481,14 +486,14 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    '''TrainModel(
+    TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
-        target=TARGET_SEMANTIC_LOSS)
-    exit(0)'''
+        target=TARGET_FOREGND_LOSS)
+    exit(0)
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
