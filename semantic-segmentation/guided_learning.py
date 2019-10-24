@@ -249,12 +249,16 @@ def TestModel(model, path, samples, test_num):
                 plt.imshow(y_out[0, :, :, :c])
                 plt.figure(2)
                 plt.imshow(y[0, :, :, :c])
+                plt.figure(3)
+                plt.imshow(y[0, :, :, c])
             else:
                 plt.figure(0)
                 plt.imshow(x[0, :, :, c])
                 plt.figure(1)
                 plt.imshow(y_out[0, :, :, c])
                 plt.figure(2)
+                plt.imshow(y_out[0, :, :, :c])
+                plt.figure(3)
                 plt.imshow(y[0, :, :, c])
             plt.pause(10)
 
@@ -486,14 +490,14 @@ if __name__ == '__main__':
         strides=[2, 2, 2, 2])
 
     # train the AE with unlabeled samples
-    TrainModel(
+    '''TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
         target=TARGET_FOREGND_LOSS)
-    exit(0)
+    exit(0)'''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
