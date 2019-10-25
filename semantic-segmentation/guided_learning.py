@@ -9,6 +9,7 @@ import pickle
 import glob
 import time
 from abc import abstractmethod, ABCMeta
+import cv2
 
 
 class Model(metaclass=ABCMeta):
@@ -100,7 +101,7 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
         elif target==TARGET_FOREGND_LOSS:
             loss = tf.reduce_mean(tf.abs(out_[:, :, :, :c] - feed[:, :, :, :c]), axis=-1) * feed[:, :, :, c]
             loss = tf.reduce_mean(loss)
-            loss = loss + tf.reduce_mean(tf.abs(out_[:, :, :, c] - feed[:, :, :, c]))
+            #loss = loss + tf.reduce_mean(tf.abs(out_[:, :, :, c] - feed[:, :, :, c]))
         else:
             print_error('Unrecognized target for training!')
         optimizer = None
@@ -174,11 +175,12 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
                 print('Epoc:%5d\tBatch:%5d\tLoss:%8.5f' % (epoc, id_, loss_[id_]))
             # visualize the training process
             plt.clf()
-            plt.plot(loss_acc[:epoc], 'r-')
+            plt.plot(-np.log(stop_avg_loss + loss_acc[:epoc]), 'r-')
             plt.xticks(np.arange(0, max_epoc + max_epoc / 10, max_epoc / 10))
-            #plt.yticks(np.arange(0, 1.0, 1.0 / 10))
-            #plt.axis(xmin=0, xmax=max_epoc, ymin=0, ymax=1.0)
-            plt.axis(xmin=0, xmax=max_epoc)
+            y_max = -np.log(stop_avg_loss)
+            plt.yticks(np.arange(0, y_max, 1.0))
+            plt.axis(xmin=0, xmax=max_epoc, ymin=0, ymax=y_max)
+            #plt.axis(xmin=0, xmax=max_epoc)
             plt.legend(['train'])
             plt.pause(0.01)
 
@@ -220,7 +222,7 @@ def TestModel(model, path, samples, test_num):
         for i in range(test_num):
             mask, im, mask_occ, im_occ = samples.send(0.5)
             #occ_case = np.random.randint(2)
-            occ_case = 0
+            occ_case = 1
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -241,25 +243,18 @@ def TestModel(model, path, samples, test_num):
             print(np.max(np.max(y_out[0], axis=0), axis=0))
             y_out = np.maximum(np.minimum(y_out, 1.0), 0)
             plt.clf()
-            plt.title(str(occ_case))
-            if occ_case == 0:
-                plt.figure(0)
-                plt.imshow(x[0, :, :, :c])
-                plt.figure(1)
-                plt.imshow(y_out[0, :, :, :c])
-                plt.figure(2)
-                plt.imshow(y[0, :, :, :c])
-                plt.figure(3)
-                plt.imshow(y[0, :, :, c])
-            else:
-                plt.figure(0)
-                plt.imshow(x[0, :, :, c])
-                plt.figure(1)
-                plt.imshow(y_out[0, :, :, c])
-                plt.figure(2)
-                plt.imshow(y_out[0, :, :, :c])
-                plt.figure(3)
-                plt.imshow(y[0, :, :, c])
+            plt.subplot(231)
+            plt.imshow(x[0, :, :, :c])
+            plt.subplot(232)
+            plt.imshow(y_out[0, :, :, :c])
+            plt.subplot(233)
+            plt.imshow(y[0, :, :, :c])
+            plt.subplot(234)
+            plt.imshow(x[0, :, :, c])
+            plt.subplot(235)
+            plt.imshow(y_out[0, :, :, c])
+            plt.subplot(236)
+            plt.imshow(y[0, :, :, c])
             plt.pause(10)
 
 
@@ -362,7 +357,7 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
         im_.save(files[i])
 
 
-def load_dataset(path, target_size=(512, 384)):
+def load_dataset(path, target_size=(256, 192)):
     files_fg = glob.glob(path + '/fg/*.jpg')
     files_bg = glob.glob(path + '/bg/*.jpg')
     images_bg = [None] * len(files_bg)
@@ -374,7 +369,9 @@ def load_dataset(path, target_size=(512, 384)):
     for i in range(len(files_bg)):
         im_ = Image.open(files_bg[i])
         im_ = im_.resize(target_size)
+        # blur the image
         images_bg[i] = np.array(im_, np.float32) / 255.0
+        images_bg[i] = cv2.GaussianBlur(images_bg[i], (5, 5), 2, 2)
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
@@ -396,6 +393,8 @@ def load_dataset(path, target_size=(512, 384)):
         mask_patches = extract_patches(output_=mask_patches, input_=mask, ksize=3)
         mask = np.min(mask_patches, axis=2)
         masks_fg[i][1:h + 1, 1:w + 1] = mask[:, :, 0]
+
+        images_fg[i] = cv2.GaussianBlur(images_fg[i], (5, 5), 2, 2)
 
     return images_fg, masks_fg, images_bg
 
@@ -466,11 +465,15 @@ def InspectDataset(TRAIN_VOLUME):
     for i in range(TRAIN_VOLUME):
         mask, im, mask_occ, im_occ = sample_generator.send(np.random.rand())
         plt.clf()
-        plt.figure(0)
-        plt.imshow(im_occ)
-        plt.figure(1)
+        plt.subplot(221)
         plt.imshow(im)
-        plt.pause(1)
+        plt.subplot(222)
+        plt.imshow(mask)
+        plt.subplot(223)
+        plt.imshow(im_occ)
+        plt.subplot(224)
+        plt.imshow(mask_occ)
+        plt.pause(3)
 
 
 if __name__ == '__main__':
@@ -488,16 +491,17 @@ if __name__ == '__main__':
         kernels=[8, 16, 32, 64],
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
-
+    '''
     # train the AE with unlabeled samples
-    '''TrainModel(
+    TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
-        target=TARGET_FOREGND_LOSS)
-    exit(0)'''
+        target=TARGET_OVERALL_LOSS)
+    exit(0)
+    '''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',

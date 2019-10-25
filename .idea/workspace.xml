@@ -36,8 +36,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="262">
-              <caret line="252" column="41" lean-forward="true" selection-start-line="252" selection-start-column="41" selection-end-line="252" selection-end-column="41" />
+            <state relative-caret-position="664">
+              <caret line="508" column="20" lean-forward="true" selection-start-line="508" selection-start-column="20" selection-end-line="508" selection-end-column="20" />
+              <folding>
+                <element signature="e#72#90#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -53,8 +56,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>update(</find>
-      <find>immaturity[i]</find>
       <find>delta_w</find>
       <find>discount</find>
       <find>PatternLayer</find>
@@ -81,8 +82,10 @@
       <find>occlude</find>
       <find>train</find>
       <find>loss</find>
-      <find>encoder</find>
       <find>test</find>
+      <find>foreground</find>
+      <find>foregnd</find>
+      <find>encoder</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -628,8 +631,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="262">
-          <caret line="252" column="41" lean-forward="true" selection-start-line="252" selection-start-column="41" selection-end-line="252" selection-end-column="41" />
+        <state relative-caret-position="664">
+          <caret line="508" column="20" lean-forward="true" selection-start-line="508" selection-start-column="20" selection-end-line="508" selection-end-column="20" />
+          <folding>
+            <element signature="e#72#90#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
