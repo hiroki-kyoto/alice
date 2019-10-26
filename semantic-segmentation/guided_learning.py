@@ -358,8 +358,8 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
 
 
 def load_dataset(path, target_size=(256, 192)):
-    files_fg = glob.glob(path + '/fg/*.jpg')
-    files_bg = glob.glob(path + '/bg/*.jpg')
+    files_fg = glob.glob(path + '/fg/*.jpg')[0:10]
+    files_bg = glob.glob(path + '/bg/*.jpg')[0:10]
     images_bg = [None] * len(files_bg)
     images_fg = [None] * len(files_fg)
     masks_fg = [None] * len(files_fg)
@@ -371,7 +371,7 @@ def load_dataset(path, target_size=(256, 192)):
         im_ = im_.resize(target_size)
         # blur the image
         images_bg[i] = np.array(im_, np.float32) / 255.0
-        images_bg[i] = cv2.GaussianBlur(images_bg[i], (5, 5), 2, 2)
+        images_bg[i] = cv2.GaussianBlur(images_bg[i], (3, 3), 2, 2)
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
@@ -394,7 +394,7 @@ def load_dataset(path, target_size=(256, 192)):
         mask = np.min(mask_patches, axis=2)
         masks_fg[i][1:h + 1, 1:w + 1] = mask[:, :, 0]
 
-        images_fg[i] = cv2.GaussianBlur(images_fg[i], (5, 5), 2, 2)
+        images_fg[i] = cv2.GaussianBlur(images_fg[i], (3, 3), 2, 2)
 
     return images_fg, masks_fg, images_bg
 
@@ -491,17 +491,17 @@ if __name__ == '__main__':
         kernels=[8, 16, 32, 64],
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
-    '''
+
     # train the AE with unlabeled samples
-    TrainModel(
+    '''TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
         target=TARGET_OVERALL_LOSS)
-    exit(0)
-    '''
+    exit(0)'''
+
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',

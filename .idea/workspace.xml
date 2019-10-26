@@ -36,8 +36,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="664">
-              <caret line="508" column="20" lean-forward="true" selection-start-line="508" selection-start-column="20" selection-end-line="508" selection-end-column="20" />
+            <state relative-caret-position="538">
+              <caret line="502" column="14" selection-start-line="502" selection-start-column="14" selection-end-line="502" selection-end-column="14" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -74,7 +74,6 @@
       <find>recall</find>
       <find>supervised</find>
       <find>wait</find>
-      <find>load_data</find>
       <find>target_size</find>
       <find>train(</find>
       <find>trainmo</find>
@@ -86,6 +85,7 @@
       <find>foreground</find>
       <find>foregnd</find>
       <find>encoder</find>
+      <find>load_data</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -631,8 +631,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="664">
-          <caret line="508" column="20" lean-forward="true" selection-start-line="508" selection-start-column="20" selection-end-line="508" selection-end-column="20" />
+        <state relative-caret-position="538">
+          <caret line="502" column="14" selection-start-line="502" selection-start-column="14" selection-end-line="502" selection-end-column="14" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>
