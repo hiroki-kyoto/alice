@@ -11,6 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -24,8 +25,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="819">
-              <caret line="41" column="51" selection-start-line="41" selection-start-column="51" selection-end-line="41" selection-end-column="51" />
+            <state relative-caret-position="467">
+              <caret line="74" column="52" lean-forward="true" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -36,8 +37,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="538">
-              <caret line="502" column="14" selection-start-line="502" selection-start-column="14" selection-end-line="502" selection-end-column="14" />
+            <state relative-caret-position="450">
+              <caret line="495" column="26" lean-forward="true" selection-start-line="495" selection-start-column="26" selection-end-line="495" selection-end-column="26" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -56,10 +57,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>delta_w</find>
-      <find>discount</find>
-      <find>PatternLayer</find>
-      <find>observe</find>
       <find>def recall(</find>
       <find>response</find>
       <find># upscale the patches into high</find>
@@ -79,13 +76,17 @@
       <find>trainmo</find>
       <find>occlude_mask</find>
       <find>occlude</find>
-      <find>train</find>
       <find>loss</find>
-      <find>test</find>
       <find>foreground</find>
       <find>foregnd</find>
       <find>encoder</find>
       <find>load_data</find>
+      <find>load_da</find>
+      <find>Image</find>
+      <find>train</find>
+      <find>test</find>
+      <find>hsv</find>
+      <find>load_dataset</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -120,14 +121,14 @@
         <option value="$PROJECT_DIR$/components/__init__.py" />
         <option value="$PROJECT_DIR$/components/model.py" />
         <option value="$PROJECT_DIR$/components/auto_encoder.py" />
-        <option value="$PROJECT_DIR$/components/utils.py" />
         <option value="$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" />
+        <option value="$PROJECT_DIR$/components/utils.py" />
         <option value="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="960" />
+    <option name="x" value="964" />
     <option name="width" value="960" />
     <option name="height" value="1040" />
   </component>
@@ -140,7 +141,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$/AppData/Local/GitHubDesktop/app-2.2.0/resources/app/git/mingw64/bin/git.exe" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -191,7 +192,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\Administrator\AppData\Local\Programs\Python\Python36\python.exe" />
+      <option name="SDK_HOME" value="D:\Anaconda3\envs\py35\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/semantic-segmentation" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -353,21 +354,21 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" weight="0.3264642" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.29562435" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.26086956" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39807898" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32887402" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.25137818" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.17769375" side_tool="true" weight="0.41950113" />
-      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.2742475" />
+      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.25641027" />
       <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49716446" weight="0.32855567" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -619,10 +620,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://D:/Anaconda3/envs/py35/Lib/site-packages/matplotlib/figure.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="129">
+          <caret line="1366" selection-start-line="1366" selection-end-line="1366" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="819">
-          <caret line="41" column="51" selection-start-line="41" selection-start-column="51" selection-end-line="41" selection-end-column="51" />
+        <state relative-caret-position="467">
+          <caret line="74" column="52" lean-forward="true" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -631,8 +639,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="538">
-          <caret line="502" column="14" selection-start-line="502" selection-start-column="14" selection-end-line="502" selection-end-column="14" />
+        <state relative-caret-position="450">
+          <caret line="495" column="26" lean-forward="true" selection-start-line="495" selection-start-column="26" selection-end-line="495" selection-end-column="26" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>

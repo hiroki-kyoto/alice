@@ -240,8 +240,12 @@ def TestModel(model, path, samples, test_num):
             else:
                 print_error('occlusion case id invalid!')
             y_out = sess.run(out_, feed_dict={in_: x})
-            print(np.max(np.max(y_out[0], axis=0), axis=0))
+            print(np.mean(y_out[0], axis=(0, 1)))
             y_out = np.maximum(np.minimum(y_out, 1.0), 0)
+            # convert from hsv to rgb
+            x[0, :, :, :c] = utils.hsv2rgb(x[0, :, :, :c])
+            y[0, :, :, :c] = utils.hsv2rgb(y[0, :, :, :c])
+            y_out[0, :, :, :c] = utils.hsv2rgb(y_out[0, :, :, :c])
             plt.clf()
             plt.subplot(231)
             plt.imshow(x[0, :, :, :c])
@@ -255,7 +259,7 @@ def TestModel(model, path, samples, test_num):
             plt.imshow(y_out[0, :, :, c])
             plt.subplot(236)
             plt.imshow(y[0, :, :, c])
-            plt.pause(10)
+            plt.pause(1)
 
 
 
@@ -358,8 +362,8 @@ def preprocess_dataset(input_prefix, output_prefix, output_size):
 
 
 def load_dataset(path, target_size=(256, 192)):
-    files_fg = glob.glob(path + '/fg/*.jpg')[0:10]
-    files_bg = glob.glob(path + '/bg/*.jpg')[0:10]
+    files_fg = glob.glob(path + '/fg/*.jpg')
+    files_bg = glob.glob(path + '/bg/*.jpg')
     images_bg = [None] * len(files_bg)
     images_fg = [None] * len(files_fg)
     masks_fg = [None] * len(files_fg)
@@ -368,16 +372,18 @@ def load_dataset(path, target_size=(256, 192)):
 
     for i in range(len(files_bg)):
         im_ = Image.open(files_bg[i])
-        im_ = im_.resize(target_size)
-        # blur the image
+        # instead of resizing to increase information density,
+        # we employ cropping technique in later data augumentation.
+        # thus, size requirement should be checked.
+        h_bg, w_bg = im_.size
+        if w_bg < target_size[0] or h_bg < target_size[1]:
+            print_error('size of bg should be larger than target size!')
         images_bg[i] = np.array(im_, np.float32) / 255.0
-        images_bg[i] = cv2.GaussianBlur(images_bg[i], (3, 3), 2, 2)
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
         im_ = im_.resize(target_size)
         images_fg[i] = np.array(im_, np.float32) / 255.0
-        # utils.show_rgb(images_fg[i])
 
         # using robust technique to separate object
         patches = extract_patches(output_=patches, input_=images_fg[i], ksize=3)
@@ -396,6 +402,13 @@ def load_dataset(path, target_size=(256, 192)):
 
         images_fg[i] = cv2.GaussianBlur(images_fg[i], (3, 3), 2, 2)
 
+        # convert from RGB to HSV
+        rgb_ = np.uint8(np.copy(images_fg[i]) * 255)
+        images_fg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
+
+        rgb_ = np.uint8(np.copy(images_bg[i]) * 255)
+        images_bg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
+
     return images_fg, masks_fg, images_bg
 
 
@@ -405,7 +418,7 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
     fg = np.copy(images_fg[0])
     mask = np.zeros([h, w], dtype=np.uint8)
     mask_occ = np.copy(mask)
-    bg = np.copy(images_bg[0])
+    bg = np.copy(fg)
     merg = np.copy(images_bg[0])
     merg_occ = np.copy(merg)
 
@@ -422,9 +435,16 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
     while True:
         id_fg = np.random.randint(num_fg)
         id_bg = np.random.randint(num_bg)
+
         fg[:, :, :] = images_fg[id_fg][:, :, :]
         mask[:, :] = masks_fg[id_fg][:, :]
-        bg[:, :, :] = images_bg[id_bg][:, :, :]
+
+        # getting original background using cropping technique
+        h_bg, w_bg = images_bg[id_bg].shape[0:2]
+        h_fg, w_fg = images_fg[id_fg].shape[0:2]
+        crop_x = np.random.randint(0, w_bg - w_fg)
+        crop_y = np.random.randint(0, h_bg - h_fg)
+        bg[:, :, :] = images_bg[id_bg][crop_y:crop_y+h_fg, crop_x:crop_x+w_fg, :]
 
         # data augumentation method 1: resize
         min_ratio = 0.3
@@ -463,7 +483,10 @@ def InspectDataset(TRAIN_VOLUME):
     sample_generator = generate_random_sample(fg, mask, bg)
     next(sample_generator)
     for i in range(TRAIN_VOLUME):
-        mask, im, mask_occ, im_occ = sample_generator.send(np.random.rand())
+        difficulty = np.random.rand()
+        mask, im, mask_occ, im_occ = sample_generator.send(difficulty)
+        im = utils.hsv2rgb(im)
+        im_occ = utils.hsv2rgb(im_occ)
         plt.clf()
         plt.subplot(221)
         plt.imshow(im)
@@ -477,10 +500,10 @@ def InspectDataset(TRAIN_VOLUME):
 
 
 if __name__ == '__main__':
-    #InspectDataset(100)
-    #exit(0)
+    InspectDataset(100)
+    exit(0)
 
-    fg, mask, bg = load_dataset('../../Datasets/Umbrella/')
+    fg, mask, bg = load_dataset('../../Datasets/Umbrella/', (400, 300))
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
     # train the network with unlabeled examples, actually, the label is also a kind of input
@@ -491,23 +514,19 @@ if __name__ == '__main__':
         kernels=[8, 16, 32, 64],
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
-
+    '''
     # train the AE with unlabeled samples
-    '''TrainModel(
+    TrainModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
-        target=TARGET_OVERALL_LOSS)
-    exit(0)'''
-
+        target=TARGET_VISUAL_LOSS)
+    exit(0)
+    '''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
         test_num=10)
-
-# to do list:
-# 1. train with semantic loss
-# 2. visual loss changed to the difference of foreground

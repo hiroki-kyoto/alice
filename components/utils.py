@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from PIL import Image
+import cv2
 
 
 def create_variable(name, shape, trainable):
@@ -61,3 +62,15 @@ def normalize(x):
         return (x - _min) / (_max - _min)
     else:
         return x
+
+
+# [i] hsv : hsv image of float data type in [0, 1]
+# [i] mode: full(0) or half(1) for channel HUE
+# [o] rgb : rgb image of float in [0, 1]
+def hsv2rgb(hsv, mode=0):
+    hsv_u8 = np.uint8(hsv * 255)
+    if mode == 0 or mode == 'full' or mode == 'FULL':
+        rgb = cv2.cvtColor(hsv_u8, cv2.COLOR_HSV2RGB)
+    else:
+        rgb = cv2.cvtColor(hsv_u8, cv2.COLOR_HSV2RGB)
+    return np.float32(rgb) / 255.0
