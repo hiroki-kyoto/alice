@@ -379,6 +379,8 @@ def load_dataset(path, target_size=(256, 192)):
         if w_bg < target_size[0] or h_bg < target_size[1]:
             print_error('size of bg should be larger than target size!')
         images_bg[i] = np.array(im_, np.float32) / 255.0
+        rgb_ = np.uint8(np.copy(images_bg[i]) * 255)
+        images_bg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
@@ -405,9 +407,6 @@ def load_dataset(path, target_size=(256, 192)):
         # convert from RGB to HSV
         rgb_ = np.uint8(np.copy(images_fg[i]) * 255)
         images_fg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
-
-        rgb_ = np.uint8(np.copy(images_bg[i]) * 255)
-        images_bg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
 
     return images_fg, masks_fg, images_bg
 
@@ -479,6 +478,13 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
 
 def InspectDataset(TRAIN_VOLUME):
     fg, mask, bg = load_dataset('../../Datasets/Umbrella/')
+    # check each background image to see if hsv is okay
+    for i in range(len(bg)):
+        plt.clf()
+        rgb_ = utils.hsv2rgb(bg[i])
+        plt.imshow(rgb_)
+        plt.pause(0.1)
+    exit(0)
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
     next(sample_generator)

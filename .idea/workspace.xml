@@ -25,8 +25,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="467">
-              <caret line="74" column="52" lean-forward="true" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
+            <state relative-caret-position="625">
+              <caret line="70" column="32" lean-forward="true" selection-start-line="70" selection-start-column="32" selection-end-line="70" selection-end-column="32" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -37,8 +37,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="495" column="26" lean-forward="true" selection-start-line="495" selection-start-column="26" selection-end-line="495" selection-end-column="26" />
+            <state relative-caret-position="181">
+              <caret line="485" column="21" selection-start-line="485" selection-start-column="21" selection-end-line="485" selection-end-column="21" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -629,8 +629,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="467">
-          <caret line="74" column="52" lean-forward="true" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
+        <state relative-caret-position="625">
+          <caret line="70" column="32" lean-forward="true" selection-start-line="70" selection-start-column="32" selection-end-line="70" selection-end-column="32" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -639,8 +639,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="495" column="26" lean-forward="true" selection-start-line="495" selection-start-column="26" selection-end-line="495" selection-end-column="26" />
+        <state relative-caret-position="181">
+          <caret line="485" column="21" selection-start-line="485" selection-start-column="21" selection-end-line="485" selection-end-column="21" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>

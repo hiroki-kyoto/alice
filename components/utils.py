@@ -69,8 +69,8 @@ def normalize(x):
 # [o] rgb : rgb image of float in [0, 1]
 def hsv2rgb(hsv, mode=0):
     hsv_u8 = np.uint8(hsv * 255)
-    if mode == 0 or mode == 'full' or mode == 'FULL':
-        rgb = cv2.cvtColor(hsv_u8, cv2.COLOR_HSV2RGB)
+    if mode == 1 or mode == 'full' or mode == 'FULL':
+        rgb = cv2.cvtColor(hsv_u8, cv2.COLOR_HSV2RGB_FULL)
     else:
         rgb = cv2.cvtColor(hsv_u8, cv2.COLOR_HSV2RGB)
     return np.float32(rgb) / 255.0
