@@ -123,7 +123,7 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
             sess.run(tf.global_variables_initializer())
         # start training thread
         batch_size = 32
-        max_epoc = 1000
+        max_epoc = 2000
         stop_avg_loss = 1e-2
         loss_ = np.zeros([batch_size], np.float32)
         loss_acc = np.zeros([max_epoc], np.float32)
@@ -521,6 +521,7 @@ if __name__ == '__main__':
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
 
+    '''
     # train the AE with unlabeled samples
     TrainModel(
         model=auto_encoder,
@@ -530,8 +531,7 @@ if __name__ == '__main__':
         lr=1e-4,
         target=TARGET_VISUAL_LOSS)
     exit(0)
-
-
+    '''
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',

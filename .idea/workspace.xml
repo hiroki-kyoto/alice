@@ -10,7 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" beforeDir="false" afterPath="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -24,7 +23,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1407">
+            <state relative-caret-position="1273">
               <caret line="70" column="32" selection-start-line="70" selection-start-column="32" selection-end-line="70" selection-end-column="32" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -36,8 +35,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="756">
-              <caret line="214" column="50" lean-forward="true" selection-start-line="214" selection-start-column="50" selection-end-line="214" selection-end-column="50" />
+            <state relative-caret-position="416">
+              <caret line="523" column="7" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -191,7 +190,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\Administrator\AppData\Local\Programs\Python\Python36\python.exe" />
+      <option name="SDK_HOME" value="D:\Anaconda3\envs\py35\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/semantic-segmentation" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -353,15 +352,14 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="54" y="-8" width="1874" height="1096" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" weight="0.3264642" />
       <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.26040554" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.25975475" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39807898" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -623,7 +621,7 @@
     <entry file="file://D:/Anaconda3/envs/py35/Lib/site-packages/matplotlib/figure.py" />
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1407">
+        <state relative-caret-position="1273">
           <caret line="70" column="32" selection-start-line="70" selection-start-column="32" selection-end-line="70" selection-end-column="32" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -633,8 +631,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="756">
-          <caret line="214" column="50" lean-forward="true" selection-start-line="214" selection-start-column="50" selection-end-line="214" selection-end-column="50" />
+        <state relative-caret-position="416">
+          <caret line="523" column="7" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>
