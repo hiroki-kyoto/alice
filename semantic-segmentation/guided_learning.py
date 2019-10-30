@@ -259,7 +259,7 @@ def TestModel(model, path, samples, test_num):
             plt.imshow(y_out[0, :, :, c])
             plt.subplot(236)
             plt.imshow(y[0, :, :, c])
-            plt.pause(1)
+            plt.pause(3)
 
 
 
@@ -506,10 +506,10 @@ def InspectDataset(TRAIN_VOLUME):
 
 
 if __name__ == '__main__':
-    InspectDataset(100)
-    exit(0)
+    #InspectDataset(100)
+    #exit(0)
 
-    fg, mask, bg = load_dataset('../../Datasets/Umbrella/', (400, 300))
+    fg, mask, bg = load_dataset('../../Datasets/Umbrella/', (256, 192))
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
     # train the network with unlabeled examples, actually, the label is also a kind of input
@@ -520,7 +520,7 @@ if __name__ == '__main__':
         kernels=[8, 16, 32, 64],
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
-    '''
+
     # train the AE with unlabeled samples
     TrainModel(
         model=auto_encoder,
@@ -530,9 +530,10 @@ if __name__ == '__main__':
         lr=1e-4,
         target=TARGET_VISUAL_LOSS)
     exit(0)
-    '''
+
+
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
         samples=sample_generator,
-        test_num=10)
+        test_num=30)
