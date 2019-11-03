@@ -35,8 +35,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="416">
-              <caret line="523" column="7" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
+            <state relative-caret-position="397">
+              <caret line="523" column="7" lean-forward="true" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -79,12 +79,12 @@
       <find>foregnd</find>
       <find>encoder</find>
       <find>load_data</find>
-      <find>load_da</find>
       <find>Image</find>
       <find>train</find>
       <find>test</find>
       <find>hsv</find>
       <find>load_dataset</find>
+      <find>load_da</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -359,7 +359,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.25975475" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.37123746" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39807898" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -631,8 +631,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="416">
-          <caret line="523" column="7" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
+        <state relative-caret-position="397">
+          <caret line="523" column="7" lean-forward="true" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>

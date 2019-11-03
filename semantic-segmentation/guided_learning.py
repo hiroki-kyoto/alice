@@ -122,9 +122,11 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
         else:
             sess.run(tf.global_variables_initializer())
         # start training thread
-        batch_size = 32
-        max_epoc = 2000
-        stop_avg_loss = 1e-2
+        batch_size = 64
+        max_epoc = 1000
+        stop_avg_loss = 3e-2
+        steady_level = 1e-4 # the stopping gradient for training loss
+        last_avg_loss = 0
         loss_ = np.zeros([batch_size], np.float32)
         loss_acc = np.zeros([max_epoc], np.float32)
         mask, im, mask_occ, im_occ = next(samples)
@@ -172,7 +174,7 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
                 loss_[id_], _ = sess.run(
                     [loss, minimizer],
                     feed_dict={in_: x, feed: y})
-                print('Epoc:%5d\tBatch:%5d\tLoss:%8.5f' % (epoc, id_, loss_[id_]))
+                #print('Epoc:%5d\tBatch:%5d\tLoss:%8.5f' % (epoc, id_, loss_[id_]))
             # visualize the training process
             plt.clf()
             plt.plot(-np.log(stop_avg_loss + loss_acc[:epoc]), 'r-')
@@ -185,13 +187,19 @@ def TrainModel(model, path, samples, opt='SGD', lr=1e-4, target=TARGET_OVERALL_L
             plt.pause(0.01)
 
             loss_acc[epoc] = np.mean(loss_)
-            print('Average Loss for epoc#%d: %.5f' % (epoc, loss_acc[epoc]))
+            #print('Average Loss for epoc#%d: %.5f' % (epoc, loss_acc[epoc]))
 
+            #if last_avg_loss > 0 and abs(loss_acc[epoc] - last_avg_loss) < steady_level:
             if loss_acc[epoc] < stop_avg_loss:
                 saver.save(sess, path)
                 print('tmp model saved.')
                 difficulty += 0.1
-                print('training goes harder...')
+                if difficulty > 1:
+                    print("training over: difficulty reached the top!")
+                    exit(0)
+                print('training goes harder with difficulty: %3.1f' % difficulty)
+
+            #last_avg_loss = loss_acc[epoc]
 
         # save the model into files
         saver.save(sess, path)
@@ -222,7 +230,7 @@ def TestModel(model, path, samples, test_num):
         for i in range(test_num):
             mask, im, mask_occ, im_occ = samples.send(0.5)
             #occ_case = np.random.randint(2)
-            occ_case = 1
+            occ_case = 0
             if occ_case == 0:
                 x[0, :, :, :c] = im_occ[:, :, :]
                 for cid_ in range(nclasses):
@@ -243,9 +251,9 @@ def TestModel(model, path, samples, test_num):
             print(np.mean(y_out[0], axis=(0, 1)))
             y_out = np.maximum(np.minimum(y_out, 1.0), 0)
             # convert from hsv to rgb
-            x[0, :, :, :c] = utils.hsv2rgb(x[0, :, :, :c])
-            y[0, :, :, :c] = utils.hsv2rgb(y[0, :, :, :c])
-            y_out[0, :, :, :c] = utils.hsv2rgb(y_out[0, :, :, :c])
+            #x[0, :, :, :c] = utils.hsv2rgb(x[0, :, :, :c])
+            #y[0, :, :, :c] = utils.hsv2rgb(y[0, :, :, :c])
+            #y_out[0, :, :, :c] = utils.hsv2rgb(y_out[0, :, :, :c])
             plt.clf()
             plt.subplot(231)
             plt.imshow(x[0, :, :, :c])
@@ -379,8 +387,8 @@ def load_dataset(path, target_size=(256, 192)):
         if w_bg < target_size[0] or h_bg < target_size[1]:
             print_error('size of bg should be larger than target size!')
         images_bg[i] = np.array(im_, np.float32) / 255.0
-        rgb_ = np.uint8(np.copy(images_bg[i]) * 255)
-        images_bg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
+        #rgb_ = np.uint8(np.copy(images_bg[i]) * 255)
+        #images_bg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
 
     for i in range(len(images_fg)):
         im_ = Image.open(files_fg[i])
@@ -405,8 +413,8 @@ def load_dataset(path, target_size=(256, 192)):
         images_fg[i] = cv2.GaussianBlur(images_fg[i], (3, 3), 2, 2)
 
         # convert from RGB to HSV
-        rgb_ = np.uint8(np.copy(images_fg[i]) * 255)
-        images_fg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
+        #rgb_ = np.uint8(np.copy(images_fg[i]) * 255)
+        #images_fg[i][:, :, :] = cv2.cvtColor(rgb_, cv2.COLOR_RGB2HSV)[:, :, :] / 255.0
 
     return images_fg, masks_fg, images_bg
 
@@ -478,13 +486,6 @@ def generate_random_sample(images_fg, masks_fg, images_bg):
 
 def InspectDataset(TRAIN_VOLUME):
     fg, mask, bg = load_dataset('../../Datasets/Umbrella/')
-    # check each background image to see if hsv is okay
-    for i in range(len(bg)):
-        plt.clf()
-        rgb_ = utils.hsv2rgb(bg[i])
-        plt.imshow(rgb_)
-        plt.pause(0.1)
-    exit(0)
     print('Dataset loaded!')
     sample_generator = generate_random_sample(fg, mask, bg)
     next(sample_generator)
@@ -520,7 +521,6 @@ if __name__ == '__main__':
         kernels=[8, 16, 32, 64],
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
-
     '''
     # train the AE with unlabeled samples
     TrainModel(
@@ -529,9 +529,10 @@ if __name__ == '__main__':
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
-        target=TARGET_VISUAL_LOSS)
+        target=TARGET_OVERALL_LOSS)
     exit(0)
     '''
+
     TestModel(
         model=auto_encoder,
         path='../../Models/SemanticSegmentation/umbrella.ckpt',
