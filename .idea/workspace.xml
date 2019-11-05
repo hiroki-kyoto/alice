@@ -35,8 +35,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="397">
-              <caret line="523" column="7" lean-forward="true" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
+            <state relative-caret-position="720">
+              <caret line="540" lean-forward="true" selection-start-line="540" selection-end-line="540" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
               </folding>
@@ -55,9 +55,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>def recall(</find>
-      <find>response</find>
-      <find># upscale the patches into high</find>
       <find>recall_from_output</find>
       <find>observe(</find>
       <find>pattern_response</find>
@@ -85,6 +82,9 @@
       <find>hsv</find>
       <find>load_dataset</find>
       <find>load_da</find>
+      <find>TARGET_FOREGROUND_LOSS</find>
+      <find>TARGET_FRGROUND_LOSS</find>
+      <find>foreg</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -311,11 +311,11 @@
     </configuration>
     <list>
       <item itemvalue="Python.classifier" />
-      <item itemvalue="Python.pixel_detection_using_trained_classifier" />
       <item itemvalue="Python.guided_learning" />
+      <item itemvalue="Python.pixel_detection_using_trained_classifier" />
       <item itemvalue="Python.self_feedback_classifier" />
-      <item itemvalue="Python.slice_video_into_seq" />
       <item itemvalue="Python.slice_video_into_seq (1)" />
+      <item itemvalue="Python.slice_video_into_seq" />
       <item itemvalue="Python.stackedSOMs" />
     </list>
     <recent_temporary>
@@ -631,8 +631,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="397">
-          <caret line="523" column="7" lean-forward="true" selection-start-line="523" selection-start-column="7" selection-end-line="523" selection-end-column="7" />
+        <state relative-caret-position="720">
+          <caret line="540" lean-forward="true" selection-start-line="540" selection-end-line="540" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
           </folding>

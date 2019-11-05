@@ -521,7 +521,7 @@ if __name__ == '__main__':
         kernels=[8, 16, 32, 64],
         sizes=[3, 3, 3, 3],
         strides=[2, 2, 2, 2])
-    '''
+
     # train the AE with unlabeled samples
     TrainModel(
         model=auto_encoder,
@@ -529,9 +529,9 @@ if __name__ == '__main__':
         samples=sample_generator,
         opt='Adam',
         lr=1e-4,
-        target=TARGET_OVERALL_LOSS)
+        target=TARGET_FOREGND_LOSS)
     exit(0)
-    '''
+
 
     TestModel(
         model=auto_encoder,
