@@ -9,10 +9,7 @@
     <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="155" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/semantic-segmentation/logic_learning.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +21,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/components/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="202">
-              <caret line="49" lean-forward="true" selection-start-line="49" selection-end-line="49" />
+            <state relative-caret-position="966">
+              <caret line="49" selection-start-line="49" selection-end-line="49" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -36,7 +33,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="100">
+            <state relative-caret-position="10479">
               <caret line="508" column="9" selection-start-line="508" selection-start-column="9" selection-end-line="508" selection-end-column="9" />
               <folding>
                 <element signature="e#72#90#0" expanded="true" />
@@ -325,12 +322,12 @@
     </configuration>
     <list>
       <item itemvalue="Python.classifier" />
-      <item itemvalue="Python.pixel_detection_using_trained_classifier" />
       <item itemvalue="Python.guided_learning" />
+      <item itemvalue="Python.logic_learning" />
+      <item itemvalue="Python.pixel_detection_using_trained_classifier" />
       <item itemvalue="Python.self_feedback_classifier" />
       <item itemvalue="Python.slice_video_into_seq (1)" />
       <item itemvalue="Python.stackedSOMs" />
-      <item itemvalue="Python.logic_learning" />
     </list>
     <recent_temporary>
       <list>
@@ -636,8 +633,8 @@
     <entry file="file://D:/Anaconda3/envs/py35/Lib/site-packages/matplotlib/figure.py" />
     <entry file="file://$PROJECT_DIR$/components/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="202">
-          <caret line="49" lean-forward="true" selection-start-line="49" selection-end-line="49" />
+        <state relative-caret-position="966">
+          <caret line="49" selection-start-line="49" selection-end-line="49" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -646,7 +643,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/semantic-segmentation/guided_learning.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="100">
+        <state relative-caret-position="10479">
           <caret line="508" column="9" selection-start-line="508" selection-start-column="9" selection-end-line="508" selection-end-column="9" />
           <folding>
             <element signature="e#72#90#0" expanded="true" />
