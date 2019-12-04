@@ -6,6 +6,7 @@ import numpy as np
 import os
 from scipy.misc import imread
 import platform
+import matplotlib.pyplot as plt
 
 
 def load_pickle(f):
@@ -22,7 +23,7 @@ def load_CIFAR_batch(filename):
         datadict = load_pickle(f)
         X = datadict['data']
         Y = datadict['labels']
-        X = X.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("float")
+        X = X.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("float") / 255.0
         Y = np.array(Y)
         return X, Y
 
@@ -72,13 +73,21 @@ def Build_IINN(n_class):
 def Train_IINN(iinn_, data, model_path):
     xx = data['input']
     yy = data['output']
+    plt.imshow(xx[0])
+    plt.show()
     print(xx.shape)
+    print(yy.shape)
 
 
 def Test_IINN(iinn_, data, model_path):
     xx = data['input']
     yy = data['output']
+
+    plt.imshow(xx[0])
+    plt.show()
     print(xx.shape)
+    print(yy.shape)
+
     for i in range(xx.shape[0]):
         x = xx[i]
         y = yy[i]
@@ -101,3 +110,8 @@ if __name__ == "__main__":
     Train_IINN(iinn_, data_train, model_path)
     # test the trained model with test split of the same dataset
     Test_IINN(iinn_, data_test, model_path)
+
+    # TO-DO
+    # method 1: use label y to control bias for each channel in each layer(leaky relu)
+    # method 2: use label y to control the mask for each channel in each layer(Non-zero)
+    # method 3: use both x and y to control the attention mask for only input
