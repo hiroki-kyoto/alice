@@ -1,38 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/build_concept.py" line="32" />
-    <bookmark url="file://$PROJECT_DIR$/handwrite.py" line="20" />
-    <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="18" />
-    <bookmark url="file://$PROJECT_DIR$/happy_loop.py" line="254" />
-    <bookmark url="file://$PROJECT_DIR$/README.md" line="40" mnemonic="4" />
-    <bookmark url="file://$PROJECT_DIR$/semantic-segmentation/stackedSOMs.py" line="155" />
-  </component>
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/dataset/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dataset/cifar10.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iterative_inference.py" beforeDir="false" afterPath="$PROJECT_DIR$/iterative_inference.py" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/iterative_inference.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="89" lean-forward="true" selection-start-line="89" selection-end-line="89" />
-              <folding>
-                <element signature="e#98#135#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -41,75 +19,15 @@
       </list>
     </option>
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>recall_from_output</find>
-      <find>observe(</find>
-      <find>pattern_response</find>
-      <find>recall_</find>
-      <find>MAX_IMMATURITY</find>
-      <find>ITER_TIMES</find>
-      <find>net.obser</find>
-      <find>pattern_distance</find>
-      <find>recall</find>
-      <find>supervised</find>
-      <find>wait</find>
-      <find>target_size</find>
-      <find>train(</find>
-      <find>trainmo</find>
-      <find>occlude_mask</find>
-      <find>occlude</find>
-      <find>loss</find>
-      <find>foreground</find>
-      <find>foregnd</find>
-      <find>encoder</find>
-      <find>load_data</find>
-      <find>Image</find>
-      <find>train</find>
-      <find>test</find>
-      <find>hsv</find>
-      <find>load_dataset</find>
-      <find>load_da</find>
-      <find>TARGET_FOREGROUND_LOSS</find>
-      <find>TARGET_FRGROUND_LOSS</find>
-      <find>foreg</find>
-    </findStrings>
-  </component>
   <component name="Git.Settings">
     <option name="ROOT_SYNC" value="DONT_SYNC" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/iterative_inference.py" />
-      </list>
-    </option>
-  </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="964" />
-    <option name="width" value="960" />
-    <option name="height" value="1040" />
-  </component>
   <component name="ProjectId" id="1UHafb3oerdhPJ0Hv27eQSlwbBc" />
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="Alice" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Alice" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -122,18 +40,6 @@
         <option name="myUseModuleSdk" value="true" />
         <option name="myModuleName" value="Alice" />
       </console-settings>
-    </option>
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
     </option>
   </component>
   <component name="RunManager" selected="Python.iterative_inference">
@@ -186,9 +92,9 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="C:\Users\Administrator\AppData\Local\Programs\Python\Python36\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/iterative_inference.py" />
@@ -303,6 +209,18 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
   <component name="SpellCheckerSettings" BundledDictionaries="4" BundledDictionary0="python.dic" BundledDictionary1="pythonExtras.dic" BundledDictionary2="jetbrains.dic" BundledDictionary3="english.dic" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="project-level" UseSingleDictionary="false" />
   <component name="SvnConfiguration">
     <configuration>C:\Users\Administrator\AppData\Roaming\Subversion</configuration>
@@ -326,42 +244,12 @@
       <is-autoscroll-to-source value="true" />
     </todo-panel>
   </component>
-  <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49914238" visible="true" weight="0.21496312" />
-      <window_info id="Structure" order="1" sideWeight="0.50085765" side_tool="true" weight="0.13327032" />
-      <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8223062" weight="0.34225196" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.3979933" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" weight="0.32887402" />
-      <window_info anchor="bottom" id="Version Control" order="7" weight="0.25137818" />
-      <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.17769375" side_tool="true" weight="0.41950113" />
-      <window_info anchor="bottom" id="Python Console" order="9" sideWeight="0.49810964" weight="0.25641027" />
-      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49716446" weight="0.32855567" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="R Graphics" order="3" />
-      <window_info anchor="right" id="R Packages" order="4" />
-    </layout>
-  </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
             <State>
-              <option name="RECENTLY_FILTERED_USER_GROUPS">
-                <collection />
-              </option>
-              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
-                <collection />
-              </option>
               <option name="COLUMN_ORDER" />
             </State>
           </value>
@@ -383,16 +271,22 @@
       </map>
     </option>
   </component>
-  <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/iterative_inference.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="89" lean-forward="true" selection-start-line="89" selection-end-line="89" />
-          <folding>
-            <element signature="e#98#135#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+  <component name="WindowStateProjectService">
+    <state width="739" height="134" key="GridCell.Tab.0.bottom" timestamp="1575508948183">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="739" height="134" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1575508948183" />
+    <state width="739" height="134" key="GridCell.Tab.0.center" timestamp="1575508948183">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="739" height="134" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1575508948183" />
+    <state width="739" height="134" key="GridCell.Tab.0.left" timestamp="1575508948183">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="739" height="134" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1575508948183" />
+    <state width="739" height="134" key="GridCell.Tab.0.right" timestamp="1575508948183">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="739" height="134" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1575508948183" />
   </component>
 </project>

@@ -1,57 +1,53 @@
 # iterative_inference.py
 # NN inference in an iterative manner, instead of a forward single shot.
-from __future__ import print_function
-from six.moves import cPickle as pickle
+
 import numpy as np
 import os
-from scipy.misc import imread
 import platform
 import matplotlib.pyplot as plt
+import dataset
 
 
-def load_pickle(f):
-    version = platform.python_version_tuple()
-    if version[0] == '2':
-        return pickle.load(f)
-    elif version[0] == '3':
-        return pickle.load(f, encoding='latin1')
-    raise ValueError("invalid python version: {}".format(version))
+def get_conv_weights(w, h, chn_in, chn_out):
+    dim = [w, h, chn_in, chn_out]
+    init_op = tf.truncated_normal(dim, 0.02)
+    return tf.get_variable(
+        name='weights',
+        initializer=init_op,
+        reuse=tf.AUTO_REUSE)
 
 
-def load_CIFAR_batch(filename):
-    with open(filename, 'rb') as f:
-        datadict = load_pickle(f)
-        X = datadict['data']
-        Y = datadict['labels']
-        X = X.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("float") / 255.0
-        Y = np.array(Y)
-        return X, Y
+def get_conv_layer_without_bias(inputs, kernel_size, strides, filters):
+    w = kernel_size[0]
+    h = kernel_size[1]
+    chn_in = inputs.shape[-1]
+    chn_out = filters
+    weights = get_conv_weights(w, h, chn_in, chn_out)
+    return tf.nn.conv2d(inputs,
+                        weights,
+                        strides,
+                        padding='same',
+                        bias=None,
+                        activation=None)
 
-
-def Load_CIFAR10(path):
-    data_train = dict()
-    data_test = dict()
-    xs = []
-    ys = []
-    for b in range(1, 6):
-        f = os.path.join(path, 'data_batch_%d' % (b,))
-        X, Y = load_CIFAR_batch(f)
-        xs.append(X)
-        ys.append(Y)
-    Xtr = np.concatenate(xs)
-    Ytr = np.concatenate(ys)
-    del X, Y
-    Xte, Yte = load_CIFAR_batch(os.path.join(path, 'test_batch'))
-    data_train['input'] = Xtr
-    data_train['output'] = Ytr
-    data_test['input'] = Xte
-    data_test['output'] = Yte
-    return data_train, data_test
 
 
 class IINN(object):
-    def __init__(self, dim_x, dim_y):
-        pass
+    def __init__(self, dim_x, dim_y,
+                 conv_dims, fc_dims, att_dims):
+        self.layers = []
+        self.in_port = tf.placeholder(dim_x)
+        self.out_port = tf.placeholder(dim_y)
+        self.layers.append(in_port)
+        with tf.name_scope('recognition'):
+            for i in range(conv_dims):
+                with tf.name_scope('layer%d' % i):
+                    get_conv_layer_without_bias(
+                        self.layers[-1],
+                        conv_dims[i]['ksize'],
+                        conv_dims[i]['strides'],
+                        conv_dims[i]['filters'])
+
     def attention(self, x, y):
         pass
     def inference(self, x, a):
@@ -65,9 +61,18 @@ class IINN(object):
 
 
 def Build_IINN(n_class):
-    dim_x = [None, None, None, 3]
-    dim_y = [n_class]
-    return IINN(dim_x, dim_y)
+    dim_x = [1, None, None, 3]
+    dim_y = [1, n_class]
+    # configure the convolution dimensions
+    conv_dims = [dict()] * 4
+    conv_dims['ksize'] = (3, 3)
+    conv_dims['strides'] = (2, 2)
+    conv_dims['filters'] = 8
+
+    return IINN(dim_x, dim_y,
+                conv_dims,
+                fc_dims,
+                att_dims)
 
 
 def Train_IINN(iinn_, data, model_path):
@@ -75,6 +80,7 @@ def Train_IINN(iinn_, data, model_path):
     yy = data['output']
     plt.imshow(xx[0])
     plt.show()
+    print(yy[0])
     print(xx.shape)
     print(yy.shape)
 
@@ -85,6 +91,7 @@ def Test_IINN(iinn_, data, model_path):
 
     plt.imshow(xx[0])
     plt.show()
+    print(yy[0])
     print(xx.shape)
     print(yy.shape)
 
@@ -105,7 +112,8 @@ if __name__ == "__main__":
     iinn_ = Build_IINN(n_class)
 
     # training with CIFAR-10 dataset
-    data_train, data_test = Load_CIFAR10('../Datasets/CIFAR10/')
+    data_train, data_test = \
+        dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
     model_path = '../Models/CIFAR10-IINN/'
     Train_IINN(iinn_, data_train, model_path)
     # test the trained model with test split of the same dataset
