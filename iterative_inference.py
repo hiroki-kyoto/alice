@@ -123,3 +123,6 @@ if __name__ == "__main__":
     # method 1: use label y to control bias for each channel in each layer(leaky relu)
     # method 2: use label y to control the mask for each channel in each layer(Non-zero)
     # method 3: use both x and y to control the attention mask for only input
+
+    # question remained:
+    # Is it feasible to replace the bias with attention output or simply add a new bias before activation?
