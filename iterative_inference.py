@@ -55,6 +55,10 @@ def get_fc_layer(inputs, units):
     return layer
 
 
+def get_loss(outputs, feedbacks):
+    return tf.nn.softmax_cross_entropy_with_logits_v2(None, feedbacks, outputs)
+
+
 def convert_tensor_conv2fc(tensor): # issue: use max or mean for pooling?
     return tf.reduce_mean(tensor, axis=[1, 2])
 
@@ -63,46 +67,52 @@ class IINN(object):
     def __init__(self, dim_x, dim_y,
                  conv_config, fc_config, att_config):
         self.layers = []
-        self.in_port = tf.placeholder(shape=dim_x, dtype=tf.float32)
-        self.out_port = tf.placeholder(shape=dim_y, dtype=tf.float32)
-        self.layers.append(self.in_port)
+        self.inputs = tf.placeholder(shape=dim_x, dtype=tf.float32)
+        self.feedbacks = tf.placeholder(shape=dim_y, dtype=tf.float32)
+        self.layers.append(self.inputs)
 
         scope = 'recognition'
-        with tf.name_scope(scope):
-            with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-                sub_scope = 'conv_%d'
-                for i in range(len(conv_config)):
-                    with tf.name_scope(sub_scope % i):
-                        with tf.variable_scope(sub_scope % i):
-                            conv_ = get_conv_layer(
-                                self.layers[-1],
-                                conv_config[i]['ksize'],
-                                conv_config[i]['strides'],
-                                conv_config[i]['filters'])
-                            self.layers.append(conv_)
-                # bridge tensor between conv and fc to let it flow thru
-                layer = convert_tensor_conv2fc(self.layers[-1])
-                self.layers.append(layer)
-                sub_scope = 'fc_%d'
-                for i in range(len(fc_config)):
-                    with tf.name_scope(sub_scope % i):
-                        with tf.variable_scope(sub_scope % i):
-                            fc_ = get_fc_layer(
-                                self.layers[-1],
-                                fc_config[i]['units'])
-                            self.layers.append(fc_)
+        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+            sub_scope = 'conv_%d'
+            for i in range(len(conv_config)):
+                with tf.variable_scope(sub_scope % i):
+                    conv_ = get_conv_layer(
+                        self.layers[-1],
+                        conv_config[i]['ksize'],
+                        conv_config[i]['strides'],
+                        conv_config[i]['filters'])
+                    self.layers.append(conv_)
+            # bridge tensor between conv and fc to let it flow thru
+            layer = convert_tensor_conv2fc(self.layers[-1])
+            self.layers.append(layer)
+            sub_scope = 'fc_%d'
+            for i in range(len(fc_config)):
+                with tf.variable_scope(sub_scope % i):
+                    fc_ = get_fc_layer(
+                        self.layers[-1],
+                        fc_config[i]['units'])
+                    self.layers.append(fc_)
+            # the last classifier layer -- using fc
+            with tf.variable_scope(sub_scope % len(fc_config)):
+                self.outputs = get_fc_layer(self.layers[-1], dim_y[1])
+            self.layers.append(self.outputs)
+            # calculate the loss
+            self.loss = get_loss(self.outputs, self.feedbacks)
 
         # network self check
-        print("===================== VARIABLES ======================")
+        print("============================ VARIABLES ===============================")
         vars = tf.global_variables()
         for i in range(len(vars)):
-            print("var#%d:\t%s\t%s" % (i, vars[i].name, vars[i].shape))
-        print("======================================================")
+            print("var#%03d:%32s %16s %12s" %
+                  (i, vars[i].name[:-2], vars[i].shape, str(vars[i].dtype)[9:-6]))
+        print("======================================================================")
         print("\n")
-        print("===================== OPERATORS ======================")
-        for i in range(len(self.layers)):
-            print("op#%d:\t%s" % (i, self.layers[i]))
-        print("======================================================")
+        print("============================ OPERATORS ===============================")
+        ops = self.layers
+        for i in range(len(ops)):
+            print("opr#%03d:%32s %16s %12s" %
+                  (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
+        print("======================================================================")
 
     def attention(self, x, y):
         pass
@@ -209,3 +219,5 @@ if __name__ == "__main__":
     # question remained:
     # Is it feasible to replace the bias with attention output or simply add a new bias before activation?
     # [solved] add new bias instead of replace: activate(conv + conv bias + attention bias)
+
+    # PLEASE ADD ACTIVATION FUNCTION TO EACH LAYER!!!
