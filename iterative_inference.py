@@ -221,3 +221,5 @@ if __name__ == "__main__":
     # [solved] add new bias instead of replace: activate(conv + conv bias + attention bias)
 
     # PLEASE ADD ACTIVATION FUNCTION TO EACH LAYER!!!
+
+    # Use teacher-student system to train attention module to avoid label exposure
