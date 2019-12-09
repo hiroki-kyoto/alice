@@ -70,6 +70,21 @@ class IINN(object):
         self.inputs = tf.placeholder(shape=dim_x, dtype=tf.float32)
         self.feedbacks = tf.placeholder(shape=dim_y, dtype=tf.float32)
         self.layers.append(self.inputs)
+        self.att_layers = []
+        self.att_layers.append(self.feedbacks)
+
+        scope = 'attention'
+        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+            # attention module
+            sub_scope = 'fc_%d'
+            for i in range(len(att_config)):
+                with tf.variable_scope(sub_scope % i, reuse=tf.AUTO_REUSE):
+                    fc_ = get_fc_layer(
+                        self.att_layers[-1],
+                        att_config[i]['units'])
+                    self.att_layers.append(fc_)
+        # bridge tensor between attention to biases of conv
+        
 
         scope = 'recognition'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -222,4 +237,4 @@ if __name__ == "__main__":
 
     # PLEASE ADD ACTIVATION FUNCTION TO EACH LAYER!!!
 
-    # Use teacher-student system to train attention module to avoid label exposure
+    # Use dual path to train with or without attention
