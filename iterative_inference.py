@@ -84,7 +84,9 @@ class IINN(object):
                         att_config[i]['units'])
                     self.att_layers.append(fc_)
         # bridge tensor between attention to biases of conv
-        
+        # consider the possiblity: if the label is still exposured ?
+        # Only the biases of last convolution layer is carried to output tensor?
+        # Use shake regularizer: randomly select some of the layers to adjust.
 
         scope = 'recognition'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
