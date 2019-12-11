@@ -33,6 +33,10 @@ def get_bias(filters):
         initializer=init_op)
 
 
+def get_nonlinear_layer(inputs):
+    return tf.nn.leaky_relu(inputs, alpha=0.2)
+
+
 def get_conv_layer(inputs, kernel_size, strides, filters):
     w = kernel_size[0]
     h = kernel_size[1]
@@ -55,6 +59,10 @@ def get_fc_layer(inputs, units):
     return layer
 
 
+def get_controlled_layer(inputs, control): # define your own control strategy here
+    return tf.nn.bias_add(inputs, control)
+
+
 def get_loss(outputs, feedbacks):
     return tf.nn.softmax_cross_entropy_with_logits_v2(None, feedbacks, outputs)
 
@@ -66,12 +74,16 @@ def convert_tensor_conv2fc(tensor): # issue: use max or mean for pooling?
 class IINN(object):
     def __init__(self, dim_x, dim_y,
                  conv_config, fc_config, att_config):
-        self.layers = []
         self.inputs = tf.placeholder(shape=dim_x, dtype=tf.float32)
         self.feedbacks = tf.placeholder(shape=dim_y, dtype=tf.float32)
-        self.layers.append(self.inputs)
+
+        self.rec_layers = []
+        self.rec_layers.append(self.inputs)
+
         self.att_layers = []
         self.att_layers.append(self.feedbacks)
+
+        self.ctl_layers = []
 
         scope = 'attention'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -82,11 +94,30 @@ class IINN(object):
                     fc_ = get_fc_layer(
                         self.att_layers[-1],
                         att_config[i]['units'])
+                    fc_ = get_nonlinear_layer(fc_)
                     self.att_layers.append(fc_)
-        # bridge tensor between attention to biases of conv
-        # consider the possiblity: if the label is still exposured ?
-        # Only the biases of last convolution layer is carried to output tensor?
-        # Use shake regularizer: randomly select some of the layers to adjust.
+            # bridge tensor between attention to biases of conv
+            num_biases = 0
+            for i in range(len(conv_config)):
+                num_biases += conv_config[i]['filters']
+            with tf.variable_scope(sub_scope % len(att_config)):
+                fc_ = get_fc_layer(
+                    self.att_layers[-1],
+                    num_biases)
+                assert fc_.shape.as_list()[0] == 1
+                self.att_layers.append(fc_[0])
+
+        scope = 'control'
+        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+            # creating sub operations with back-prop killed
+            conv_bias_ctl = []
+            offset = 0
+            for i in range(len(conv_config)):
+                ctl_grad_free = tf.stop_gradient(
+                    self.att_layers[-1][offset:offset + conv_config[i]['filters']])
+                self.ctl_layers.append(ctl_grad_free)
+                assert conv_config[i]['filters'] == ctl_grad_free.shape.as_list()[0]
+                offset += ctl_grad_free.shape.as_list()[0]
 
         scope = 'recognition'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -94,27 +125,35 @@ class IINN(object):
             for i in range(len(conv_config)):
                 with tf.variable_scope(sub_scope % i):
                     conv_ = get_conv_layer(
-                        self.layers[-1],
+                        self.rec_layers[-1],
                         conv_config[i]['ksize'],
                         conv_config[i]['strides'],
                         conv_config[i]['filters'])
-                    self.layers.append(conv_)
+                    conv_ = get_controlled_layer(conv_, self.ctl_layers[i])
+                    conv_ = get_nonlinear_layer(conv_)
+                    self.rec_layers.append(conv_)
             # bridge tensor between conv and fc to let it flow thru
-            layer = convert_tensor_conv2fc(self.layers[-1])
-            self.layers.append(layer)
+            layer = convert_tensor_conv2fc(self.rec_layers[-1])
+            self.rec_layers.append(layer)
+
+            # creating classifier using fc layers
             sub_scope = 'fc_%d'
             for i in range(len(fc_config)):
                 with tf.variable_scope(sub_scope % i):
                     fc_ = get_fc_layer(
-                        self.layers[-1],
+                        self.rec_layers[-1],
                         fc_config[i]['units'])
-                    self.layers.append(fc_)
-            # the last classifier layer -- using fc
+                    fc_ = get_nonlinear_layer(fc_)
+                    self.rec_layers.append(fc_)
+            # the last classifier layer -- using fc without nonlinearization
             with tf.variable_scope(sub_scope % len(fc_config)):
-                self.outputs = get_fc_layer(self.layers[-1], dim_y[1])
-            self.layers.append(self.outputs)
+                self.outputs = get_fc_layer(self.rec_layers[-1], dim_y[1])
+            self.rec_layers.append(self.outputs)
+
             # calculate the loss
-            self.loss = get_loss(self.outputs, self.feedbacks)
+            self.rec_loss = get_loss(self.outputs, self.feedbacks)
+            self.att_loss = None
+
 
         # network self check
         print("============================ VARIABLES ===============================")
@@ -125,7 +164,15 @@ class IINN(object):
         print("======================================================================")
         print("\n")
         print("============================ OPERATORS ===============================")
-        ops = self.layers
+        ops = self.rec_layers
+        for i in range(len(ops)):
+            print("opr#%03d:%32s %16s %12s" %
+                  (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
+        ops = self.att_layers
+        for i in range(len(ops)):
+            print("opr#%03d:%32s %16s %12s" %
+                  (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
+        ops = self.ctl_layers
         for i in range(len(ops)):
             print("opr#%03d:%32s %16s %12s" %
                   (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
@@ -240,3 +287,13 @@ if __name__ == "__main__":
     # PLEASE ADD ACTIVATION FUNCTION TO EACH LAYER!!!
 
     # Use dual path to train with or without attention
+
+    # Two approach:
+    # 1st- inspired by the concept of co-activated neural group, attention is a phase locked loop.
+    # 2nd- impsired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
+
+    # for the 1st approach:
+    # 1> when argmax(y) == argmax(y_{gt}), attention module is trained to converge at y = y_{gt}
+    # 2> otherwise, attention module is trained to output y_{n+1}=y-y_n till y = \vec{0}.
+
+    # Next, add optimizer and begin to train this network!
