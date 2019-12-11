@@ -59,7 +59,7 @@ def get_fc_layer(inputs, units):
     return layer
 
 
-def get_controlled_layer(inputs, control): # define your own control strategy here
+def get_controlled_layer(inputs, control): # define your own control strategy
     return tf.nn.bias_add(inputs, control)
 
 
@@ -84,6 +84,9 @@ class IINN(object):
         self.att_layers.append(self.feedbacks)
 
         self.ctl_layers = []
+
+        # the optimizer
+        self.optimzer = tf.train.AdamOptimizer(learning_rate=1e-3)
 
         scope = 'attention'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -113,8 +116,8 @@ class IINN(object):
             conv_bias_ctl = []
             offset = 0
             for i in range(len(conv_config)):
-                ctl_grad_free = tf.stop_gradient(
-                    self.att_layers[-1][offset:offset + conv_config[i]['filters']])
+                ctl_grad_free = \
+                    self.att_layers[-1][offset:offset + conv_config[i]['filters']]
                 self.ctl_layers.append(ctl_grad_free)
                 assert conv_config[i]['filters'] == ctl_grad_free.shape.as_list()[0]
                 offset += ctl_grad_free.shape.as_list()[0]
@@ -152,42 +155,60 @@ class IINN(object):
 
             # calculate the loss
             self.rec_loss = get_loss(self.outputs, self.feedbacks)
-            self.att_loss = None
 
+        # Creating minimizers for different training purpose
+        # group the variables by its namespace
+        vars = tf.global_variables()
+        rec_vars = []
+        att_vars = []
+        for i in range(len(vars)):
+            if vars[i].name.find('recognition') != -1:
+                rec_vars.append(vars[i])
+            elif vars[i].name.find('attention') != -1:
+                att_vars.append(vars[i])
+            else:
+                raise NameError('unknown variables: %s' % vars[i].name)
+
+        self.minimzer_rec = self.optimzer.minimize(
+            self.rec_loss, var_list=rec_vars, name='opt_rec')
+        self.minimzer_att = self.optimzer.minimize(
+            self.rec_loss, var_list=att_vars, name='opt_att')
 
         # network self check
-        print("============================ VARIABLES ===============================")
+        print("================================ VARIABLES ===================================")
         vars = tf.global_variables()
         for i in range(len(vars)):
-            print("var#%03d:%32s %16s %12s" %
+            print("var#%03d:%40s %16s %12s" %
                   (i, vars[i].name[:-2], vars[i].shape, str(vars[i].dtype)[9:-6]))
-        print("======================================================================")
+        print("==============================================================================")
         print("\n")
-        print("============================ OPERATORS ===============================")
+        print("================================ OPERATORS ===================================")
         ops = self.rec_layers
         for i in range(len(ops)):
-            print("opr#%03d:%32s %16s %12s" %
+            print("opr#%03d:%40s %16s %12s" %
                   (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
         ops = self.att_layers
         for i in range(len(ops)):
-            print("opr#%03d:%32s %16s %12s" %
+            print("opr#%03d:%40s %16s %12s" %
                   (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
         ops = self.ctl_layers
         for i in range(len(ops)):
-            print("opr#%03d:%32s %16s %12s" %
+            print("opr#%03d:%40s %16s %12s" %
                   (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
-        print("======================================================================")
+        print("==============================================================================")
 
     def attention(self, x, y):
         pass
     def inference(self, x, a):
         pass
     def getInputPlaceHolder(self):
-        pass
+        return self.inputs
     def getFeedbackPlaceHolder(self):
-        pass
+        return self.feedbacks
     def getOutputTensor(self):
-        pass
+        return self.outputs
+    def getControlTensors(self):
+        return self.ctl_layers
 
 
 def new_conv_config(k_w, k_h, s_w, s_h, filters):
@@ -288,9 +309,9 @@ if __name__ == "__main__":
 
     # Use dual path to train with or without attention
 
-    # Two approach:
+    # Two approachs:
     # 1st- inspired by the concept of co-activated neural group, attention is a phase locked loop.
-    # 2nd- impsired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
+    # 2nd- inspired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
 
     # for the 1st approach:
     # 1> when argmax(y) == argmax(y_{gt}), attention module is trained to converge at y = y_{gt}
