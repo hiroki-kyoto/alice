@@ -252,23 +252,37 @@ def Build_IINN(n_class):
                 att_config)
 
 
-def Train_IINN(iinn_, data, model_path):
+def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     xx = data['input']
     yy = data['output']
-    plt.imshow(xx[0])
-    plt.show()
-    print(yy[0])
-    print(xx.shape)
-    print(yy.shape)
+    x_t = iinn_.getInputPlaceHolder() # tensor of inputs
+    y_t = iinn_.getOutputTensor() # tensor of outputs
+    c_t = iinn_.getControlTensors() # tensor of all control signals
+    f_t = iinn_.getFeedbackPlaceHolder() # tensor of feedback
+
+    # train without attention ( a plain convolution classifier )
+    # set up all the control signals to 0
+    ctl_sig = []
+    for i in range(len(c_t)):
+        ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
+
+    # batch size should be always 1 because of control module limit
+    MAX_ITR = 1000
+    CVG_EPS = 1e-2
+    itr = 0
+    eps = 0
+    while itr < MAX_ITR and  eps > CVG_EPS:
+        pass
+
+    return eps
+
+
 
 
 def Test_IINN(iinn_, data, model_path):
     xx = data['input']
     yy = data['output']
 
-    plt.imshow(xx[0])
-    plt.show()
-    print(yy[0])
     print(xx.shape)
     print(yy.shape)
 
