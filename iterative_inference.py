@@ -265,15 +265,17 @@ def Build_IINN(n_class):
 def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     xx = data['input']
     yy = data['output']
+
     x_t = iinn_.getInputPlaceHolder() # tensor of inputs
     y_t = iinn_.getOutputTensor() # tensor of outputs
     c_t = iinn_.getControlTensors() # tensor of all control signals
     f_t = iinn_.getFeedbackPlaceHolder() # tensor of feedback
+
     loss_t = iinn_.getLoss()
     opt_rec = iinn_.getOptRec()
     opt_att = iinn_.getOptAtt()
 
-    # train without attention ( a plain convolution classifier )
+    # stage 1: train without attention ( a plain convolution classifier )
     # set up all the control signals to 0
     ctl_sig = []
     for i in range(len(c_t)):
@@ -286,10 +288,14 @@ def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     itr = 0
     eps = 1E10
 
+    # set up the global step counter
+    global_step = tf.get_variable(name="global_step", initializer=0)
+    step_next = tf.assign_add(global_step, 1, use_locking=True)
+
     # establish the training context
     sess = tf.Session()
     vars = tf.trainable_variables()
-    saver = tf.train.Saver(var_list=vars)
+    saver = tf.train.Saver(var_list=vars, max_to_keep=5)
     # load the pretrained model if exists
     if tf.train.checkpoint_exists(model_path):
         saver.restore(sess, model_path)
@@ -305,23 +311,57 @@ def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
         feed_in[f_t] = yy[idx:idx+1, :]
         for i in range(len(c_t)):
             feed_in[c_t[i]] = ctl_sig[i]
-        loss[itr % BAT_NUM], _ = sess.run([loss_t, opt_rec], feed_dict=feed_in)
+        loss[itr % BAT_NUM], _, _ = \
+            sess.run([loss_t, opt_rec, step_next], feed_dict=feed_in)
         itr += 1
         if itr % BAT_NUM == 0:
             eps = np.mean(loss)
             print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
         if itr % (BAT_NUM * 16) == 0:
-            saver.save(sess, model_path)
+            saver.save(sess, model_path, global_step=global_step)
     return eps
 
 
-def Test_IINN(iinn_, data, model_path):
+def Test_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     xx = data['input']
     yy = data['output']
 
-    print(xx.shape)
-    print(yy.shape)
+    x_t = iinn_.getInputPlaceHolder()  # tensor of inputs
+    y_t = iinn_.getOutputTensor()  # tensor of outputs
+    c_t = iinn_.getControlTensors()  # tensor of all control signals
 
+    # set up all the control signals to 0
+    ctl_sig = []
+    for i in range(len(c_t)):
+        ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
+
+    sess = tf.Session()
+    vars = tf.trainable_variables()
+    saver = tf.train.Saver(var_list=vars)
+    # load the pretrained model if exists
+    if tf.train.checkpoint_exists(model_path):
+        saver.restore(sess, model_path)
+        #utils.initialize_uninitialized(sess)
+    else:
+        raise NameError("failed to load checkpoint from path %s" %model_path)
+
+    # inference
+    labels_gt = np.argmax(yy, axis=-1)
+    num_correct = 0
+
+    for i in range(xx.shape[0]):
+        feed_in = dict()
+        feed_in[x_t] = xx[i:i + 1, :, :, :]
+        for i in range(len(c_t)):
+            feed_in[c_t[i]] = ctl_sig[i]
+        y = sess.run(y_t, feed_dict=feed_in)[0]
+        label_out = np.argmax(y)
+        if label_out == labels_gt[i]:
+            num_correct += 1
+    return float(num_correct) / float(len(labels_gt))
+
+    ''' 
+    # iterative inference demo
     for i in range(xx.shape[0]):
         x = xx[i]
         y = yy[i]
@@ -332,6 +372,7 @@ def Test_IINN(iinn_, data, model_path):
         y = iinn_.inference(x, a)
         # ... this procedure goes on and on until converged
         pass
+    '''
 
 
 if __name__ == "__main__":
@@ -341,10 +382,11 @@ if __name__ == "__main__":
     # training with CIFAR-10 dataset
     data_train, data_test = \
         dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10'
-    Train_IINN(iinn_, data_train, model_path)
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-212992'
+    #Train_IINN(iinn_, data_train, model_path)
     # test the trained model with test split of the same dataset
-    #Test_IINN(iinn_, data_test, model_path)
+    acc = Test_IINN(iinn_, data_test, model_path)
+    print("Accuracy = %6.5f" % acc)
 
     # TO-DO
     # method 1: use label y to control bias for each channel in each layer(leaky relu)
@@ -368,3 +410,9 @@ if __name__ == "__main__":
     # 2> otherwise, attention module is trained to output y_{n+1}=y-y_n till y = \vec{0}.
 
     # Next, add optimizer and begin to train this network!
+    # Test the model trained without attention control.
+    # Train with attention control in 4 ways:
+    #   1. train the model with attention alone using groundtruth labels;
+    #   2. train with attention alone using output labels;
+    #   3. train together of rec and att with groundtruth labels;
+    #   4. train attention(using output/gt) and recognition modules in turns;
