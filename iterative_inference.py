@@ -5,7 +5,9 @@ import numpy as np
 import os
 import platform
 import matplotlib.pyplot as plt
+
 import dataset
+import components.utils as utils
 
 import tensorflow as tf
 
@@ -86,7 +88,9 @@ class IINN(object):
         self.ctl_layers = []
 
         # the optimizer
-        self.optimzer = tf.train.AdamOptimizer(learning_rate=1e-3)
+        # Learning rate stages: 1E-3, 1E-4, 1E-5.
+        # On CIFAR-10, it converged on 0.4 (cross entrophy)
+        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-5)
 
         scope = 'attention'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -169,9 +173,9 @@ class IINN(object):
             else:
                 raise NameError('unknown variables: %s' % vars[i].name)
 
-        self.minimzer_rec = self.optimzer.minimize(
+        self.minimizer_rec = self.optimzer.minimize(
             self.rec_loss, var_list=rec_vars, name='opt_rec')
-        self.minimzer_att = self.optimzer.minimize(
+        self.minimizer_att = self.optimzer.minimize(
             self.rec_loss, var_list=att_vars, name='opt_att')
 
         # network self check
@@ -209,6 +213,12 @@ class IINN(object):
         return self.outputs
     def getControlTensors(self):
         return self.ctl_layers
+    def getLoss(self):
+        return self.rec_loss
+    def getOptRec(self):
+        return self.minimizer_rec
+    def getOptAtt(self):
+        return self.minimizer_att
 
 
 def new_conv_config(k_w, k_h, s_w, s_h, filters):
@@ -259,6 +269,9 @@ def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     y_t = iinn_.getOutputTensor() # tensor of outputs
     c_t = iinn_.getControlTensors() # tensor of all control signals
     f_t = iinn_.getFeedbackPlaceHolder() # tensor of feedback
+    loss_t = iinn_.getLoss()
+    opt_rec = iinn_.getOptRec()
+    opt_att = iinn_.getOptAtt()
 
     # train without attention ( a plain convolution classifier )
     # set up all the control signals to 0
@@ -267,16 +280,39 @@ def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
         ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
 
     # batch size should be always 1 because of control module limit
-    MAX_ITR = 1000
+    BAT_NUM = 1024
+    MAX_ITR = 100000 * BAT_NUM
     CVG_EPS = 1e-2
     itr = 0
-    eps = 0
+    eps = 1E10
+
+    # establish the training context
+    sess = tf.Session()
+    vars = tf.trainable_variables()
+    saver = tf.train.Saver(var_list=vars)
+    # load the pretrained model if exists
+    if tf.train.checkpoint_exists(model_path):
+        saver.restore(sess, model_path)
+        utils.initialize_uninitialized(sess)
+    else:
+        sess.run(tf.global_variables_initializer())
+    # training loop
+    loss = np.zeros([BAT_NUM], dtype=np.float32)
     while itr < MAX_ITR and  eps > CVG_EPS:
-        pass
-
+        idx = np.random.randint(xx.shape[0])
+        feed_in = dict()
+        feed_in[x_t] = xx[idx:idx+1, :, :, :]
+        feed_in[f_t] = yy[idx:idx+1, :]
+        for i in range(len(c_t)):
+            feed_in[c_t[i]] = ctl_sig[i]
+        loss[itr % BAT_NUM], _ = sess.run([loss_t, opt_rec], feed_dict=feed_in)
+        itr += 1
+        if itr % BAT_NUM == 0:
+            eps = np.mean(loss)
+            print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
+        if itr % (BAT_NUM * 16) == 0:
+            saver.save(sess, model_path)
     return eps
-
-
 
 
 def Test_IINN(iinn_, data, model_path):
@@ -305,10 +341,10 @@ if __name__ == "__main__":
     # training with CIFAR-10 dataset
     data_train, data_test = \
         dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
-    model_path = '../Models/CIFAR10-IINN/'
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10'
     Train_IINN(iinn_, data_train, model_path)
     # test the trained model with test split of the same dataset
-    Test_IINN(iinn_, data_test, model_path)
+    #Test_IINN(iinn_, data_test, model_path)
 
     # TO-DO
     # method 1: use label y to control bias for each channel in each layer(leaky relu)
