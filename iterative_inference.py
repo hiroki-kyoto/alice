@@ -262,7 +262,10 @@ def Build_IINN(n_class):
                 att_config)
 
 
-def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
+def Train_IINN(iinn_: IINN,
+               data: dict,
+               model_path: str,
+               train_stage: int) -> float:
     xx = data['input']
     yy = data['output']
 
@@ -274,12 +277,6 @@ def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     loss_t = iinn_.getLoss()
     opt_rec = iinn_.getOptRec()
     opt_att = iinn_.getOptAtt()
-
-    # stage 1: train without attention ( a plain convolution classifier )
-    # set up all the control signals to 0
-    ctl_sig = []
-    for i in range(len(c_t)):
-        ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
 
     # batch size should be always 1 because of control module limit
     BAT_NUM = 1024
@@ -302,23 +299,38 @@ def Train_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
         utils.initialize_uninitialized(sess)
     else:
         sess.run(tf.global_variables_initializer())
-    # training loop
-    loss = np.zeros([BAT_NUM], dtype=np.float32)
-    while itr < MAX_ITR and  eps > CVG_EPS:
-        idx = np.random.randint(xx.shape[0])
-        feed_in = dict()
-        feed_in[x_t] = xx[idx:idx+1, :, :, :]
-        feed_in[f_t] = yy[idx:idx+1, :]
+
+    if train_stage == 1:
+        # stage 1: train without attention ( a plain convolution classifier )
+        # set up all the control signals to 0
+        ctl_sig = []
         for i in range(len(c_t)):
-            feed_in[c_t[i]] = ctl_sig[i]
-        loss[itr % BAT_NUM], _, _ = \
-            sess.run([loss_t, opt_rec, step_next], feed_dict=feed_in)
-        itr += 1
-        if itr % BAT_NUM == 0:
-            eps = np.mean(loss)
-            print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
-        if itr % (BAT_NUM * 16) == 0:
-            saver.save(sess, model_path, global_step=global_step)
+            ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
+        # begin training loop
+        loss = np.zeros([BAT_NUM], dtype=np.float32)
+        while itr < MAX_ITR and  eps > CVG_EPS:
+            idx = np.random.randint(xx.shape[0])
+            feed_in = dict()
+            feed_in[x_t] = xx[idx:idx+1, :, :, :]
+            feed_in[f_t] = yy[idx:idx+1, :]
+            for i in range(len(c_t)):
+                feed_in[c_t[i]] = ctl_sig[i]
+            loss[itr % BAT_NUM], _, _ = \
+                sess.run([loss_t, opt_rec, step_next], feed_dict=feed_in)
+            itr += 1
+            if itr % BAT_NUM == 0:
+                eps = np.mean(loss)
+                print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
+            if itr % (BAT_NUM * 16) == 0:
+                saver.save(sess, model_path, global_step=global_step)
+    elif train_stage == 2:
+        # training with attention, try the 3 approaches
+        pass
+    elif train_stage == 3:
+        # training in turn
+        pass
+    else:
+        raise NameError("unrecognized stage parameter!")
     return eps
 
 
@@ -341,24 +353,22 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     # load the pretrained model if exists
     if tf.train.checkpoint_exists(model_path):
         saver.restore(sess, model_path)
-        #utils.initialize_uninitialized(sess)
     else:
         raise NameError("failed to load checkpoint from path %s" %model_path)
 
     # inference
     labels_gt = np.argmax(yy, axis=-1)
     num_correct = 0
-
     for i in range(xx.shape[0]):
         feed_in = dict()
         feed_in[x_t] = xx[i:i + 1, :, :, :]
-        for i in range(len(c_t)):
-            feed_in[c_t[i]] = ctl_sig[i]
+        for j in range(len(c_t)):
+            feed_in[c_t[j]] = ctl_sig[j]
         y = sess.run(y_t, feed_dict=feed_in)[0]
         label_out = np.argmax(y)
         if label_out == labels_gt[i]:
             num_correct += 1
-    return float(num_correct) / float(len(labels_gt))
+    return float(num_correct) / float(labels_gt.shape[0])
 
     ''' 
     # iterative inference demo
@@ -382,8 +392,8 @@ if __name__ == "__main__":
     # training with CIFAR-10 dataset
     data_train, data_test = \
         dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-212992'
-    #Train_IINN(iinn_, data_train, model_path)
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992'
+    Train_IINN(iinn_, data_train, model_path, 1)
     # test the trained model with test split of the same dataset
     acc = Test_IINN(iinn_, data_test, model_path)
     print("Accuracy = %6.5f" % acc)
