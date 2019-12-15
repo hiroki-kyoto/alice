@@ -78,12 +78,13 @@ class IINN(object):
                  conv_config, fc_config, att_config):
         self.inputs = tf.placeholder(shape=dim_x, dtype=tf.float32)
         self.feedbacks = tf.placeholder(shape=dim_y, dtype=tf.float32)
+        self.att_inputs = tf.placeholder(shape=dim_y, dtype=tf.float32)
 
         self.rec_layers = []
         self.rec_layers.append(self.inputs)
 
         self.att_layers = []
-        self.att_layers.append(self.feedbacks)
+        self.att_layers.append(self.att_inputs)
 
         self.ctl_layers = []
 
@@ -94,6 +95,9 @@ class IINN(object):
 
         scope = 'attention'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+            # normalize input (VERY IMPORTANT)
+            in_norm = tf.nn.softmax(self.att_layers[-1])
+            self.att_layers.append(in_norm)
             # attention module
             sub_scope = 'fc_%d'
             for i in range(len(att_config)):
@@ -205,13 +209,15 @@ class IINN(object):
         pass
     def inference(self, x, a):
         pass
-    def getInputPlaceHolder(self):
+    def getInput(self):
         return self.inputs
-    def getFeedbackPlaceHolder(self):
+    def getAttentionInput(self):
+        return self.att_inputs
+    def getFeedback(self):
         return self.feedbacks
-    def getOutputTensor(self):
+    def getOutput(self):
         return self.outputs
-    def getControlTensors(self):
+    def getControl(self):
         return self.ctl_layers
     def getLoss(self):
         return self.rec_loss
@@ -269,14 +275,20 @@ def Train_IINN(iinn_: IINN,
     xx = data['input']
     yy = data['output']
 
-    x_t = iinn_.getInputPlaceHolder() # tensor of inputs
-    y_t = iinn_.getOutputTensor() # tensor of outputs
-    c_t = iinn_.getControlTensors() # tensor of all control signals
-    f_t = iinn_.getFeedbackPlaceHolder() # tensor of feedback
+    x_t = iinn_.getInput() # tensor of inputs
+    a_t = iinn_.getAttentionInput() # tensor of inputs of attention
+    y_t = iinn_.getOutput() # tensor of outputs
+    c_t = iinn_.getControl() # tensor of all control signals
+    f_t = iinn_.getFeedback() # tensor of feedback
 
     loss_t = iinn_.getLoss()
     opt_rec = iinn_.getOptRec()
     opt_att = iinn_.getOptAtt()
+
+    # set up all the control signals to 0
+    ctl_sig = []
+    for i in range(len(c_t)):
+        ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
 
     # batch size should be always 1 because of control module limit
     BAT_NUM = 1024
@@ -284,6 +296,7 @@ def Train_IINN(iinn_: IINN,
     CVG_EPS = 1e-2
     itr = 0
     eps = 1E10
+    loss = np.zeros([BAT_NUM], dtype=np.float32)
 
     # set up the global step counter
     global_step = tf.get_variable(name="global_step", initializer=0)
@@ -300,14 +313,7 @@ def Train_IINN(iinn_: IINN,
     else:
         sess.run(tf.global_variables_initializer())
 
-    if train_stage == 1:
-        # stage 1: train without attention ( a plain convolution classifier )
-        # set up all the control signals to 0
-        ctl_sig = []
-        for i in range(len(c_t)):
-            ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
-        # begin training loop
-        loss = np.zeros([BAT_NUM], dtype=np.float32)
+    if train_stage == 1: # stage 1: train without attention
         while itr < MAX_ITR and  eps > CVG_EPS:
             idx = np.random.randint(xx.shape[0])
             feed_in = dict()
@@ -323,9 +329,32 @@ def Train_IINN(iinn_: IINN,
                 print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
             if itr % (BAT_NUM * 16) == 0:
                 saver.save(sess, model_path, global_step=global_step)
-    elif train_stage == 2:
-        # training with attention, try the 3 approaches
-        pass
+    elif train_stage == 2: # training with attention, try the 3 approaches
+        # approach # 2: train with outputs of last shot as attention inputs
+        while itr < MAX_ITR and eps > CVG_EPS:
+            idx = np.random.randint(xx.shape[0])
+            # first shot:
+            # get the input of attention module, ie, the output of last shot
+            feed_in = dict()
+            feed_in[x_t] = xx[idx:idx + 1, :, :, :]
+            for j in range(len(c_t)):
+                feed_in[c_t[j]] = ctl_sig[j]
+            y = sess.run(y_t, feed_dict=feed_in)
+            # second shot:
+            # use the outputs of last shot to control the second shot
+            feed_in = dict()
+            feed_in[x_t] = xx[idx:idx + 1, :, :, :]
+            feed_in[a_t] = np.copy(y)
+            feed_in[f_t] = yy[idx:idx + 1, :]
+
+            loss[itr % BAT_NUM], _, _ = \
+                sess.run([loss_t, opt_att, step_next], feed_dict=feed_in)
+            itr += 1
+            if itr % BAT_NUM == 0:
+                eps = np.mean(loss)
+                print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
+            if itr % (BAT_NUM * 16) == 0:
+                saver.save(sess, model_path, global_step=global_step)
     elif train_stage == 3:
         # training in turn
         pass
@@ -334,13 +363,14 @@ def Train_IINN(iinn_: IINN,
     return eps
 
 
-def Test_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
+def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
     xx = data['input']
     yy = data['output']
 
-    x_t = iinn_.getInputPlaceHolder()  # tensor of inputs
-    y_t = iinn_.getOutputTensor()  # tensor of outputs
-    c_t = iinn_.getControlTensors()  # tensor of all control signals
+    x_t = iinn_.getInput()  # tensor of inputs
+    y_t = iinn_.getOutput()  # tensor of outputs
+    c_t = iinn_.getControl()  # tensor of all control signals
+    a_t = iinn_.getAttentionInput()  # tensor of inputs of attention
 
     # set up all the control signals to 0
     ctl_sig = []
@@ -359,15 +389,33 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str) -> float:
     # inference
     labels_gt = np.argmax(yy, axis=-1)
     num_correct = 0
-    for i in range(xx.shape[0]):
-        feed_in = dict()
-        feed_in[x_t] = xx[i:i + 1, :, :, :]
-        for j in range(len(c_t)):
-            feed_in[c_t[j]] = ctl_sig[j]
-        y = sess.run(y_t, feed_dict=feed_in)[0]
-        label_out = np.argmax(y)
-        if label_out == labels_gt[i]:
-            num_correct += 1
+
+    if stage == 1: # test without attention control
+        for i in range(xx.shape[0]):
+            feed_in = dict()
+            feed_in[x_t] = xx[i:i+1, :, :, :]
+            for j in range(len(c_t)):
+                feed_in[c_t[j]] = ctl_sig[j]
+            y = sess.run(y_t, feed_dict=feed_in)
+            if np.argmax(y[0]) == labels_gt[i]:
+                num_correct += 1
+    elif stage == 2: # test double-shot with attention control
+        for i in range(xx.shape[0]):
+            # first shot:
+            # get the input of attention module, ie, the output of last shot
+            feed_in = dict()
+            feed_in[x_t] = xx[i:i+1, :, :, :]
+            for j in range(len(c_t)):
+                feed_in[c_t[j]] = ctl_sig[j]
+            y = sess.run(y_t, feed_dict=feed_in)
+            # second shot:
+            # use the outputs of last shot to control the second shot
+            feed_in = dict()
+            feed_in[x_t] = xx[i:i+1, :, :, :]
+            feed_in[a_t] = np.copy(y)
+            y = sess.run(y_t, feed_dict=feed_in)
+            if np.argmax(y[0]) == labels_gt[i]:
+                num_correct += 1
     return float(num_correct) / float(labels_gt.shape[0])
 
     ''' 
@@ -392,10 +440,15 @@ if __name__ == "__main__":
     # training with CIFAR-10 dataset
     data_train, data_test = \
         dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992'
-    Train_IINN(iinn_, data_train, model_path, 1)
+
+    # inspect the dataset
+    print('image shape: (%d, %d)' % (data_train['input'].shape[1],
+                                     data_train['input'].shape[2]))
+
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200'
+    #Train_IINN(iinn_, data_train, model_path, 2)
     # test the trained model with test split of the same dataset
-    acc = Test_IINN(iinn_, data_test, model_path)
+    acc = Test_IINN(iinn_, data_test, model_path, 2)
     print("Accuracy = %6.5f" % acc)
 
     # TO-DO
