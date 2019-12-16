@@ -89,9 +89,8 @@ class IINN(object):
         self.ctl_layers = []
 
         # the optimizer
-        # Learning rate stages: 1E-3, 1E-4, 1E-5.
-        # On CIFAR-10, it converged on 0.4 (cross entrophy)
-        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-5)
+        # Learning rate stages: 1E-4, 1E-5.
+        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
 
         scope = 'attention'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -330,7 +329,7 @@ def Train_IINN(iinn_: IINN,
             if itr % (BAT_NUM * 16) == 0:
                 saver.save(sess, model_path, global_step=global_step)
     elif train_stage == 2: # training with attention, try the 3 approaches
-        # approach # 2: train with outputs of last shot as attention inputs
+        # approach # 3: train the entire model with attention
         while itr < MAX_ITR and eps > CVG_EPS:
             idx = np.random.randint(xx.shape[0])
             # first shot:
@@ -347,8 +346,9 @@ def Train_IINN(iinn_: IINN,
             feed_in[a_t] = np.copy(y)
             feed_in[f_t] = yy[idx:idx + 1, :]
 
-            loss[itr % BAT_NUM], _, _ = \
-                sess.run([loss_t, opt_att, step_next], feed_dict=feed_in)
+            loss[itr % BAT_NUM], _, _, _ = \
+                sess.run([loss_t, opt_att, opt_rec, step_next],
+                         feed_dict=feed_in)
             itr += 1
             if itr % BAT_NUM == 0:
                 eps = np.mean(loss)
@@ -445,28 +445,21 @@ if __name__ == "__main__":
     print('image shape: (%d, %d)' % (data_train['input'].shape[1],
                                      data_train['input'].shape[2]))
 
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200'
-    #Train_IINN(iinn_, data_train, model_path, 2)
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200-21626880'
+    #loss = Train_IINN(iinn_, data_train, model_path, 2)
+    #print('Final Training Loss = %6.5f' % loss)
     # test the trained model with test split of the same dataset
-    acc = Test_IINN(iinn_, data_test, model_path, 2)
+    acc = Test_IINN(iinn_, data_train, model_path, 1)
     print("Accuracy = %6.5f" % acc)
 
-    # TO-DO
-    # method 1: use label y to control bias for each channel in each layer(leaky relu)
-    # method 2: use label y to control the mask for each channel in each layer(Non-zero)
-    # method 3: use both x and y to control the attention mask for only input
+    # TODO
+    #   method 1: use label y to control bias for each channel in each layer(leaky relu)
+    #   method 2: use label y to control the mask for each channel in each layer(Non-zero)
+    #   method 3: use both x and y to control the attention mask for only input
 
-    # question remained:
-    # Is it feasible to replace the bias with attention output or simply add a new bias before activation?
-    # [solved] add new bias instead of replace: activate(conv + conv bias + attention bias)
-
-    # PLEASE ADD ACTIVATION FUNCTION TO EACH LAYER!!!
-
-    # Use dual path to train with or without attention
-
-    # Two approachs:
-    # 1st- inspired by the concept of co-activated neural group, attention is a phase locked loop.
-    # 2nd- inspired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
+    # TODO Two approachs:
+    #   1st- inspired by the concept of co-activated neural group, attention is a phase locked loop.
+    #   2nd- inspired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
 
     # for the 1st approach:
     # 1> when argmax(y) == argmax(y_{gt}), attention module is trained to converge at y = y_{gt}
