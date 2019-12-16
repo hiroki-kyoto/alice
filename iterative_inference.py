@@ -416,6 +416,24 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
             y = sess.run(y_t, feed_dict=feed_in)
             if np.argmax(y[0]) == labels_gt[i]:
                 num_correct += 1
+    elif stage >= 3: # test multiple shot with attention control
+        for i in range(xx.shape[0]):
+            # first shot:
+            # get the input of attention module, ie, the output of last shot
+            feed_in = dict()
+            feed_in[x_t] = xx[i:i+1, :, :, :]
+            for j in range(len(c_t)):
+                feed_in[c_t[j]] = ctl_sig[j]
+            y = sess.run(y_t, feed_dict=feed_in)
+            # second or latter shot:
+            # use the outputs of last shot to control the next shot
+            feed_in = dict()
+            feed_in[x_t] = xx[i:i + 1, :, :, :]
+            for shot in range(stage - 1):
+                feed_in[a_t] = np.copy(y)
+                y = sess.run(y_t, feed_dict=feed_in)
+            if np.argmax(y[0]) == labels_gt[i]:
+                num_correct += 1
     return float(num_correct) / float(labels_gt.shape[0])
 
     ''' 
@@ -449,7 +467,7 @@ if __name__ == "__main__":
     #loss = Train_IINN(iinn_, data_train, model_path, 2)
     #print('Final Training Loss = %6.5f' % loss)
     # test the trained model with test split of the same dataset
-    acc = Test_IINN(iinn_, data_train, model_path, 1)
+    acc = Test_IINN(iinn_, data_train, model_path, 4)
     print("Accuracy = %6.5f" % acc)
 
     # TODO
