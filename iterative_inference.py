@@ -467,11 +467,12 @@ if __name__ == "__main__":
     #loss = Train_IINN(iinn_, data_train, model_path, 2)
     #print('Final Training Loss = %6.5f' % loss)
     # test the trained model with test split of the same dataset
-    acc = Test_IINN(iinn_, data_train, model_path, 4)
+    acc = Test_IINN(iinn_, data_test, model_path, 3)
+    print(data_test['input'].shape[0])
     print("Accuracy = %6.5f" % acc)
 
     # TODO
-    #   method 1: use label y to control bias for each channel in each layer(leaky relu)
+    #   method 1: use label y to control bias for each channel in each layer(leaky relu)(DONE)
     #   method 2: use label y to control the mask for each channel in each layer(Non-zero)
     #   method 3: use both x and y to control the attention mask for only input
 
@@ -479,14 +480,19 @@ if __name__ == "__main__":
     #   1st- inspired by the concept of co-activated neural group, attention is a phase locked loop.
     #   2nd- inspired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
 
-    # for the 1st approach:
-    # 1> when argmax(y) == argmax(y_{gt}), attention module is trained to converge at y = y_{gt}
-    # 2> otherwise, attention module is trained to output y_{n+1}=y-y_n till y = \vec{0}.
-
-    # Next, add optimizer and begin to train this network!
-    # Test the model trained without attention control.
-    # Train with attention control in 4 ways:
+    # TODO (DONE) Train with attention control in 4 ways:
     #   1. train the model with attention alone using groundtruth labels;
     #   2. train with attention alone using output labels;
     #   3. train together of rec and att with groundtruth labels;
     #   4. train attention(using output/gt) and recognition modules in turns;
+
+    # TODO
+    #   #YinYang-GAN: Phase Lock + Constructionism + GAN + Cross-Modality + Iterative Inference
+    #   ##structure illustration:
+    #   $$x_i \in P_i, i=0,1,...,M;$$ $x_i$:sample, $P$:pattern space, $M$:number of spaces.<br/>
+    #   $$\hat{x}_i = G_i(x_i) = EC_i(DC_i(x_i));$$ $DC$: decoder, $EC$: encoder, $G$: generator.<br/>
+    #   $$D_i(x_i, \hat{x}_i) \in \{0,1\};$$ $\hat{x}_i$:generated sample, $D_i$:discriminator.<br/>
+    #   $$z_i = DC_i(x_i);$$ $z_i$: latent code decoded from $x_i$ with $DC_i$.<br/>
+    #   $$z'_i = \sum_{j\neq{i}}{T_{ji}(T_{ij}(z_i))};$$ $T_{ji}$:Translator from $j$ to $i$.<br/>
+    #   $$\hat{x'}_i = EC_i(z'_i);$$ $z'_i$:combined latent code, $\hat{x'}_i$:final output.<br/>
+    #   $$\frac{\partial{D_i(x_i, \hat{x'}_i)}}{\partial{z_i}}.$$ Differential to optimize on $z_i$.<br/>

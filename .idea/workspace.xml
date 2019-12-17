@@ -30,7 +30,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors" />
+    <property name="settings.editor.selected.configurable" value="MTConfigurable" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -264,29 +264,29 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1576456371119" />
-    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1576454781730">
+    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1576541684908">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1576454781730" />
-    <state width="1898" height="324" key="GridCell.Tab.0.bottom" timestamp="1576479898524">
+    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1576541684908" />
+    <state width="1898" height="322" key="GridCell.Tab.0.bottom" timestamp="1576544709442">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="324" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1576479898524" />
-    <state width="1898" height="324" key="GridCell.Tab.0.center" timestamp="1576479898523">
+    <state width="1898" height="322" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1576544709442" />
+    <state width="1898" height="322" key="GridCell.Tab.0.center" timestamp="1576544709442">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="324" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1576479898523" />
-    <state width="1898" height="324" key="GridCell.Tab.0.left" timestamp="1576479898523">
+    <state width="1898" height="322" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1576544709442" />
+    <state width="1898" height="322" key="GridCell.Tab.0.left" timestamp="1576544709442">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="324" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1576479898523" />
-    <state width="1898" height="324" key="GridCell.Tab.0.right" timestamp="1576479898523">
+    <state width="1898" height="322" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1576544709442" />
+    <state width="1898" height="322" key="GridCell.Tab.0.right" timestamp="1576544709442">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="324" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1576479898523" />
-    <state x="461" y="171" key="SettingsEditor" timestamp="1576113249018">
+    <state width="1898" height="322" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1576544709442" />
+    <state x="461" y="171" key="SettingsEditor" timestamp="1576541776932">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="461" y="171" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1576113249018" />
+    <state x="461" y="171" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1576541776932" />
   </component>
 </project>
