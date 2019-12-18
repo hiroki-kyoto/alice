@@ -496,3 +496,9 @@ if __name__ == "__main__":
     #   $$z'_i = \sum_{j\neq{i}}{T_{ji}(T_{ij}(z_i))};$$ $T_{ji}$:Translator from $j$ to $i$.<br/>
     #   $$\hat{x'}_i = EC_i(z'_i);$$ $z'_i$:combined latent code, $\hat{x'}_i$:final output.<br/>
     #   $$\frac{\partial{D_i(x_i, \hat{x'}_i)}}{\partial{z_i}}.$$ Differential to optimize on $z_i$.<br/>
+    #   Approach#1: training a AutoEncoder instead of training a unstable GAN.
+    #               Average Instance: for each given associated observation $z_j(j\neq{i})$,
+    #               there is an dynamic average instance $\bar{z}_i=T_{j\rightarrow{i}}(z_j)$.
+    #               For instance, let label of 'Lady' be an associated observation, the visual
+    #               compensation will be a slim body with long hair, it stands for the average
+    #               instance of 'Lady' in visual space.
