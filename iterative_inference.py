@@ -244,10 +244,10 @@ def Build_IINN(n_class):
     dim_y = [1, n_class]
 
     # configure the convolution layers
-    n_conv = 4
+    n_conv = 8
     conv_config = [None] * n_conv
     for i in range(n_conv):
-        conv_config[i] = new_conv_config(3, 3, 2, 2, 8 << i)
+        conv_config[i] = new_conv_config(3, 3, i%2+1, i%2+1, 8<<(i/2))
 
     # configure the fully connectied layers
     n_fc = 3
@@ -459,14 +459,13 @@ if __name__ == "__main__":
     data_train, data_test = \
         dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
 
-    # inspect the dataset
     print('image shape: (%d, %d)' % (data_train['input'].shape[1],
                                      data_train['input'].shape[2]))
 
     model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200-21626880'
-    #loss = Train_IINN(iinn_, data_train, model_path, 2)
-    #print('Final Training Loss = %6.5f' % loss)
-    # test the trained model with test split of the same dataset
+    loss = Train_IINN(iinn_, data_train, model_path, 2)
+    print('Final Training Loss = %6.5f' % loss)
+
     acc = Test_IINN(iinn_, data_test, model_path, 3)
     print(data_test['input'].shape[0])
     print("Accuracy = %6.5f" % acc)
@@ -502,3 +501,8 @@ if __name__ == "__main__":
     #               For instance, let label of 'Lady' be an associated observation, the visual
     #               compensation will be a slim body with long hair, it stands for the average
     #               instance of 'Lady' in visual space.
+
+
+    # todo
+    #   1. redefine the net and train/test with channel mask attention;
+    #   2. define an image generator and train with YinYang model.
