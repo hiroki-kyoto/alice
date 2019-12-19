@@ -14,7 +14,7 @@ import tensorflow as tf
 
 def get_conv_weights(w, h, chn_in, chn_out):
     dim = [w, h, chn_in, chn_out]
-    init_op = tf.truncated_normal(dim, 0.02)
+    init_op = tf.truncated_normal(dim, mean=0.0, stddev=0.1)
     return tf.get_variable(
         name='weights',
         initializer=init_op)
@@ -22,7 +22,7 @@ def get_conv_weights(w, h, chn_in, chn_out):
 
 def get_fc_weights(chn_in, chn_out):
     dim = [chn_in, chn_out]
-    init_op = tf.truncated_normal(dim, 0.02)
+    init_op = tf.truncated_normal(dim, mean=0.0, stddev=0.1)
     return tf.get_variable(
         name='weights',
         initializer=init_op)
@@ -61,8 +61,12 @@ def get_fc_layer(inputs, units):
     return layer
 
 
+def get_bounded_mask(inputs):
+    return tf.nn.sigmoid(inputs)
+
+
 def get_controlled_layer(inputs, control): # define your own control strategy
-    return tf.nn.bias_add(inputs, control)
+    return inputs * control
 
 
 def get_loss(outputs, feedbacks):
@@ -101,33 +105,28 @@ class IINN(object):
             sub_scope = 'fc_%d'
             for i in range(len(att_config)):
                 with tf.variable_scope(sub_scope % i, reuse=tf.AUTO_REUSE):
-                    fc_ = get_fc_layer(
-                        self.att_layers[-1],
-                        att_config[i]['units'])
+                    fc_ = get_fc_layer(self.att_layers[-1], att_config[i]['units'])
                     fc_ = get_nonlinear_layer(fc_)
                     self.att_layers.append(fc_)
-            # bridge tensor between attention to biases of conv
-            num_biases = 0
+            # bridge tensor between attention and masks of conv channels
+            num_masks = 0
             for i in range(len(conv_config)):
-                num_biases += conv_config[i]['filters']
+                num_masks += conv_config[i]['filters']
             with tf.variable_scope(sub_scope % len(att_config)):
-                fc_ = get_fc_layer(
-                    self.att_layers[-1],
-                    num_biases)
+                fc_ = get_fc_layer(self.att_layers[-1], num_masks)
+                fc_ = get_bounded_mask(fc_)
                 assert fc_.shape.as_list()[0] == 1
                 self.att_layers.append(fc_[0])
 
         scope = 'control'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-            # creating sub operations with back-prop killed
-            conv_bias_ctl = []
+            conv_mask_ctl = []
             offset = 0
             for i in range(len(conv_config)):
-                ctl_grad_free = \
-                    self.att_layers[-1][offset:offset + conv_config[i]['filters']]
-                self.ctl_layers.append(ctl_grad_free)
-                assert conv_config[i]['filters'] == ctl_grad_free.shape.as_list()[0]
-                offset += ctl_grad_free.shape.as_list()[0]
+                ctl_ = self.att_layers[-1][offset:offset + conv_config[i]['filters']]
+                self.ctl_layers.append(ctl_)
+                assert conv_config[i]['filters'] == ctl_.shape.as_list()[0]
+                offset += ctl_.shape.as_list()[0]
 
         scope = 'recognition'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -204,10 +203,6 @@ class IINN(object):
                   (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
         print("==============================================================================")
 
-    def attention(self, x, y):
-        pass
-    def inference(self, x, a):
-        pass
     def getInput(self):
         return self.inputs
     def getAttentionInput(self):
@@ -247,7 +242,7 @@ def Build_IINN(n_class):
     n_conv = 8
     conv_config = [None] * n_conv
     for i in range(n_conv):
-        conv_config[i] = new_conv_config(3, 3, i%2+1, i%2+1, 8<<(i/2))
+        conv_config[i] = new_conv_config(3, 3, i%2+1, i%2+1, 8<<(i//2))
 
     # configure the fully connectied layers
     n_fc = 3
@@ -287,7 +282,7 @@ def Train_IINN(iinn_: IINN,
     # set up all the control signals to 0
     ctl_sig = []
     for i in range(len(c_t)):
-        ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
+        ctl_sig.append(np.array([1.0] * c_t[i].shape.as_list()[0]))
 
     # batch size should be always 1 because of control module limit
     BAT_NUM = 1024
@@ -375,7 +370,7 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
     # set up all the control signals to 0
     ctl_sig = []
     for i in range(len(c_t)):
-        ctl_sig.append(np.array([0] * c_t[i].shape.as_list()[0]))
+        ctl_sig.append(np.array([1.0] * c_t[i].shape.as_list()[0]))
 
     sess = tf.Session()
     vars = tf.trainable_variables()
@@ -436,20 +431,6 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
                 num_correct += 1
     return float(num_correct) / float(labels_gt.shape[0])
 
-    ''' 
-    # iterative inference demo
-    for i in range(xx.shape[0]):
-        x = xx[i]
-        y = yy[i]
-        y_trivial = np.ones(n_class)  # start from a trivial solution
-        a = iinn_.attention(x, y_trivial)
-        y = iinn_.inference(x, a)
-        a = iinn_.attention(x, y)
-        y = iinn_.inference(x, a)
-        # ... this procedure goes on and on until converged
-        pass
-    '''
-
 
 if __name__ == "__main__":
     n_class = 10
@@ -462,12 +443,11 @@ if __name__ == "__main__":
     print('image shape: (%d, %d)' % (data_train['input'].shape[1],
                                      data_train['input'].shape[2]))
 
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200-21626880'
-    loss = Train_IINN(iinn_, data_train, model_path, 2)
-    print('Final Training Loss = %6.5f' % loss)
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200-21626880-15237120'
+    #loss = Train_IINN(iinn_, data_train, model_path, 1)
+    #print('Final Training Loss = %6.5f' % loss)
 
-    acc = Test_IINN(iinn_, data_test, model_path, 3)
-    print(data_test['input'].shape[0])
+    acc = Test_IINN(iinn_, data_test, model_path, 1)
     print("Accuracy = %6.5f" % acc)
 
     # TODO
