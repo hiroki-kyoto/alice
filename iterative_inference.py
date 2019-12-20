@@ -94,7 +94,7 @@ class IINN(object):
 
         # the optimizer
         # Learning rate stages: 1E-4, 1E-5.
-        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
+        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-5)
 
         scope = 'attention'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -287,7 +287,7 @@ def Train_IINN(iinn_: IINN,
     # batch size should be always 1 because of control module limit
     BAT_NUM = 1024
     MAX_ITR = 100000 * BAT_NUM
-    CVG_EPS = 1e-2
+    CVG_EPS = 1e-7
     itr = 0
     eps = 1E10
     loss = np.zeros([BAT_NUM], dtype=np.float32)
@@ -320,7 +320,7 @@ def Train_IINN(iinn_: IINN,
             itr += 1
             if itr % BAT_NUM == 0:
                 eps = np.mean(loss)
-                print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
+                print("batch#%05d loss=%12.8f" % (itr / BAT_NUM, eps))
             if itr % (BAT_NUM * 16) == 0:
                 saver.save(sess, model_path, global_step=global_step)
     elif train_stage == 2: # training with attention, try the 3 approaches
@@ -347,10 +347,10 @@ def Train_IINN(iinn_: IINN,
             itr += 1
             if itr % BAT_NUM == 0:
                 eps = np.mean(loss)
-                print("batch#%05d loss=%3.5f" % (itr / BAT_NUM, eps))
+                print("batch#%05d loss=%12.8f" % (itr / BAT_NUM, eps))
             if itr % (BAT_NUM * 16) == 0:
                 saver.save(sess, model_path, global_step=global_step)
-    elif train_stage == 3:
+    elif train_stage >= 3:
         # training in turn
         pass
     else:
@@ -443,12 +443,12 @@ if __name__ == "__main__":
     print('image shape: (%d, %d)' % (data_train['input'].shape[1],
                                      data_train['input'].shape[2]))
 
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-3424256-6356992-9011200-21626880-15237120'
-    #loss = Train_IINN(iinn_, data_train, model_path, 1)
-    #print('Final Training Loss = %6.5f' % loss)
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-16678912'
+    loss = Train_IINN(iinn_, data_train, model_path, 3)
+    print('Final Training Loss = %12.8f' % loss)
 
-    acc = Test_IINN(iinn_, data_test, model_path, 1)
-    print("Accuracy = %6.5f" % acc)
+    #acc = Test_IINN(iinn_, data_test, model_path, 3)
+    #print("Accuracy = %6.5f" % acc)
 
     # TODO
     #   method 1: use label y to control bias for each channel in each layer(leaky relu)(DONE)
@@ -485,4 +485,5 @@ if __name__ == "__main__":
 
     # todo
     #   1. redefine the net and train/test with channel mask attention;
-    #   2. define an image generator and train with YinYang model.
+    #   2. define an image generator and train with YinYang model.(sparsest AE)
+    #   3. Pick up the idea of creating GAME of AI
