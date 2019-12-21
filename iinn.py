@@ -1,4 +1,5 @@
-# iterative_inference.py
+# iinn.py
+# iterative inference neural network
 # NN inference in an iterative manner, instead of a forward single shot.
 
 import numpy as np
@@ -61,14 +62,6 @@ def get_fc_layer(inputs, units):
     return layer
 
 
-def get_bounded_mask(inputs):
-    return tf.nn.sigmoid(inputs)
-
-
-def get_controlled_layer(inputs, control): # define your own control strategy
-    return inputs * control
-
-
 def get_loss(outputs, feedbacks):
     return tf.nn.softmax_cross_entropy_with_logits_v2(None, feedbacks, outputs)
 
@@ -80,55 +73,20 @@ def convert_tensor_conv2fc(tensor): # issue: use max or mean for pooling?
 class IINN(object):
     def __init__(self, dim_x, dim_y,
                  conv_config, fc_config, att_config):
-        self.inputs = tf.placeholder(shape=dim_x, dtype=tf.float32)
-        self.feedbacks = tf.placeholder(shape=dim_y, dtype=tf.float32)
-        self.att_inputs = tf.placeholder(shape=dim_y, dtype=tf.float32)
+        self.inputA = tf.placeholder(shape=dim_x, dtype=tf.float32) # sample from space A
+        self.codeB = tf.placeholder(shape=dim_y, dtype=tf.float32) # latent code from space B
 
-        self.rec_layers = []
-        self.rec_layers.append(self.inputs)
-
-        self.att_layers = []
-        self.att_layers.append(self.att_inputs)
-
-        self.ctl_layers = []
+        self.decoderA = []
+        self.encoderA = []
+        self.transA2B = []
+        self.transB2A = []
 
         # the optimizer
-        # Learning rate stages: 1E-4, 1E-5.
-        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-5)
+        # Learning rate in 2 stages: 1E-4, 1E-5.
+        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
 
-        scope = 'attention'
-        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-            # normalize input (VERY IMPORTANT)
-            in_norm = tf.nn.softmax(self.att_layers[-1])
-            self.att_layers.append(in_norm)
-            # attention module
-            sub_scope = 'fc_%d'
-            for i in range(len(att_config)):
-                with tf.variable_scope(sub_scope % i, reuse=tf.AUTO_REUSE):
-                    fc_ = get_fc_layer(self.att_layers[-1], att_config[i]['units'])
-                    fc_ = get_nonlinear_layer(fc_)
-                    self.att_layers.append(fc_)
-            # bridge tensor between attention and masks of conv channels
-            num_masks = 0
-            for i in range(len(conv_config)):
-                num_masks += conv_config[i]['filters']
-            with tf.variable_scope(sub_scope % len(att_config)):
-                fc_ = get_fc_layer(self.att_layers[-1], num_masks)
-                fc_ = get_bounded_mask(fc_)
-                assert fc_.shape.as_list()[0] == 1
-                self.att_layers.append(fc_[0])
-
-        scope = 'control'
-        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-            conv_mask_ctl = []
-            offset = 0
-            for i in range(len(conv_config)):
-                ctl_ = self.att_layers[-1][offset:offset + conv_config[i]['filters']]
-                self.ctl_layers.append(ctl_)
-                assert conv_config[i]['filters'] == ctl_.shape.as_list()[0]
-                offset += ctl_.shape.as_list()[0]
-
-        scope = 'recognition'
+        self.decoderA.append(self.inputA)
+        scope = 'decoderA'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
             sub_scope = 'conv_%d'
             for i in range(len(conv_config)):
@@ -408,7 +366,8 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
             feed_in = dict()
             feed_in[x_t] = xx[i:i+1, :, :, :]
             feed_in[a_t] = np.copy(y)
-            y = sess.run(y_t, feed_dict=feed_in)
+            y, ctl_ = sess.run([y_t, c_t], feed_dict=feed_in)
+            print(ctl_[5])
             if np.argmax(y[0]) == labels_gt[i]:
                 num_correct += 1
     elif stage >= 3: # test multiple shot with attention control
@@ -443,47 +402,13 @@ if __name__ == "__main__":
     print('image shape: (%d, %d)' % (data_train['input'].shape[1],
                                      data_train['input'].shape[2]))
 
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-16678912'
-    loss = Train_IINN(iinn_, data_train, model_path, 3)
+    model_path = '../Models/CIFAR10-IINN/stage2/ckpt_iinn_cifar10-16678912'
+    loss = Train_IINN(iinn_, data_train, model_path, 1)
     print('Final Training Loss = %12.8f' % loss)
 
-    #acc = Test_IINN(iinn_, data_test, model_path, 3)
+    #acc = Test_IINN(iinn_, data_test, model_path, 1)
     #print("Accuracy = %6.5f" % acc)
 
-    # TODO
-    #   method 1: use label y to control bias for each channel in each layer(leaky relu)(DONE)
-    #   method 2: use label y to control the mask for each channel in each layer(Non-zero)
-    #   method 3: use both x and y to control the attention mask for only input
-
-    # TODO Two approachs:
-    #   1st- inspired by the concept of co-activated neural group, attention is a phase locked loop.
-    #   2nd- inspired by the system of yinyang-GAN, the HU system, decoder pass grads to encoder.
-
-    # TODO (DONE) Train with attention control in 4 ways:
-    #   1. train the model with attention alone using groundtruth labels;
-    #   2. train with attention alone using output labels;
-    #   3. train together of rec and att with groundtruth labels;
-    #   4. train attention(using output/gt) and recognition modules in turns;
-
-    # TODO
-    #   #YinYang-GAN: Phase Lock + Constructionism + GAN + Cross-Modality + Iterative Inference
-    #   ##structure illustration:
-    #   $$x_i \in P_i, i=0,1,...,M;$$ $x_i$:sample, $P$:pattern space, $M$:number of spaces.<br/>
-    #   $$\hat{x}_i = G_i(x_i) = EC_i(DC_i(x_i));$$ $DC$: decoder, $EC$: encoder, $G$: generator.<br/>
-    #   $$D_i(x_i, \hat{x}_i) \in \{0,1\};$$ $\hat{x}_i$:generated sample, $D_i$:discriminator.<br/>
-    #   $$z_i = DC_i(x_i);$$ $z_i$: latent code decoded from $x_i$ with $DC_i$.<br/>
-    #   $$z'_i = \sum_{j\neq{i}}{T_{ji}(T_{ij}(z_i))};$$ $T_{ji}$:Translator from $j$ to $i$.<br/>
-    #   $$\hat{x'}_i = EC_i(z'_i);$$ $z'_i$:combined latent code, $\hat{x'}_i$:final output.<br/>
-    #   $$\frac{\partial{D_i(x_i, \hat{x'}_i)}}{\partial{z_i}}.$$ Differential to optimize on $z_i$.<br/>
-    #   Approach#1: training a AutoEncoder instead of training a unstable GAN.
-    #               Average Instance: for each given associated observation $z_j(j\neq{i})$,
-    #               there is an dynamic average instance $\bar{z}_i=T_{j\rightarrow{i}}(z_j)$.
-    #               For instance, let label of 'Lady' be an associated observation, the visual
-    #               compensation will be a slim body with long hair, it stands for the average
-    #               instance of 'Lady' in visual space.
-
-
-    # todo
-    #   1. redefine the net and train/test with channel mask attention;
-    #   2. define an image generator and train with YinYang model.(sparsest AE)
-    #   3. Pick up the idea of creating GAME of AI
+    # TODO reference here: [https://www.cnblogs.com/thisisajoke/p/12054290.html]
+    #   1. define an image generator and train with YinYang model.(sparsest AE)
+    #   2. Pick up the idea of creating GAME of AI

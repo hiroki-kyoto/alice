@@ -3,7 +3,41 @@
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iterative_inference.py" beforeDir="false" afterPath="$PROJECT_DIR$/iterative_inference.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bicap.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bitmap.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_concept.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/capture.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/classifier.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/convert.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/count.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo.bmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/fit_curve.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/generator.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/handwrite.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/happy_loop.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/happy_loop.v1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/hu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/iterative_inference.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/libtools.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macro2micro_image2class.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pid.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pixel_detection_using_trained_classifier.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/real_nn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/realworld.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rlnn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/self_feedback_classifier.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slice_video_into_seq.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/testPID.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/transform_3d.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/transform_net.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/yinyang.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +62,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="MTConfigurable" />
@@ -268,22 +303,22 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1576713956211" />
-    <state width="1898" height="378" key="GridCell.Tab.0.bottom" timestamp="1576817298996">
+    <state width="1898" height="240" key="GridCell.Tab.0.bottom" timestamp="1576904053924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="378" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1576817298996" />
-    <state width="1898" height="378" key="GridCell.Tab.0.center" timestamp="1576817298996">
+    <state width="1898" height="240" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
+    <state width="1898" height="240" key="GridCell.Tab.0.center" timestamp="1576904053924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="378" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1576817298996" />
-    <state width="1898" height="378" key="GridCell.Tab.0.left" timestamp="1576817298996">
+    <state width="1898" height="240" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
+    <state width="1898" height="240" key="GridCell.Tab.0.left" timestamp="1576904053924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="378" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1576817298996" />
-    <state width="1898" height="378" key="GridCell.Tab.0.right" timestamp="1576817298996">
+    <state width="1898" height="240" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
+    <state width="1898" height="240" key="GridCell.Tab.0.right" timestamp="1576904053924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="378" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1576817298996" />
+    <state width="1898" height="240" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
     <state x="461" y="171" key="SettingsEditor" timestamp="1576541776932">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
