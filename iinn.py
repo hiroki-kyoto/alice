@@ -62,8 +62,12 @@ def get_fc_layer(inputs, units):
     return layer
 
 
-def get_loss(outputs, feedbacks):
+def get_loss_classifier(outputs, feedbacks):
     return tf.nn.softmax_cross_entropy_with_logits_v2(None, feedbacks, outputs)
+
+
+def get_loss_L1(outputs, feedbacks):
+    return tf.nn.reduce_mean(None,)
 
 
 def convert_tensor_conv2fc(tensor): # issue: use max or mean for pooling?
@@ -71,20 +75,7 @@ def convert_tensor_conv2fc(tensor): # issue: use max or mean for pooling?
 
 
 class IINN(object):
-    def __init__(self, dim_x, dim_y,
-                 conv_config, fc_config, att_config):
-        self.inputA = tf.placeholder(shape=dim_x, dtype=tf.float32) # sample from space A
-        self.codeB = tf.placeholder(shape=dim_y, dtype=tf.float32) # latent code from space B
-
-        self.decoderA = []
-        self.encoderA = []
-        self.transA2B = []
-        self.transB2A = []
-
-        # the optimizer
-        # Learning rate in 2 stages: 1E-4, 1E-5.
-        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
-
+    def decodeA(self, conv_config):
         self.decoderA.append(self.inputA)
         scope = 'decoderA'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
@@ -92,33 +83,59 @@ class IINN(object):
             for i in range(len(conv_config)):
                 with tf.variable_scope(sub_scope % i):
                     conv_ = get_conv_layer(
-                        self.rec_layers[-1],
+                        self.decoderA[-1],
                         conv_config[i]['ksize'],
                         conv_config[i]['strides'],
                         conv_config[i]['filters'])
-                    conv_ = get_controlled_layer(conv_, self.ctl_layers[i])
                     conv_ = get_nonlinear_layer(conv_)
-                    self.rec_layers.append(conv_)
-            # bridge tensor between conv and fc to let it flow thru
-            layer = convert_tensor_conv2fc(self.rec_layers[-1])
-            self.rec_layers.append(layer)
+                    self.decoderA.append(conv_)
+            # bridge tensors between conv and fc
+            self.codeA = convert_tensor_conv2fc(self.decoderA[-1])
+            self.decoderA.append(self.codeA)
 
-            # creating classifier using fc layers
+    def transformA2B(self, fc_config):
+        self.transA2B.append(self.codeA)
+        scope = 'transA2B'
+        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
             sub_scope = 'fc_%d'
             for i in range(len(fc_config)):
                 with tf.variable_scope(sub_scope % i):
                     fc_ = get_fc_layer(
-                        self.rec_layers[-1],
+                        self.transA2B[-1],
                         fc_config[i]['units'])
                     fc_ = get_nonlinear_layer(fc_)
-                    self.rec_layers.append(fc_)
+                    self.transA2B.append(fc_)
             # the last classifier layer -- using fc without nonlinearization
             with tf.variable_scope(sub_scope % len(fc_config)):
-                self.outputs = get_fc_layer(self.rec_layers[-1], dim_y[1])
-            self.rec_layers.append(self.outputs)
+                self.codeA2B = get_fc_layer(self.transA2B[-1], self.dim_y[1])
+            self.transA2B.append(self.codeA2B)
 
-            # calculate the loss
-            self.rec_loss = get_loss(self.outputs, self.feedbacks)
+    def __init__(self, dim_x, dim_y,
+                 conv_config, fc_config, att_config):
+        # dimension of input and output should be stored
+        self.dim_x = dim_x
+        self.dim_y = dim_y
+        # sample from space A, given input
+        self.inputA = tf.placeholder(shape=dim_x, dtype=tf.float32)
+        # expected latent code from space B, given feedback
+        self.codeB_ex = tf.placeholder(shape=dim_y, dtype=tf.float32)
+
+        self.decoderA = []
+        self.encoderA = []
+        self.transA2B = []
+        self.transB2A = []
+
+        # the optimizer : Learning rate in 2 stages: 1E-4, 1E-5.
+        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
+
+        # build decoder using convolution configuration
+        self.decodeA(conv_config)
+
+        # build transformer using fc configuration
+        self.transformA2B(fc_config)
+
+        # calculate the loss
+        self.loss_A2B = get_loss(self.codeA2B, self.codeB_ex)
 
         # Creating minimizers for different training purpose
         # group the variables by its namespace
