@@ -74,3 +74,21 @@ def hsv2rgb(hsv, mode=0):
     else:
         rgb = cv2.cvtColor(hsv_u8, cv2.COLOR_HSV2RGB)
     return np.float32(rgb) / 255.0
+
+
+# convert any nested list into flat list
+def flatten(x: list):
+    y = x.copy()
+    item_list_found = True
+    while item_list_found:
+        item_list_found = False
+        z = []
+        for i in y:
+            if type(i) is list:
+                item_list_found = True
+                for ii in i:
+                    z.append(ii)
+            else:
+                z.append(i)
+        y = z.copy()
+    return y

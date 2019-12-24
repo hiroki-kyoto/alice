@@ -13,8 +13,16 @@ import components.utils as utils
 import tensorflow as tf
 
 
-def get_conv_weights(w, h, chn_in, chn_out):
-    dim = [w, h, chn_in, chn_out]
+def get_conv_weights(h, w, chn_in, chn_out):
+    dim = [h, w, chn_in, chn_out]
+    init_op = tf.truncated_normal(dim, mean=0.0, stddev=0.1)
+    return tf.get_variable(
+        name='weights',
+        initializer=init_op)
+
+
+def get_deconv_weights(h, w, chn_in, chn_out):
+    dim = [h, w, chn_out, chn_in]
     init_op = tf.truncated_normal(dim, mean=0.0, stddev=0.1)
     return tf.get_variable(
         name='weights',
@@ -52,6 +60,20 @@ def get_conv_layer(inputs, kernel_size, strides, filters):
     return layer
 
 
+def get_deconv_layer(inputs, kernel_size, strides, filters):
+    k_h = kernel_size[0]
+    k_w = kernel_size[1]
+    chn_in = inputs.shape.as_list()[-1]
+    ch_out = filters
+    weights = get_deconv_weights(k_h, k_w, chn_in, chn_out)
+    bias = get_bias(chn_out)
+    out_shape = [inputs.shape.as_list()[1] * strides[0],
+                 inputs.shape.as_list()[2] * strides[1]]
+    layer = tf.nn.deconv2d(inputs, weights, out_shape, strides, padding='SAME')
+    layer = tf.nn.bias_add(layer, bias)
+    return layer
+
+
 def get_fc_layer(inputs, units):
     chn_in = inputs.shape.as_list()[-1]
     chn_out = units
@@ -62,16 +84,45 @@ def get_fc_layer(inputs, units):
     return layer
 
 
-def get_loss_classifier(outputs, feedbacks):
+def get_XEntropy_distance(outputs, feedbacks):
     return tf.nn.softmax_cross_entropy_with_logits_v2(None, feedbacks, outputs)
 
 
-def get_loss_L1(outputs, feedbacks):
-    return tf.nn.reduce_mean(None,)
+def get_Manhattan_distance(outputs, feedbacks):
+    return tf.reduce_mean(tf.abs(outputs - feedbacks))
 
 
-def convert_tensor_conv2fc(tensor): # issue: use max or mean for pooling?
-    return tf.reduce_mean(tensor, axis=[1, 2])
+def get_Euclidean_distance(outputs, feedbacks):
+    return tf.reduce_mean(tf.square(outputs - feedbacks))
+
+
+def get_Chebyshev_distance(outputs, feedbacks):
+    return tf.reduce_max(tf.abs(outputs - feedbacks))
+
+
+def get_Minkowski_distance(outputs, feedbacks, norm):
+    return tf.reduce_mean(tf.pow(tf.abs(feedbacks - outputs), norm))
+
+
+def get_Cosine_distance(outputs, feedbacks):
+    assert len(outputs.shape) == 2
+    assert len(feedbacks.shape) == 2
+    a_norm = tf.sqrt(tf.reduce_sum(tf.square(outputs), axis=1) + 1E-8)
+    b_norm = tf.sqrt(tf.reduce_sum(tf.square(feedbacks), axis=1) + 1E-8)
+    a_dot_b = tf.reduce_sum(a * b, axis=1)
+    return tf.reduce_mean(1 - a_dot_b / (a_norm * b_norm))
+
+
+def mat2vec(mat): # convert 4D tensor into 2D
+    n, h, w, c = mat.shape.as_list()[0:4]
+    return tf.reshape(tf.space2depth(mat, [h, w]), [n, h*w*c])
+
+
+def vec2mat(vec, h, w): # convert 2D tensor into 4D
+    assert vec.shape.as_list()[1] % (h*w) == 0
+    n, d = vec.shape.as_list()[0:2]
+    c = d // (h * w)
+    return tf.reshape(tf.depth2space(vec, [h, w]), [n, h, w, c])
 
 
 class IINN(object):
@@ -90,8 +141,37 @@ class IINN(object):
                     conv_ = get_nonlinear_layer(conv_)
                     self.decoderA.append(conv_)
             # bridge tensors between conv and fc
-            self.codeA = convert_tensor_conv2fc(self.decoderA[-1])
+            self.codeA = mat2vec(self.decoderA[-1])
             self.decoderA.append(self.codeA)
+
+
+    def encodeA(self, conv_config):
+        self.encoderA.append(self.codeA)
+        scope = 'encoderA'
+        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+            # bridge: convert tensors from 2D to 4D ( extended on W x H )
+            base_h, base_w = self.decoderA[-2].shape.as_list()[1:3]
+            mat_ = vec2mat(self.encoderA[-1], base_h, base_w)
+            self.encoderA.append(mat_)
+
+            sub_scope = 'deconv_%d'
+            for i in range(len(conv_config)-1):
+                with tf.variable_scope(sub_scope % i):
+                    deconv_ = get_deconv_layer(
+                        self.encoderA[-1],
+                        conv_config[len(conv_config) - 1 - i]['ksize'],
+                        conv_config[len(conv_config) - 1 - i]['strides'],
+                        conv_config[len(conv_config) - 2 - i]['filters'])
+                    deconv_ = get_nonlinear_layer(deconv_)
+                    self.encoderA.append(deconv_)
+            with tf.variable_scope(sub_scope % (len(conv_config) - 1)):
+                self.inputA2A = get_deconv_layer(
+                    self.encoderA[-1],
+                    conv_config[0]['ksize'],
+                    conv_config[0]['strides'],
+                    self.inputA.shape.as_list()[3])
+                self.encoderA.append(self.inputA2A)
+
 
     def transformA2B(self, fc_config):
         self.transA2B.append(self.codeA)
@@ -110,6 +190,25 @@ class IINN(object):
                 self.codeA2B = get_fc_layer(self.transA2B[-1], self.dim_y[1])
             self.transA2B.append(self.codeA2B)
 
+
+    def transformB2A(self, fc_config):
+        self.transB2A.append(self.codeB)
+        scope = 'transB2A'
+        with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+            sub_scope = 'fc_%d'
+            for i in range(len(fc_config) - 1):
+                with tf.variable_scope(sub_scope % i):
+                    fc_ = get_fc_layer(
+                        self.transB2A[-1],
+                        fc_config[len(fc_config) - 2 - i]['units'])
+                    fc_ = get_nonlinear_layer(fc_)
+                    self.transB2A.append(fc_)
+            # the last classifier layer -- using fc without nonlinearization
+            with tf.variable_scope(sub_scope % (len(fc_config) - 1)):
+                self.codeB2A = get_fc_layer(self.transB2A[-1], self.codeA.shape[1])
+            self.transB2A.append(self.codeB2A)
+
+
     def __init__(self, dim_x, dim_y,
                  conv_config, fc_config, att_config):
         # dimension of input and output should be stored
@@ -118,7 +217,9 @@ class IINN(object):
         # sample from space A, given input
         self.inputA = tf.placeholder(shape=dim_x, dtype=tf.float32)
         # expected latent code from space B, given feedback
-        self.codeB_ex = tf.placeholder(shape=dim_y, dtype=tf.float32)
+        self.codeB = tf.get_variable(name='codeB', initializer=tf.zeros(dim_y, dtype=tf.float32))
+        self.codeB_setter = tf.placeholder(shape=dim_y, dtype=tf.float32)
+        self.codeB_assign = self.codeB.assign(self.codeB_setter)
 
         self.decoderA = []
         self.encoderA = []
@@ -128,32 +229,51 @@ class IINN(object):
         # the optimizer : Learning rate in 2 stages: 1E-4, 1E-5.
         self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
 
-        # build decoder using convolution configuration
+        # build decoder of A
         self.decodeA(conv_config)
+        # build encoder of A
+        self.encodeA(conv_config)
 
-        # build transformer using fc configuration
+        # build transformer from A to B
         self.transformA2B(fc_config)
+        # build transformer from B to A
+        self.transformB2A(fc_config)
 
-        # calculate the loss
-        self.loss_A2B = get_loss(self.codeA2B, self.codeB_ex)
+        # calculate losses
+        self.lossA2A = get_Manhattan_distance(self.inputA2A, self.inputA)
+        self.lossA2B = get_XEntropy_distance(self.codeA2B, self.codeB)
+        self.lossB2A = get_Manhattan_distance(self.codeB2A, self.codeA)
 
         # Creating minimizers for different training purpose
         # group the variables by its namespace
         vars = tf.global_variables()
-        rec_vars = []
-        att_vars = []
+        vars_decoderA = []
+        vars_encoderA = []
+        vars_transA2B = []
+        vars_transB2A = []
+
         for i in range(len(vars)):
-            if vars[i].name.find('recognition') != -1:
-                rec_vars.append(vars[i])
-            elif vars[i].name.find('attention') != -1:
-                att_vars.append(vars[i])
+            if vars[i].name.find('decoderA') != -1:
+                vars_decoderA.append(vars[i])
+            elif vars[i].name.find('encoderA') != -1:
+                vars_encoderA.append(vars[i])
+            elif vars[i].name.find('transA2B') != -1:
+                vars_transA2B.append(vars[i])
+            elif vars[i].name.find('transB2A') != -1:
+                vars_transB2A.append(vars[i])
+            elif vars[i].name.find('codeB') != -1:
+                pass
             else:
                 raise NameError('unknown variables: %s' % vars[i].name)
 
-        self.minimizer_rec = self.optimzer.minimize(
-            self.rec_loss, var_list=rec_vars, name='opt_rec')
-        self.minimizer_att = self.optimzer.minimize(
-            self.rec_loss, var_list=att_vars, name='opt_att')
+        self.opt_A2A = self.optimzer.minimize(
+            self.lossA2A, var_list=utils.flatten([vars_decoderA, vars_encoderA]), name='opt_A2A')
+        self.opt_A2B = self.optimzer.minimize(
+            self.lossA2B, var_list=vars_transA2B, name='opt_A2B')
+        self.opt_B2A = self.optimzer.minimize(
+            self.lossB2A, var_list=vars_transB2A, name='opt_B2A')
+        self.opt_codeB = self.optimizer.minimize(
+            self.lossB2A, var_list=self.codeB, name='opt_codeB')
 
         # network self check
         print("================================ VARIABLES ===================================")
