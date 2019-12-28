@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iinn.py" beforeDir="false" afterPath="$PROJECT_DIR$/iinn.py" afterDir="false" />
@@ -44,7 +42,7 @@
       </console-settings>
     </option>
   </component>
-  <component name="RunManager" selected="Python.iterative_inference">
+  <component name="RunManager" selected="Python.iinn">
     <configuration name="classifier" type="PythonConfigurationType" factoryName="Python">
       <module name="Alice" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -79,6 +77,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/semantic-segmentation/guided_learning.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="iinn" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Alice" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/iinn.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -200,9 +219,11 @@
       <item itemvalue="Python.logic_learning" />
       <item itemvalue="Python.self_feedback_classifier" />
       <item itemvalue="Python.stackedSOMs" />
+      <item itemvalue="Python.iinn" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.iinn" />
         <item itemvalue="Python.logic_learning" />
         <item itemvalue="Python.guided_learning" />
         <item itemvalue="Python.stackedSOMs" />
@@ -268,30 +289,30 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="552" y="197" key="#Notifications/0.0.1920.1080@0.0.1920.1080" timestamp="1577152514870" />
-    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1576715361788">
+    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1577497147061">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1576715361788" />
+    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1577497147061" />
     <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1577152431398">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1577152431398" />
-    <state width="1898" height="240" key="GridCell.Tab.0.bottom" timestamp="1576904053924">
+    <state width="1898" height="238" key="GridCell.Tab.0.bottom" timestamp="1577499724034">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="240" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
-    <state width="1898" height="240" key="GridCell.Tab.0.center" timestamp="1576904053924">
+    <state width="1898" height="238" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
+    <state width="1898" height="238" key="GridCell.Tab.0.center" timestamp="1577499724034">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="240" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
-    <state width="1898" height="240" key="GridCell.Tab.0.left" timestamp="1576904053924">
+    <state width="1898" height="238" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
+    <state width="1898" height="238" key="GridCell.Tab.0.left" timestamp="1577499724034">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="240" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
-    <state width="1898" height="240" key="GridCell.Tab.0.right" timestamp="1576904053924">
+    <state width="1898" height="238" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
+    <state width="1898" height="238" key="GridCell.Tab.0.right" timestamp="1577499724034">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1898" height="240" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1576904053924" />
+    <state width="1898" height="238" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
     <state x="461" y="171" key="SettingsEditor" timestamp="1577150568924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>

@@ -55,7 +55,9 @@ def get_conv_layer(inputs, kernel_size, strides, filters):
     chn_out = filters
     weights = get_conv_weights(w, h, chn_in, chn_out)
     bias = get_bias(chn_out)
-    layer = tf.nn.conv2d(inputs, weights, strides, padding='SAME')
+    strides_ = utils.flatten([1, strides, 1])
+    print(strides_)
+    layer = tf.nn.conv2d(inputs, weights, strides_, padding='SAME')
     layer = tf.nn.bias_add(layer, bias)
     return layer
 
@@ -64,12 +66,15 @@ def get_deconv_layer(inputs, kernel_size, strides, filters):
     k_h = kernel_size[0]
     k_w = kernel_size[1]
     chn_in = inputs.shape.as_list()[-1]
-    ch_out = filters
+    chn_out = filters
     weights = get_deconv_weights(k_h, k_w, chn_in, chn_out)
     bias = get_bias(chn_out)
-    out_shape = [inputs.shape.as_list()[1] * strides[0],
-                 inputs.shape.as_list()[2] * strides[1]]
-    layer = tf.nn.deconv2d(inputs, weights, out_shape, strides, padding='SAME')
+    out_shape = [inputs.shape.as_list()[0],
+                 inputs.shape.as_list()[1] * strides[0],
+                 inputs.shape.as_list()[2] * strides[1],
+                 chn_out]
+    strides_ = utils.flatten([1, strides, 1])
+    layer = tf.nn.conv2d_transpose(inputs, weights, out_shape, strides_, padding='SAME')
     layer = tf.nn.bias_add(layer, bias)
     return layer
 
@@ -115,14 +120,14 @@ def get_Cosine_distance(outputs, feedbacks):
 
 def mat2vec(mat): # convert 4D tensor into 2D
     n, h, w, c = mat.shape.as_list()[0:4]
-    return tf.reshape(tf.space2depth(mat, [h, w]), [n, h*w*c])
+    return tf.reshape(mat, [n, h*w*c])
 
 
 def vec2mat(vec, h, w): # convert 2D tensor into 4D
     assert vec.shape.as_list()[1] % (h*w) == 0
     n, d = vec.shape.as_list()[0:2]
     c = d // (h * w)
-    return tf.reshape(tf.depth2space(vec, [h, w]), [n, h, w, c])
+    return tf.reshape(vec, [n, h, w, c])
 
 
 class IINN(object):
@@ -196,16 +201,16 @@ class IINN(object):
         scope = 'transB2A'
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
             sub_scope = 'fc_%d'
-            for i in range(len(fc_config) - 1):
+            for i in range(len(fc_config)):
                 with tf.variable_scope(sub_scope % i):
                     fc_ = get_fc_layer(
                         self.transB2A[-1],
-                        fc_config[len(fc_config) - 2 - i]['units'])
+                        fc_config[len(fc_config) - 1 - i]['units'])
                     fc_ = get_nonlinear_layer(fc_)
                     self.transB2A.append(fc_)
             # the last classifier layer -- using fc without nonlinearization
-            with tf.variable_scope(sub_scope % (len(fc_config) - 1)):
-                self.codeB2A = get_fc_layer(self.transB2A[-1], self.codeA.shape[1])
+            with tf.variable_scope(sub_scope % len(fc_config)):
+                self.codeB2A = get_fc_layer(self.transB2A[-1], self.codeA.shape.as_list()[1])
             self.transB2A.append(self.codeB2A)
 
 
@@ -227,7 +232,7 @@ class IINN(object):
         self.transB2A = []
 
         # the optimizer : Learning rate in 2 stages: 1E-4, 1E-5.
-        self.optimzer = tf.train.AdamOptimizer(learning_rate=1E-4)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=1E-4)
 
         # build decoder of A
         self.decodeA(conv_config)
@@ -266,11 +271,11 @@ class IINN(object):
             else:
                 raise NameError('unknown variables: %s' % vars[i].name)
 
-        self.opt_A2A = self.optimzer.minimize(
+        self.opt_A2A = self.optimizer.minimize(
             self.lossA2A, var_list=utils.flatten([vars_decoderA, vars_encoderA]), name='opt_A2A')
-        self.opt_A2B = self.optimzer.minimize(
+        self.opt_A2B = self.optimizer.minimize(
             self.lossA2B, var_list=vars_transA2B, name='opt_A2B')
-        self.opt_B2A = self.optimzer.minimize(
+        self.opt_B2A = self.optimizer.minimize(
             self.lossB2A, var_list=vars_transB2A, name='opt_B2A')
         self.opt_codeB = self.optimizer.minimize(
             self.lossB2A, var_list=self.codeB, name='opt_codeB')
@@ -284,15 +289,7 @@ class IINN(object):
         print("==============================================================================")
         print("\n")
         print("================================ OPERATORS ===================================")
-        ops = self.rec_layers
-        for i in range(len(ops)):
-            print("opr#%03d:%40s %16s %12s" %
-                  (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
-        ops = self.att_layers
-        for i in range(len(ops)):
-            print("opr#%03d:%40s %16s %12s" %
-                  (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
-        ops = self.ctl_layers
+        ops = utils.flatten([self.decoderA, self.encoderA, self.transA2B, self.transB2A])
         for i in range(len(ops)):
             print("opr#%03d:%40s %16s %12s" %
                   (i, ops[i].name[:-2], ops[i].shape, str(ops[i].dtype)[9:-2]))
@@ -319,7 +316,7 @@ class IINN(object):
 def new_conv_config(k_w, k_h, s_w, s_h, filters):
     demo_config = dict()
     demo_config['ksize'] = (k_w, k_h)
-    demo_config['strides'] = (1, s_w, s_h, 1)
+    demo_config['strides'] = (s_w, s_h)
     demo_config['filters'] = filters
     return demo_config
 
@@ -330,7 +327,7 @@ def new_fc_config(units):
 
 
 def Build_IINN(n_class):
-    dim_x = [1, None, None, 3]
+    dim_x = [1, 32, 32, 3]
     dim_y = [1, n_class]
 
     # configure the convolution layers
@@ -531,6 +528,7 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
 if __name__ == "__main__":
     n_class = 10
     iinn_ = Build_IINN(n_class)
+    exit(0)
 
     # training with CIFAR-10 dataset
     data_train, data_test = \

@@ -76,7 +76,7 @@ def hsv2rgb(hsv, mode=0):
     return np.float32(rgb) / 255.0
 
 
-# convert any nested list into flat list
+# convert any nested list(or tuple) into a flat list
 def flatten(x: list):
     y = x.copy()
     item_list_found = True
@@ -84,7 +84,7 @@ def flatten(x: list):
         item_list_found = False
         z = []
         for i in y:
-            if type(i) is list:
+            if type(i) is list or type(i) is tuple:
                 item_list_found = True
                 for ii in i:
                     z.append(ii)
