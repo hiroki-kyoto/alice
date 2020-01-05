@@ -309,8 +309,6 @@ class IINN(object):
         return self.rec_loss
     def getOptRec(self):
         return self.minimizer_rec
-    def getOptAtt(self):
-        return self.minimizer_att
 
 
 def new_conv_config(k_w, k_h, s_w, s_h, filters):
