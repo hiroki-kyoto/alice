@@ -56,7 +56,6 @@ def get_conv_layer(inputs, kernel_size, strides, filters):
     weights = get_conv_weights(w, h, chn_in, chn_out)
     bias = get_bias(chn_out)
     strides_ = utils.flatten([1, strides, 1])
-    print(strides_)
     layer = tf.nn.conv2d(inputs, weights, strides_, padding='SAME')
     layer = tf.nn.bias_add(layer, bias)
     return layer
@@ -526,7 +525,6 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
 if __name__ == "__main__":
     n_class = 10
     iinn_ = Build_IINN(n_class)
-    exit(0)
 
     # training with CIFAR-10 dataset
     data_train, data_test = \
@@ -534,8 +532,11 @@ if __name__ == "__main__":
 
     print('image shape: (%d, %d)' % (data_train['input'].shape[1],
                                      data_train['input'].shape[2]))
+    print('training set volume: %d pairs of sample.' % data_train['input'].shape[0])
+    print('testing  set volume: %d pairs of sample.' % data_test['input'].shape[0])
+    exit(0)
 
-    model_path = '../Models/CIFAR10-IINN/stage2/ckpt_iinn_cifar10-16678912'
+    model_path = '../Models/CIFAR10-IINN/stage2/ckpt_iinn_cifar10'
     loss = Train_IINN(iinn_, data_train, model_path, 1)
     print('Final Training Loss = %12.8f' % loss)
 
