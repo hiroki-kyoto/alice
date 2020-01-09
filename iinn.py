@@ -295,19 +295,27 @@ class IINN(object):
         print("==============================================================================")
 
     def getInput(self):
-        return self.inputs
-    def getAttentionInput(self):
-        return self.att_inputs
+        return self.inputA
     def getFeedback(self):
-        return self.feedbacks
+        return self.codeB_setter
     def getOutput(self):
-        return self.outputs
-    def getControl(self):
-        return self.ctl_layers
-    def getLoss(self):
-        return self.rec_loss
-    def getOptRec(self):
-        return self.minimizer_rec
+        return self.codeB
+    def getFeedbackAssigner(self):
+        return self.codeB_assign
+    def getLossA2A(self):
+        return self.lossA2A
+    def getLossA2B(self):
+        return self.lossA2B
+    def getLossB2A(self):
+        return self.lossB2A
+    def getOptA2A(self):
+        return self.opt_A2A
+    def getOptA2B(self):
+        return self.opt_A2B
+    def getOptB2A(self):
+        return self.opt_B2A
+    def getOptCodeB(self):
+        return self.opt_codeB
 
 
 def new_conv_config(k_w, k_h, s_w, s_h, filters):
@@ -396,7 +404,7 @@ def Train_IINN(iinn_: IINN,
     else:
         sess.run(tf.global_variables_initializer())
 
-    if train_stage == 1: # stage 1: train without attention
+    if train_stage == 1: # stage 1: train auto encoders 
         while itr < MAX_ITR and  eps > CVG_EPS:
             idx = np.random.randint(xx.shape[0])
             feed_in = dict()
@@ -536,7 +544,7 @@ if __name__ == "__main__":
     print('testing  set volume: %d pairs of sample.' % data_test['input'].shape[0])
     exit(0)
 
-    model_path = '../Models/CIFAR10-IINN/stage2/ckpt_iinn_cifar10'
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10'
     loss = Train_IINN(iinn_, data_train, model_path, 1)
     print('Final Training Loss = %12.8f' % loss)
 
