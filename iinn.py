@@ -457,19 +457,31 @@ def Train_IINN(iinn_: IINN,
         raise NameError("unrecognized stage parameter!")
 
 
-def Test_IINN(iinn_: IINN, data: dict, model_path: str, stage: int) -> float:
+
+
+# target: AutoEncoder A, converter A2B, B2A, and codeB
+def Test_IINN(iinn_: IINN, data: dict, model_path: str, target: int):
     xx = data['input']
     yy = data['output']
 
-    x_t = iinn_.getInput()  # tensor of inputs
-    y_t = iinn_.getOutput()  # tensor of outputs
-    c_t = iinn_.getControl()  # tensor of all control signals
-    a_t = iinn_.getAttentionInput()  # tensor of inputs of attention
+    # input and output nodes
+    inputA = iinn_.getInputA()  # tensor of inputs
+    codeB = iinn_.getCodeB()  # output
+    codeB_setter = iinn_.getCodeBSetter()  # PLACE HOLDER FOR CODE B
 
-    # set up all the control signals to 0
-    ctl_sig = []
-    for i in range(len(c_t)):
-        ctl_sig.append(np.array([1.0] * c_t[i].shape.as_list()[0]))
+    # switch / control node
+    codeB_assign = iinn_.getCodeBAssign()  # OP TO ASSIGN PLACEHOLDER TO VARIABLE CODE B
+
+    # state monitors
+    loss_A2A = iinn_.getLossA2A()
+    loss_A2B = iinn_.getLossA2B()
+    loss_B2A = iinn_.getLossB2A()
+
+    # system update logics
+    opt_A2A = iinn_.getOptA2A()
+    opt_A2B = iinn_.getOptA2B()
+    opt_B2A = iinn_.getLossB2A()
+    opt_codeB = iinn_.getOptCodeB()
 
     sess = tf.Session()
     vars = tf.trainable_variables()
