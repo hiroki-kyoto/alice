@@ -457,10 +457,38 @@ def Train_IINN(iinn_: IINN,
         raise NameError("unrecognized stage parameter!")
 
 
+class PatternType(object):
+    def __init__(self):
+        self.code = 0 # undefined
+    def __str__(self):
+        return "UNKNOWN PATTERN TYPE"
+    def __eq__(self, other):
+        if type(other) != type(self):
+            raise TypeError("right op is not an instance of PatternType!")
+        return self.code == other.code
 
+class PatternA(PatternType):
+    @override
+    def __init__(self):
+        self.code = 1
+    @override
+    def __str__(self):
+        return "A"
 
-# target: AutoEncoder A, converter A2B, B2A, and codeB
-def Test_IINN(iinn_: IINN, data: dict, model_path: str, target: int):
+class PatternB(PatternType):
+    @override
+    def __init__(self):
+        self.code = 2
+    @override
+    def __str__(self):
+        return "B"
+
+# source and target
+def Test_IINN(iinn_: IINN,
+              data: dict,
+              model_path: str,
+              source: PatternType,
+              target: PatternType):
     xx = data['input']
     yy = data['output']
 
@@ -491,6 +519,26 @@ def Test_IINN(iinn_: IINN, data: dict, model_path: str, target: int):
         saver.restore(sess, model_path)
     else:
         raise NameError("failed to load checkpoint from path %s" %model_path)
+
+
+    def testA2A():
+        ...
+
+    # test the first converter: A to A
+    if source == PatternA():
+        if target == PatternA():
+            testA2A()
+        elif target == PatternB():
+            testA2B()
+        else:
+            raise ValueError("unknown pattern type!")
+    elif source == PatternB():
+        if target == PatternA():
+            testB2A()
+        elif target == PatternB():
+            raise ValueError("unproper pattern type!")
+        else:
+            raise ValueError("unknown pattern type!")
 
     # inference
     labels_gt = np.argmax(yy, axis=-1)
