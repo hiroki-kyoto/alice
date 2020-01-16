@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iinn.py" beforeDir="false" afterPath="$PROJECT_DIR$/iinn.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -172,11 +173,11 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1577497147061" />
-    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1578961907258">
+    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1579136557657">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="640" y="255" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1578798921143" />
-    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1578961907258" />
+    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1579136557657" />
     <state x="668" y="131" key="#iinn" timestamp="1578489466884">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

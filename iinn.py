@@ -300,9 +300,15 @@ class IINN(object):
     def getCodeBSetter(self):
         return self.codeB_setter
     # output
+    def getInputA2A(self):
+        return self.inputA2A
+    def getCodeA2B(self):
+        return self.codeA2B
+    def getCodeB2A(self):
+        return self.codeB2A
+    # control / switch
     def getCodeB(self):
         return self.codeB
-    # control / switch
     def getCodeBAssign(self):
         return self.codeB_assign
     # state monitors
@@ -372,12 +378,12 @@ def Train_IINN(iinn_: IINN,
     yy = data['output']
 
     # input and output nodes
-    inputA = iinn_.getInputA() # tensor of inputs
-    codeB = iinn_.getCodeB() # output
-    codeB_setter = iinn_.getCodeBSetter() # PLACE HOLDER FOR CODE B
+    inputA = iinn_.getInputA() # tensor of input A
 
     # switch / control node
-    codeB_assign = iinn_.getCodeBAssign() # OP TO ASSIGN PLACEHOLDER TO VARIABLE CODE B
+    codeB = iinn_.getCodeB()  # control target
+    codeB_setter = iinn_.getCodeBSetter()  # control input
+    codeB_assign = iinn_.getCodeBAssign() # control operation
 
     # state monitors
     loss_A2A = iinn_.getLossA2A()
@@ -493,12 +499,17 @@ def Test_IINN(iinn_: IINN,
     yy = data['output']
 
     # input and output nodes
-    inputA = iinn_.getInputA()  # tensor of inputs
-    codeB = iinn_.getCodeB()  # output
-    codeB_setter = iinn_.getCodeBSetter()  # PLACE HOLDER FOR CODE B
+    inputA = iinn_.getInputA()  # tensor of input A
+    codeB_setter = iinn_.getCodeBSetter()  # setter value of B
 
-    # switch / control node
-    codeB_assign = iinn_.getCodeBAssign()  # OP TO ASSIGN PLACEHOLDER TO VARIABLE CODE B
+    # control nodes
+    codeB = iinn_.getCodeB() # control target
+    codeB_assign = iinn_.getCodeBAssign() # control operation
+
+    # output nodes
+    inputA2A = iinn_.getInputA2A()
+    codeA2B = iinn_.getCodeA2B()
+    codeB2A = iinn_.getCodeB2A()
 
     # state monitors
     loss_A2A = iinn_.getLossA2A()
@@ -520,9 +531,19 @@ def Test_IINN(iinn_: IINN,
     else:
         raise NameError("failed to load checkpoint from path %s" %model_path)
 
-
+    # implementations of different converter or pattern association
     def testA2A():
-        ...
+        for i in range(xx.shape[0]):
+            feed_in = dict()
+            feed_in[inputA] = xx[i:i+1, :, :, :]
+            A_ = sess.run(inputA2A, feed_dict=feed_in)
+            utils.show_rgb(A_)
+
+    def testA2B():
+        pass
+
+    def testB2A():
+        pass
 
     # test the first converter: A to A
     if source == PatternA():
@@ -545,14 +566,7 @@ def Test_IINN(iinn_: IINN,
     num_correct = 0
 
     if stage == 1: # test without attention control
-        for i in range(xx.shape[0]):
-            feed_in = dict()
-            feed_in[x_t] = xx[i:i+1, :, :, :]
-            for j in range(len(c_t)):
-                feed_in[c_t[j]] = ctl_sig[j]
-            y = sess.run(y_t, feed_dict=feed_in)
-            if np.argmax(y[0]) == labels_gt[i]:
-                num_correct += 1
+
     elif stage == 2: # test double-shot with attention control
         for i in range(xx.shape[0]):
             # first shot:
