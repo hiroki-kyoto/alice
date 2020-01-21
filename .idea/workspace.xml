@@ -91,7 +91,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="D:\Anaconda3\envs\py35\python.exe" />
+      <option name="SDK_HOME" value="C:\Users\Administrator\AppData\Local\Programs\Python\Python36\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -105,6 +105,10 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.IINN" />
+      <item itemvalue="Python.iinn" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.iinn" />
@@ -169,39 +173,39 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="552" y="197" key="#Notifications/0.0.1920.1080@0.0.1920.1080" timestamp="1577152514870" />
-    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1577497147061">
+    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579235345293">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1577497147061" />
-    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1579136557657">
+    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1579235345293" />
+    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1579568008673">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="640" y="255" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1578798921143" />
-    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1579136557657" />
+    <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1579568008673" />
     <state x="668" y="131" key="#iinn" timestamp="1578489466884">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="131" key="#iinn/0.0.1920.1040@0.0.1920.1040" timestamp="1578489466884" />
-    <state width="1898" height="305" key="GridCell.Tab.0.bottom" timestamp="1578814425207">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1898" height="115" key="GridCell.Tab.0.bottom" timestamp="1579341492685">
+      <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state width="1898" height="305" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
-    <state width="1898" height="238" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
-    <state width="1898" height="305" key="GridCell.Tab.0.center" timestamp="1578814425207">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1898" height="115" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
+    <state width="1898" height="115" key="GridCell.Tab.0.center" timestamp="1579341492685">
+      <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state width="1898" height="305" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
-    <state width="1898" height="238" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
-    <state width="1898" height="305" key="GridCell.Tab.0.left" timestamp="1578814425207">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1898" height="115" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
+    <state width="1898" height="115" key="GridCell.Tab.0.left" timestamp="1579341492685">
+      <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state width="1898" height="305" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
-    <state width="1898" height="238" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
-    <state width="1898" height="305" key="GridCell.Tab.0.right" timestamp="1578814425207">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1898" height="115" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
+    <state width="1898" height="115" key="GridCell.Tab.0.right" timestamp="1579341492685">
+      <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state width="1898" height="305" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
-    <state width="1898" height="238" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1577499724034" />
+    <state width="1898" height="115" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
     <state x="461" y="171" key="SettingsEditor" timestamp="1577150568924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>

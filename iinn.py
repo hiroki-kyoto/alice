@@ -474,18 +474,14 @@ class PatternType(object):
         return self.code == other.code
 
 class PatternA(PatternType):
-    @override
     def __init__(self):
         self.code = 1
-    @override
     def __str__(self):
         return "A"
 
 class PatternB(PatternType):
-    @override
     def __init__(self):
         self.code = 2
-    @override
     def __str__(self):
         return "B"
 
@@ -540,7 +536,30 @@ def Test_IINN(iinn_: IINN,
             utils.show_rgb(A_)
 
     def testA2B():
-        pass
+        labels_gt = np.argmax(yy, axis=-1)
+        num_correct = 0
+        for i in range(xx.shape[0]):
+            feed_in = dict()
+            feed_in[inputA] = xx[i:i+1, :, :, :]
+            codeA2B_ = sess.run(codeA2B, feed_dict=feed_in)
+            if np.argmax(codeA2B_[0]) == labels_gt[i]:
+                num_correct += 1
+        print("Test Accuracy of [A2B] is %.6f" % (float(num_correct) / xx.shape[0]))
+
+    def testB2A():
+        labels_gt = np.argmax(yy, axis=-1)
+        num_correct = 0
+        for i in range(xx.shape[0]):
+            # assign codeB ( a variable )
+            feed_in = dict()
+            feed_in[] = xx[i:i + 1, :, :, :]
+            codeA2B_ = sess.run(codeA2B, feed_dict=feed_in)
+            if np.argmax(codeA2B_[0]) == labels_gt[i]:
+                num_correct += 1
+        print("Test Accuracy of [A2B] is %.6f" % (float(num_correct) / xx.shape[0]))
+
+    def testB2A():
+
 
     def testB2A():
         pass
@@ -561,30 +580,6 @@ def Test_IINN(iinn_: IINN,
         else:
             raise ValueError("unknown pattern type!")
 
-    # inference
-    labels_gt = np.argmax(yy, axis=-1)
-    num_correct = 0
-
-    if stage == 1: # test without attention control
-
-    elif stage == 2: # test double-shot with attention control
-        for i in range(xx.shape[0]):
-            # first shot:
-            # get the input of attention module, ie, the output of last shot
-            feed_in = dict()
-            feed_in[x_t] = xx[i:i+1, :, :, :]
-            for j in range(len(c_t)):
-                feed_in[c_t[j]] = ctl_sig[j]
-            y = sess.run(y_t, feed_dict=feed_in)
-            # second shot:
-            # use the outputs of last shot to control the second shot
-            feed_in = dict()
-            feed_in[x_t] = xx[i:i+1, :, :, :]
-            feed_in[a_t] = np.copy(y)
-            y, ctl_ = sess.run([y_t, c_t], feed_dict=feed_in)
-            print(ctl_[5])
-            if np.argmax(y[0]) == labels_gt[i]:
-                num_correct += 1
     elif stage >= 3: # test multiple shot with attention control
         for i in range(xx.shape[0]):
             # first shot:
@@ -618,7 +613,7 @@ if __name__ == "__main__":
                                      data_train['input'].shape[2]))
     print('training set volume: %d pairs of sample.' % data_train['input'].shape[0])
     print('testing  set volume: %d pairs of sample.' % data_test['input'].shape[0])
-
+    exit(0)
     model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10'
     loss = Train_IINN(iinn_, data_train, model_path, 1)
     print('Final Training Loss = %12.8f' % loss)
@@ -629,3 +624,5 @@ if __name__ == "__main__":
     # TODO reference here: [https://www.cnblogs.com/thisisajoke/p/12054290.html]
     #   1. define an image generator and train with YinYang model.(sparsest AE)
     #   2. Pick up the idea of creating GAME of AI
+    #   3. This is the last update to alice, more over, I will not try to create her,
+    #       instead, I will let herself grow on her own.
