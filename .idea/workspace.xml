@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="89f28798-3dc4-4c06-8836-b3e0beb7ed87" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/Alice.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Alice.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iinn.py" beforeDir="false" afterPath="$PROJECT_DIR$/iinn.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -91,7 +94,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\Administrator\AppData\Local\Programs\Python\Python36\python.exe" />
+      <option name="SDK_HOME" value="D:\Anaconda3\envs\py35\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -173,9 +176,10 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="552" y="197" key="#Notifications/0.0.1920.1080@0.0.1920.1080" timestamp="1577152514870" />
-    <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579235345293">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state x="414" y="187" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579923177888">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
+    <state x="414" y="187" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1579923177888" />
     <state x="414" y="194" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1579235345293" />
     <state x="640" y="265" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1579568008673">
       <screen x="0" y="0" width="1920" height="1080" />
@@ -186,29 +190,33 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="131" key="#iinn/0.0.1920.1040@0.0.1920.1040" timestamp="1578489466884" />
-    <state width="1898" height="115" key="GridCell.Tab.0.bottom" timestamp="1579341492685">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state width="1898" height="380" key="GridCell.Tab.0.bottom" timestamp="1579960742487">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1898" height="305" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
+    <state width="1898" height="380" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1579960742487" />
     <state width="1898" height="115" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
-    <state width="1898" height="115" key="GridCell.Tab.0.center" timestamp="1579341492685">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state width="1898" height="380" key="GridCell.Tab.0.center" timestamp="1579960742487">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1898" height="305" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
+    <state width="1898" height="380" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1579960742487" />
     <state width="1898" height="115" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
-    <state width="1898" height="115" key="GridCell.Tab.0.left" timestamp="1579341492685">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state width="1898" height="380" key="GridCell.Tab.0.left" timestamp="1579960742486">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1898" height="305" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
+    <state width="1898" height="380" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1579960742486" />
     <state width="1898" height="115" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
-    <state width="1898" height="115" key="GridCell.Tab.0.right" timestamp="1579341492685">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state width="1898" height="380" key="GridCell.Tab.0.right" timestamp="1579960742487">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1898" height="305" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1578814425207" />
+    <state width="1898" height="380" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1579960742487" />
     <state width="1898" height="115" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1579341492685" />
     <state x="461" y="171" key="SettingsEditor" timestamp="1577150568924">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="461" y="171" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1577150568924" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1579947067703">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1579947067703" />
   </component>
 </project>

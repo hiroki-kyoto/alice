@@ -45,6 +45,13 @@ def show_rgb(rgb: np.ndarray) -> None:
         Image.fromarray(np.uint8(rgb)).show()
 
 
+def save_rgb(rgb: np.ndarray, path: str) -> None:
+    if np.max(rgb) <= 1.0:
+        Image.fromarray(np.uint8(rgb * 255)).save(path)
+    else:
+        Image.fromarray(np.uint8(rgb)).save(path)
+
+
 def gray2rgb(gray):
     return np.stack([gray, gray, gray], axis=-1)
 
@@ -53,6 +60,11 @@ def show_gray(gray, min=0, max=255):
     assert max - min > 0
     gray_std = np.minimum(np.maximum(gray, min), max) / (max - min)
     return show_rgb(gray2rgb(gray_std))
+
+def save_gray(gray, path: str, min=0, max=255):
+    assert max - min > 0
+    gray_std = np.minimum(np.maximum(gray, min), max) / (max - min)
+    return save_rgb(gray2rgb(gray_std), path)
 
 
 def normalize(x):

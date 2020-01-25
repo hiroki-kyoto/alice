@@ -327,6 +327,8 @@ class IINN(object):
         return self.opt_B2A
     def getOptCodeB(self):
         return self.opt_codeB
+    def getCodeA(self):
+        return self.codeA
 
 
 def new_conv_config(k_w, k_h, s_w, s_h, filters):
@@ -370,10 +372,35 @@ def Build_IINN(n_class):
                 att_config)
 
 
+class TrainStage(object):
+    def __init__(self):
+        self.index = 0
+    def __eq__(self, other):
+        return self.index == other.index
+    def __str__(self):
+        return "Undefined Training Stage"
+    def __gt__(self, other):
+        return self.index > other.index
+    def __lt__(self, other):
+        return self.index < other.index
+
+
+class TrainAutoEncoders(TrainStage):
+    def __init__(self):
+        self.index = 1
+    def __str__(self):
+        return "Training Auto-Encoders"
+
+class TrainConvertors(TrainStage):
+    def __init__(self):
+        self.index = 2
+    def __str__(self):
+        return "Training Convertors"
+
 def Train_IINN(iinn_: IINN,
                data: dict,
                model_path: str,
-               train_stage: int) -> float:
+               train_stage: TrainStage) -> float:
     xx = data['input']
     yy = data['output']
 
@@ -424,7 +451,7 @@ def Train_IINN(iinn_: IINN,
     else:
         sess.run(tf.global_variables_initializer())
 
-    if train_stage == 1: # stage 1: train auto encoders 
+    if train_stage == TrainAutoEncoders():
         while itr < MAX_ITR and  eps > CVG_EPS:
             idx = np.random.randint(xx.shape[0])
             feed_in = dict()
@@ -438,7 +465,7 @@ def Train_IINN(iinn_: IINN,
             if itr % (BAT_NUM * 16) == 0:
                 saver.save(sess, model_path, global_step=global_step)
         return eps
-    elif train_stage == 2: # train converters
+    elif train_stage == TrainConvertors:
         while itr < MAX_ITR and eps > CVG_EPS:
             idx = np.random.randint(xx.shape[0])
             # before training converter, B has to be set
@@ -490,7 +517,8 @@ def Test_IINN(iinn_: IINN,
               data: dict,
               model_path: str,
               source: PatternType,
-              target: PatternType):
+              target: PatternType,
+              max_itr: int):
     xx = data['input']
     yy = data['output']
 
@@ -499,6 +527,7 @@ def Test_IINN(iinn_: IINN,
     codeB_setter = iinn_.getCodeBSetter()  # setter value of B
 
     # control nodes
+    codeA = iinn_.getCodeA()
     codeB = iinn_.getCodeB() # control target
     codeB_assign = iinn_.getCodeBAssign() # control operation
 
@@ -532,8 +561,8 @@ def Test_IINN(iinn_: IINN,
         for i in range(xx.shape[0]):
             feed_in = dict()
             feed_in[inputA] = xx[i:i+1, :, :, :]
-            A_ = sess.run(inputA2A, feed_dict=feed_in)
-            utils.show_rgb(A_)
+            A2A_ = sess.run(inputA2A, feed_dict=feed_in)
+            utils.save_rgb(A2A_[0], "A2A_" + str(i) + ".png")
 
     def testA2B():
         labels_gt = np.argmax(yy, axis=-1)
@@ -547,29 +576,46 @@ def Test_IINN(iinn_: IINN,
         print("Test Accuracy of [A2B] is %.6f" % (float(num_correct) / xx.shape[0]))
 
     def testB2A():
-        labels_gt = np.argmax(yy, axis=-1)
-        num_correct = 0
         for i in range(xx.shape[0]):
             # assign codeB ( a variable )
             feed_in = dict()
-            feed_in[] = xx[i:i + 1, :, :, :]
-            codeA2B_ = sess.run(codeA2B, feed_dict=feed_in)
-            if np.argmax(codeA2B_[0]) == labels_gt[i]:
+            feed_in[codeB_setter] = yy[i]
+            sess.run(codeB_assign, feed_dict=feed_in)
+            # association: convert from code B to recovered A
+            codeB2A_ = sess.run(codeB2A)
+            A2A_ = sess.run(inputA2A, feed_dict={codeA: codeB2A_})
+            utils.save_rgb(A2A_[0], "B2A_" + str(i) + ".png")
+
+    # max_itr: maximum iteration to optimize the autoencoder loss of A for each sample
+    def testA2B_recursive(max_itr: int):
+        # get the first shot and then try to optimize the result using auto-encoder of A
+        num_correct = 0
+        labels_gt = np.argmax(yy, axis=-1)
+        for i in range(xx.shape[0]):
+            # guess solution
+            feed_in = dict()
+            feed_in[inputA] = xx[i:i+1, :, :, :]
+            codeA2B_, codeA_ = sess.run([codeA2B, codeA], feed_dict=feed_in)
+            # optimize solution
+            feed_in = dict()
+            feed_in[codeB_setter] = codeA2B_
+            sess.run(codeB_assign, feed_dict=feed_in)
+            # recursively update solution of B
+            feed_in = dict()
+            feed_in[codeA] = codeA_
+            for k in range(max_itr):
+                sess.run(opt_codeB, feed_dict=feed_in)
+            B_ = sess.run(codeB)
+            if np.argmax(B_[0]) == labels_gt[i]:
                 num_correct += 1
-        print("Test Accuracy of [A2B] is %.6f" % (float(num_correct) / xx.shape[0]))
+        print("Test Accuracy of [A2B_recursive] is %.6f" % (float(num_correct) / xx.shape[0]))
 
-    def testB2A():
-
-
-    def testB2A():
-        pass
-
-    # test the first converter: A to A
     if source == PatternA():
         if target == PatternA():
             testA2A()
         elif target == PatternB():
-            testA2B()
+            #testA2B()
+            testA2B_recursive(max_itr)
         else:
             raise ValueError("unknown pattern type!")
     elif source == PatternB():
@@ -580,30 +626,15 @@ def Test_IINN(iinn_: IINN,
         else:
             raise ValueError("unknown pattern type!")
 
-    elif stage >= 3: # test multiple shot with attention control
-        for i in range(xx.shape[0]):
-            # first shot:
-            # get the input of attention module, ie, the output of last shot
-            feed_in = dict()
-            feed_in[x_t] = xx[i:i+1, :, :, :]
-            for j in range(len(c_t)):
-                feed_in[c_t[j]] = ctl_sig[j]
-            y = sess.run(y_t, feed_dict=feed_in)
-            # second or latter shot:
-            # use the outputs of last shot to control the next shot
-            feed_in = dict()
-            feed_in[x_t] = xx[i:i + 1, :, :, :]
-            for shot in range(stage - 1):
-                feed_in[a_t] = np.copy(y)
-                y = sess.run(y_t, feed_dict=feed_in)
-            if np.argmax(y[0]) == labels_gt[i]:
-                num_correct += 1
-    return float(num_correct) / float(labels_gt.shape[0])
-
-
 if __name__ == "__main__":
     n_class = 10
     iinn_ = Build_IINN(n_class)
+
+    # check if the training stages can be sorted
+    stages = sorted([TrainConvertors(), TrainAutoEncoders()])
+    for i in range(len(stages)):
+        print(stages[i])
+    exit(0)
 
     # training with CIFAR-10 dataset
     data_train, data_test = \
@@ -613,9 +644,9 @@ if __name__ == "__main__":
                                      data_train['input'].shape[2]))
     print('training set volume: %d pairs of sample.' % data_train['input'].shape[0])
     print('testing  set volume: %d pairs of sample.' % data_test['input'].shape[0])
-    exit(0)
+
     model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10'
-    loss = Train_IINN(iinn_, data_train, model_path, 1)
+    loss = Train_IINN(iinn_, data_train, model_path, TrainAutoEncoders)
     print('Final Training Loss = %12.8f' % loss)
 
     #acc = Test_IINN(iinn_, data_test, model_path, 1)
