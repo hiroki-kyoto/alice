@@ -465,7 +465,7 @@ def Train_IINN(iinn_: IINN,
             if itr % (BAT_NUM * 16) == 0:
                 saver.save(sess, model_path, global_step=global_step)
         return eps
-    elif train_stage == TrainConvertors:
+    elif train_stage == TrainConvertors():
         while itr < MAX_ITR and eps > CVG_EPS:
             idx = np.random.randint(xx.shape[0])
             # before training converter, B has to be set
@@ -496,8 +496,6 @@ class PatternType(object):
     def __str__(self):
         return "UNKNOWN PATTERN TYPE"
     def __eq__(self, other):
-        if type(other) != type(self):
-            raise TypeError("right op is not an instance of PatternType!")
         return self.code == other.code
 
 class PatternA(PatternType):
@@ -562,7 +560,9 @@ def Test_IINN(iinn_: IINN,
             feed_in = dict()
             feed_in[inputA] = xx[i:i+1, :, :, :]
             A2A_ = sess.run(inputA2A, feed_dict=feed_in)
-            utils.save_rgb(A2A_[0], "A2A_" + str(i) + ".png")
+            A2A_ = np.minimum(np.maximum(A2A_[0], 0), 1.0)
+            A2A_ = np.concatenate((xx[i], A2A_), axis=1)
+            utils.save_rgb(A2A_, "A2A_" + str(i) + ".png")
 
     def testA2B():
         labels_gt = np.argmax(yy, axis=-1)
@@ -579,12 +579,14 @@ def Test_IINN(iinn_: IINN,
         for i in range(xx.shape[0]):
             # assign codeB ( a variable )
             feed_in = dict()
-            feed_in[codeB_setter] = yy[i]
+            feed_in[codeB_setter] = yy[i:i+1]
             sess.run(codeB_assign, feed_dict=feed_in)
             # association: convert from code B to recovered A
             codeB2A_ = sess.run(codeB2A)
             A2A_ = sess.run(inputA2A, feed_dict={codeA: codeB2A_})
-            utils.save_rgb(A2A_[0], "B2A_" + str(i) + ".png")
+            A2A_ = np.minimum(np.maximum(A2A_[0], 0), 1.0)
+            B2A_ = np.concatenate((xx[i], A2A_), axis=1)
+            utils.save_rgb(B2A_, "B2A_" + str(i) + ".png")
 
     # max_itr: maximum iteration to optimize the autoencoder loss of A for each sample
     def testA2B_recursive(max_itr: int):
@@ -630,12 +632,6 @@ if __name__ == "__main__":
     n_class = 10
     iinn_ = Build_IINN(n_class)
 
-    # check if the training stages can be sorted
-    stages = sorted([TrainConvertors(), TrainAutoEncoders()])
-    for i in range(len(stages)):
-        print(stages[i])
-    exit(0)
-
     # training with CIFAR-10 dataset
     data_train, data_test = \
         dataset.cifar10.Load_CIFAR10('../Datasets/CIFAR10/')
@@ -645,12 +641,12 @@ if __name__ == "__main__":
     print('training set volume: %d pairs of sample.' % data_train['input'].shape[0])
     print('testing  set volume: %d pairs of sample.' % data_test['input'].shape[0])
 
-    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10'
-    loss = Train_IINN(iinn_, data_train, model_path, TrainAutoEncoders)
-    print('Final Training Loss = %12.8f' % loss)
+    model_path = '../Models/CIFAR10-IINN/ckpt_iinn_cifar10-1081344-5373952'
 
-    #acc = Test_IINN(iinn_, data_test, model_path, 1)
-    #print("Accuracy = %6.5f" % acc)
+    # Train_IINN(iinn_, data_train, model_path, TrainAutoEncoders())
+    #Train_IINN(iinn_, data_train, model_path, TrainConvertors())
+
+    Test_IINN(iinn_, data_test, model_path, PatternB(), PatternA(), 0)
 
     # TODO reference here: [https://www.cnblogs.com/thisisajoke/p/12054290.html]
     #   1. define an image generator and train with YinYang model.(sparsest AE)
